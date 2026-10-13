@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#05090e">
+  <meta name="description" content="ATLAS Living Worlds — explore a living Earth, the atmosphere of Jupiter, and Saturn’s rings in an interactive astronomical atlas.">
+  <title>ATLAS — Living Worlds</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="atlas" class="atlas" data-world="earth" data-view="observation">
+  <div class="cosmos" aria-hidden="true">
+    <canvas id="universe" class="universe"></canvas>
+    <div id="fallbackScene" class="fallback-scene">
+      <img id="fallbackPlanet" src="assets/earth-cover.webp" alt="" draggable="false">
+    </div>
+    <div class="cosmos-shade"></div>
+  </div>
+
+  <header class="topbar">
+    <a class="brand" href="#earth" aria-label="ATLAS — Earth">
+      <span class="brand-symbol" aria-hidden="true"><i></i></span>
+      <span class="brand-name">ATLAS<small>LIVING WORLDS</small></span>
+    </a>
+    <nav class="world-nav" aria-label="Choose a world">
+      <button class="nav-world is-active" data-world="earth" type="button"><span class="planet-point earth-point"></span><span>Earth</span></button>
+      <button class="nav-world" data-world="jupiter" type="button"><span class="planet-point jupiter-point"></span><span>Jupiter</span></button>
+      <button class="nav-world" data-world="saturn" type="button"><span class="planet-point saturn-point"></span><span>Saturn</span></button>
+    </nav>
+    <div class="top-actions">
+      <span class="live-indicator"><i></i>LIVE SIMULATION</span>
+      <button id="soundToggle" class="icon-action" type="button" aria-label="Audio narration" title="Optional spoken explanations">VOICE <span class="icon-speak" aria-hidden="true">◖))</span></button>
+      <button id="aboutButton" class="icon-action" type="button" aria-expanded="false">ABOUT <span aria-hidden="true">↗</span></button>
+    </div>
+  </header>
+
+  <main class="primary" id="main">
+    <section class="narrative" aria-label="Current discovery">
+      <div class="chapter-index"><span id="chapterNumber">01</span> <span class="index-divider" aria-hidden="true"></span> <span id="chapterKind">OUR HOME</span></div>
+      <h1 id="worldTitle">Earth<span class="title-dot">.</span></h1>
+      <p id="worldLead" class="lead">A living planet, turning beneath the Sun.</p>
+      <p id="worldText" class="supporting">Clouds move. Sunlight travels across the continents. Every moment, somewhere on Earth, a new day begins.</p>
+      <div class="narrative-rule" aria-hidden="true"><span></span></div>
+      <div class="discovery-question">
+        <span class="discovery-label" id="experimentCategory">YOUR EXPERIMENT</span>
+        <h2 id="experimentQuestion">How does day become night?</h2>
+        <p id="experimentHint">Choose a city, then turn Earth. Watch it travel into and out of the sunlight.</p>
+      </div>
+      <div class="primary-actions">
+        <button id="playButton" class="play-action" type="button" aria-pressed="false"><span class="play-icon" aria-hidden="true">▶</span><span id="playLabel">Play one day</span></button>
+        <button id="resetButton" class="quiet-action" type="button">Reset <span aria-hidden="true">↺</span></button>
+      </div>
+    </section>
+
+    <div class="scene-instruction" id="sceneInstruction" aria-live="polite"><span class="gesture-icon" aria-hidden="true">↔</span><span id="gestureText">DRAG TO TURN EARTH</span></div>
+
+    <aside class="instrument" aria-label="Scientific controls">
+      <div class="instrument-head"><span id="instrumentLabel">OBSERVATION / 01</span><span class="instrument-live"><i></i><span id="simulationStatus">READY</span></span></div>
+      <div id="earthInstrument" class="instrument-body">
+        <label class="field-label" for="citySelect">OBSERVE A LOCATION</label>
+        <div class="field-select"><select id="citySelect">
+          <option value="abu-dhabi">Abu Dhabi</option>
+          <option value="stockholm">Stockholm</option>
+          <option value="tokyo">Tokyo</option>
+          <option value="new-york">New York</option>
+          <option value="quito">Quito</option>
+        </select><span aria-hidden="true">⌄</span></div>
+        <div class="reading" aria-live="polite"><div class="reading-value"><span id="solarClock">12:00</span><small>LOCAL SOLAR TIME</small></div><div class="reading-condition"><span class="day-indicator" id="dayDot"></span><strong id="dayStatus">Daylight</strong></div></div>
+        <label class="field-label" for="earthRotation">TURN THROUGH ONE DAY</label>
+        <input id="earthRotation" type="range" min="0" max="1000" value="300" aria-label="Rotate the Earth through one solar day">
+        <div class="range-caption"><span>00:00</span><span>12 HOURS</span><span>24:00</span></div>
+        <div class="toggle-row"><label><input id="cloudToggle" type="checkbox" checked><span class="mini-switch"></span> CLOUDS</label><label><input id="lightsToggle" type="checkbox" checked><span class="mini-switch"></span> NIGHT LIGHTS</label></div>
+      </div>
+      <div id="jupiterInstrument" class="instrument-body" hidden>
+        <div class="reading dark-reading"><div class="reading-value"><span id="jupiterReading">×1</span><small>ATMOSPHERIC TIME</small></div><div class="reading-condition"><span class="day-indicator amber"></span><strong>Accelerated</strong></div></div>
+        <label class="field-label" for="jupiterTime">FOLLOW THE ATMOSPHERE</label>
+        <input id="jupiterTime" type="range" min="0" max="100" value="26" aria-label="Speed up Jupiter’s stylised atmospheric motion">
+        <div class="range-caption"><span>GENTLE</span><span>FAST-FORWARD</span></div>
+        <button id="stormButton" class="wide-action" type="button" aria-pressed="false"><span>Approach the Great Red Spot</span><span aria-hidden="true">↗</span></button>
+        <button id="earthCompare" class="inset-action" type="button" aria-pressed="false"><span>Compare its scale with Earth</span><span id="compareSymbol" aria-hidden="true">○</span></button>
+        <p class="instrument-note">Cloud motion is an artistic model, not a live weather forecast.</p>
+      </div>
+      <div id="saturnInstrument" class="instrument-body" hidden>
+        <label class="field-label" for="saturnAngle">CHANGE YOUR VIEWPOINT</label>
+        <div class="reading dark-reading"><div class="reading-value"><span id="saturnReading">24°</span><small>ABOVE THE RING PLANE</small></div><div class="reading-condition">CAMERA</div></div>
+        <input id="saturnAngle" type="range" min="-70" max="70" value="24" step="1" aria-label="Move the camera above and below Saturn’s rings">
+        <div class="range-caption"><span>BELOW</span><span>EDGE-ON</span><span>ABOVE</span></div>
+        <div class="view-presets"><button id="saturnTop" type="button">From above</button><button id="saturnEdge" type="button">Edge-on</button><button id="saturnBelow" type="button">From below</button></div>
+        <button id="particleButton" class="wide-action" type="button" aria-pressed="false"><span>Track two pieces of ring ice</span><span aria-hidden="true">↗</span></button>
+        <p class="instrument-note" id="particleInsight">The rings look solid from far away. They are made of countless orbiting pieces.</p>
+      </div>
+      <div class="instrument-foot"><span class="credit-mark">●</span><span id="modelNote">ILLUSTRATIVE CLOUD MOTION · NASA-BASED SURFACE</span></div>
+    </aside>
+  </main>
+
+  <footer class="bottom-dock">
+    <div class="dock-intro"><span>CONTINUE EXPLORING</span><strong id="dockDescription">Three worlds. Three extraordinary stories.</strong></div>
+    <div class="world-cards" role="group" aria-label="Go to another world">
+      <button class="world-card is-current" data-world="earth" type="button"><img src="assets/earth-cover.webp" alt="" loading="eager"><span class="world-card-copy"><small>01 / THE LIVING PLANET</small><strong>Earth</strong><span class="world-card-sub">Chase the sunlight</span></span><span class="card-arrow" aria-hidden="true">↗</span></button>
+      <button class="world-card" data-world="jupiter" type="button"><img src="assets/jupiter-cover.webp" alt="" loading="lazy"><span class="world-card-copy"><small>02 / AN OCEAN OF CLOUDS</small><strong>Jupiter</strong><span class="world-card-sub">Enter the storm</span></span><span class="card-arrow" aria-hidden="true">↗</span></button>
+      <button class="world-card" data-world="saturn" type="button"><img src="assets/saturn-cover.webp" alt="" loading="lazy"><span class="world-card-copy"><small>03 / A WORLD OF RINGS</small><strong>Saturn</strong><span class="world-card-sub">Follow the ice</span></span><span class="card-arrow" aria-hidden="true">↗</span></button>
+    </div>
+    <div class="dock-meta"><span>ATLAS / 10</span><span id="frameRateLabel">3D SCENE</span></div>
+  </footer>
+
+  <div id="aboutPanel" class="about-panel" role="dialog" aria-modal="true" aria-labelledby="aboutTitle" hidden>
+    <button id="closeAbout" class="close-about" type="button" aria-label="Close information">×</button>
+    <span class="eyebrow">ATLAS / FIELD NOTES</span>
+    <h2 id="aboutTitle">A living astronomical atlas.</h2>
+    <p>Three experimental worlds made to explore, not just observe. Drag or use the controls. Try something, watch what changes, and ask why.</p>
+    <h3>How to use it</h3>
+    <p><strong>Earth</strong> — Turn the globe with sunlight held fixed. Follow a real city from day to night. Clouds move independently; their motion is illustrative.</p>
+    <p><strong>Jupiter</strong> — Speed up simulated atmospheric circulation, approach the Great Red Spot and compare scales. The wind field is artistic, not measured.</p>
+    <p><strong>Saturn</strong> — Travel over and under the rings and track particles moving at different orbital speeds. Ring structures are simplified.</p>
+    <h3>Representation & sources</h3>
+    <p>The Earth surface derives from NASA Blue Marble imagery; the other planetary materials are reconstructions informed by spacecraft observation. Orbital periods and planetary dimensions follow NASA/JPL fact sheets. This is a scientific visualisation, not a live feed of observed weather.</p>
+    <p><a href="https://science.nasa.gov/solar-system/" target="_blank" rel="noopener">NASA Solar System</a> · <a href="https://science.nasa.gov/earth/earth-observatory/blue-marble-next-generation/" target="_blank" rel="noopener">NASA Blue Marble</a> · <a href="https://science.nasa.gov/missions/cassini/" target="_blank" rel="noopener">Cassini</a> · <a href="https://science.nasa.gov/mission/juno/" target="_blank" rel="noopener">Juno</a></p>
+    <h3>Performance & access</h3>
+    <p>If GPU rendering is unavailable the experience uses pre-rendered planetary illustrations; controls and science explanations remain available. Respect reduced motion, or pause the animation using the main control.</p>
+    <label class="pref"><input id="lowPower" type="checkbox"> Energy-saving display quality</label>
+  </div>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+</div>
+<script type="module" src="app.js"></script>
+</body>
+</html>
