@@ -1,0 +1,17 @@
+# Local/editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Build artifacts and dependencies
+node_modules/
+dist/
+build/
+coverage/
+*.log
+
+# Secrets
+.env
+.env.*
+!.env.example
