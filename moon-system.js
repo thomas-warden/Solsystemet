@@ -4,14 +4,15 @@ import { OrbitControls } from './vendor/OrbitControls.js';
 import { WORLDS } from './worlds.js?v=20261014d';
 import { MOONS, FAMILIES, moonPosition } from './moons.js?v=20261014d';
 const $=id=>document.getElementById(id),TAU=Math.PI*2;
+const reduced=matchMedia('(prefers-reduced-motion: reduce)');
 export class MoonSystem {
  constructor(){
-  this.active=false;this.days=0;this.playing=false;this.parent='';this.items={};this.textures=new Map();this.request=0;
+  this.active=false;this.days=0;this.playing=!reduced.matches;this.parent='';this.items={};this.textures=new Map();this.request=0;
   this.renderer=new THREE.WebGLRenderer({canvas:$('moonCanvas'),antialias:true});this.renderer.setPixelRatio(Math.min(devicePixelRatio,2));this.renderer.setClearColor(0x030507);this.renderer.outputColorSpace=THREE.SRGBColorSpace;this.renderer.toneMapping=THREE.ACESFilmicToneMapping;this.renderer.toneMappingExposure=1.1;
   this.scene=new THREE.Scene();this.sky=addCelestialSky(this.scene);this.camera=new THREE.PerspectiveCamera(38,1,.03,500);this.camera.position.set(0,17,25);this.controls=new OrbitControls(this.camera,$('moonCanvas'));this.controls.enableDamping=true;this.controls.enablePan=false;this.controls.minDistance=4;this.controls.maxDistance=90;this.controls.maxPolarAngle=Math.PI*.9;this.controls.target.set(0,0,0);
   this.scene.add(new THREE.AmbientLight(0x73879a,.34));const light=new THREE.DirectionalLight(0xffedcf,2.9);light.position.set(-8,5,7);this.scene.add(light);this.group=new THREE.Group();this.scene.add(this.group);this.sphere=new THREE.SphereGeometry(1,64,40);this.loader=new THREE.TextureLoader();this.labels=[];
   $('moonFocus').onchange=e=>this.select(e.target.value);
-  $('moonPlay').onclick=()=>{if(this.days>=this.span)this.days=0;this.playing=!this.playing;this.updateUI();};$('moonDay').oninput=e=>{this.days=Number(e.target.value)/1000*this.span;this.playing=false;this.updateUI();};$('moonPerspective').onclick=()=>this.setView(false);$('moonTop').onclick=()=>this.setView(true);$('moonReset').onclick=()=>{this.days=0;this.playing=false;this.select(FAMILIES[this.parent][0]);this.setView(false);this.updateUI();};
+  $('moonPlay').onclick=()=>{if(this.days>=this.span)this.days=0;this.playing=!this.playing;this.updateUI();};$('moonDay').oninput=e=>{this.days=Number(e.target.value)/1000*this.span;this.playing=false;this.updateUI();};$('moonPerspective').onclick=()=>this.setView(false);$('moonTop').onclick=()=>this.setView(true);$('moonReset').onclick=()=>{this.days=0;this.playing=!reduced.matches;this.select(FAMILIES[this.parent][0]);this.setView(false);this.updateUI();};
   const canvas=$('moonCanvas');
   canvas.addEventListener('pointerdown',e=>{if(e.isPrimary&&e.button===0)this.pointer={id:e.pointerId,x:e.clientX,y:e.clientY,moved:false};});
   canvas.addEventListener('pointermove',e=>{if(this.pointer?.id===e.pointerId&&Math.hypot(e.clientX-this.pointer.x,e.clientY-this.pointer.y)>6)this.pointer.moved=true;});
@@ -27,11 +28,12 @@ export class MoonSystem {
    if(body?.userData.id)location.hash='#'+body.userData.id;
   });
   canvas.onkeydown=e=>{if(!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','+','=','-'].includes(e.key))return;e.preventDefault();const s=new THREE.Spherical().setFromVector3(this.camera.position);if(e.key==='ArrowLeft')s.theta-=.12;if(e.key==='ArrowRight')s.theta+=.12;if(e.key==='ArrowUp')s.phi=Math.max(.05,s.phi-.1);if(e.key==='ArrowDown')s.phi=Math.min(Math.PI*.9,s.phi+.1);if(['+','='].includes(e.key))s.radius=Math.max(4,s.radius*.85);if(e.key==='-')s.radius=Math.min(90,s.radius/.85);this.camera.position.setFromSpherical(s);this.controls.update();};
+  reduced.addEventListener('change',e=>{if(e.matches){this.playing=false;this.updateUI();}});
   this.observer=new ResizeObserver(()=>this.resize());this.observer.observe($('moonStage'));
  }
  texture(path){if(!this.textures.has(path))this.textures.set(path,this.loader.loadAsync(path).then(t=>{t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=Math.min(8,this.renderer.capabilities.getMaxAnisotropy());return t;}));return this.textures.get(path);}
  async show(parent,selected){
-  this.active=true;if(this.parent===parent){this.select(selected||this.selected);this.resize();return;}this.parent=parent;this.days=0;this.playing=false;this.selected=selected||FAMILIES[parent][0];const token=++this.request;
+  this.active=true;this.playing=!reduced.matches;if(this.parent===parent){if(this.days>=this.span)this.days=0;this.select(selected||this.selected);this.resize();this.updateUI();return;}this.parent=parent;this.days=0;this.selected=selected||FAMILIES[parent][0];const token=++this.request;
   for(const child of [...this.group.children]){child.traverse(o=>{if(o.geometry&&o.geometry!==this.sphere)o.geometry.dispose();if(o.material)o.material.dispose();});this.group.remove(child);}this.items={};this.labels=[];$('moonLabels').replaceChildren();
   const ids=FAMILIES[parent];this.span=parent==='earth'?28:parent==='jupiter'?17:80;this.maxRadius=parent==='earth'?4.6:parent==='jupiter'?8.3:11.4;
   $('moonSystemTitle').textContent=parent==='earth'?'Earth & the Moon.':WORLDS[parent].title+'’s moons.';$('moonSystemIntro').innerHTML=parent==='earth'?'Two worlds, one familiar sky.<br>Watch the Moon circle our home.':parent==='jupiter'?'Four moons. Four different worlds.<br>Fire, ice and hidden oceans.':'Seven moons beyond the rings.<br>Ice fountains, methane rain and a mountain seam.';
@@ -56,7 +58,7 @@ export class MoonSystem {
  setView(top){this.top=top;this.controls.target.set(0,0,0);const dist=this.distance();this.camera.position.set(0,top?dist:dist*.6,top?.01:dist*.8);this.controls.update();$('moonTop').setAttribute('aria-pressed',String(top));$('moonPerspective').setAttribute('aria-pressed',String(!top));}
  distance(){return (this.maxRadius+.9)*Math.max(this.top?3.25:2.35,3.65/Math.max(.4,this.camera.aspect));}
  resize(){if(!this.parent)return;const r=$('moonStage').getBoundingClientRect();if(!r.width||!r.height)return;const old=this.camera.aspect;this.camera.aspect=r.width/r.height;this.camera.updateProjectionMatrix();this.renderer.setSize(r.width,r.height,false);if(Math.abs(old-this.camera.aspect)>.05)this.setView(this.top);}
- hide(){this.active=false;this.playing=false;}
+ hide(){this.active=false;this.playing=false;this.updateUI();}
  updateUI(){$('moonPlay').textContent=this.playing?'Ⅱ Pause orbits':'▶ Play orbits';$('moonPlay').setAttribute('aria-pressed',String(this.playing));$('moonDay').value=Math.round(this.days/this.span*1000);$('moonDay').setAttribute('aria-valuetext',this.days.toFixed(1)+' Earth days');$('moonTime').textContent='Day '+this.days.toFixed(1);}
  frame(dt,now){if(!this.active||!this.parent)return;if(this.playing){this.days=Math.min(this.span,this.days+dt*(this.parent==='earth'?1:.25));if(this.days>=this.span)this.playing=false;}for(const [id,item] of Object.entries(this.items)){if(!item.r)continue;const angle=item.phase+this.days/MOONS[id].period*TAU;item.mesh.position.fromArray(moonPosition(id,this.days,item.r,FAMILIES[this.parent].indexOf(id)));item.mesh.rotation.y=-angle;}
   this.controls.update();this.renderer.render(this.scene,this.camera);this.positionLabels();if(!this.lastRead||now-this.lastRead>100){this.updateUI();this.lastRead=now;}}

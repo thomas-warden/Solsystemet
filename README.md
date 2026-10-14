@@ -68,7 +68,7 @@ Historical image composites are not a live feed. Cloud movement is illustrative.
 ## Motion and close-pass revision
 
 - Earth and all moons in the neighbourhood orreries open their entries from either the body or its name; dragging remains camera control.
-- Every planet and moon close-up starts rotating on arrival, unless reduced motion is requested. Pause and Motion off stop the same motion; arriving at a new world starts it again.
+- Every planet and moon close-up starts rotating on arrival, unless reduced motion is requested. Pause stops rotation and cloud drift; arriving at a new world starts it again.
 - The belt's cruise speed is about a quarter of the previous speed. Fewer, much larger bodies have crater relief, broken planes, fissures and layered surface detail. Each body keeps the same mesh throughout its pass, avoiding visible detail changes.
 - Bodies turn about independently chosen axes at different rates and directions. Small, occasional staged contacts release chips and a brief dust veil.
 - Collision objects are pooled and recycled behind the viewer; subsequent pairs enter through the distant fog. The real belt's sparse spacing and illustrative collisions are explained in Field notes.
@@ -94,3 +94,23 @@ Historical image composites are not a live feed. Cloud movement is illustrative.
 - The packed 1024px rock material stores surface slopes, mineral reflectance and crevice shading. Triplanar mapping, mipmaps and anisotropic filtering keep the relief stable during motion and at oblique angles. Surface slopes are filtered before lighting, avoiding screen-space derivative artifacts at triangle edges.
 - Large bodies use 160-segment terrain meshes; small bodies use 64. Meshes remain fixed for a whole pass, and rendering uses up to 2× display resolution with antialiasing. Slow travel, independent spins and staged contacts remain intact.
 - The material is generated illustration, not spacecraft photography. The deterministic generator is in scripts/build-rock-material.py (Python, NumPy and Pillow).
+
+## Guided exploration
+
+The default route, `#explore`, is a welcome page with a live solar-system view. `#missions` goes directly to three guided adventures:
+
+- **Catch a sunrise:** choose a city, find nighttime, then turn Earth into daylight.
+- **An ocean in hiding:** change Europa’s sunlight, visit Jupiter’s moon system, and compare Io’s and Europa’s periods.
+- **Race around the Sun:** run the one-Earth-year experiment and read Mercury’s whole-trip counter.
+
+Missions reuse the existing controls. Completion badges are stored locally on the device; exploration still works when storage is unavailable. A mission can be left at any time, and visiting another page offers a return link. `missions.js` owns the guide and discovery collection.
+
+All planet and moon close-ups, orbital systems, and asteroid flight start moving on arrival and reset. The device’s reduced-motion preference keeps automatic motion paused; explicit Play remains available. The welcome model moves continuously, while the full orbital model retains its one-year endpoint.
+
+The interface now uses one planet Play/Pause control, which stays available in View only mode. The asteroid scene’s second pause control appears only in View only mode. Moon pages keep one link to their orbital system, and full asteroid stories live on the belt page.
+
+### Browser regression check
+
+With the Python server running, use `node tests/mission-flow.cjs`. The check requires Playwright and Chromium; both are available in the prepared cloud environment. For another development machine, install Playwright locally with `npm install --no-save --package-lock=false playwright` and set `BROWSER_BIN` to its Chromium executable. `BASE_URL` optionally overrides the default local server address. These tools are not needed to run or publish the site.
+
+The check completes all three missions, exercises incorrect-answer feedback, confirms badges survive a reload, checks keyboard entry, and verifies mobile layouts. Headless WebGL uses software rendering; real tablet graphics performance still needs device testing.

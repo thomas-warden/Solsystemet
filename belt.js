@@ -142,6 +142,7 @@ export class BeltFlight {
   this.turn=new THREE.Quaternion();
  }
  reset(){
+  this.playing=!reduced.matches;
   this.random=randomGenerator(4705);this.elapsed=0;this.passed=0;this.look={x:0,y:0};this.gaze={x:0,y:0,vx:0,vy:0};this.camera.position.set(0,0,0);this.camera.lookAt(0,0,-100);
   for(let i=0;i<this.rocks.length;i++)this.place(this.rocks[i],-48-(i/this.rocks.length)*(FAR-48));
   const foreground=[[-26,-3,-58,13],[34,12,-105,17],[-15,37,-156,18]];
@@ -265,8 +266,8 @@ export class BeltFlight {
   $('beltSpeed').setAttribute('aria-valuetext',this.speed.toFixed(2)+' times cruise speed');
  }
  resize(){const r=$('beltStage').getBoundingClientRect();if(!r.width||!r.height)return;this.renderer.setSize(r.width,r.height,false);this.camera.aspect=r.width/r.height;this.camera.updateProjectionMatrix();for(const event of this.collisions)event.dust.material.uniforms.pixelScale.value=r.height*this.renderer.getPixelRatio();}
- show(){this.active=true;this.resize();this.updateUI();}
- hide(){this.active=false;if($('atlas').classList.contains('belt-cinema'))this.toggleCinema();}
+ show(){this.active=true;this.playing=!reduced.matches;this.resize();this.updateUI();}
+ hide(){this.active=false;this.playing=false;this.updateUI();if($('atlas').classList.contains('belt-cinema'))this.toggleCinema();}
  frame(dt){
   if(!this.active)return;
   const step=this.playing?Math.min(dt,.05):0;this.elapsed+=step;this.drawRocks(step);this.drawCollisions(step);

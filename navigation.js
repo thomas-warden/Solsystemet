@@ -6,6 +6,7 @@ export const MOON_HOOKS={moon:'Footprints that last for ages.',europa:'A whole o
 const parentName=id=>id[0].toUpperCase()+id.slice(1);
 export function resolveRoute(hash){
  const raw=hash.replace(/^#/,'');
+ if(!raw||raw==='explore'||raw==='missions')return {view:'home',path:raw||'explore'};
  if(ORDER.includes(raw)||MOONS[raw])return {view:'planet',world:raw,path:raw};
  if(raw==='belt')return {view:'belt',path:raw};
  const [base,selection,...rest]=raw.split('/');

@@ -3,15 +3,23 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#030507"><meta name="description" content="Solsystemet — Eight planets, twelve moons and the asteroid belt. An atlas to explore together.">
-<title>Solsystemet — Living worlds</title><link rel="stylesheet" href="style.css?v=20261014e">
+<title>Solsystemet — Living worlds</title><link rel="stylesheet" href="style.css?v=20261014missions">
 </head>
 <body>
 <div id="atlas" class="atlas" data-world="earth">
 <header class="topbar">
-<a class="brand" href="#orrery" aria-label="Solsystemet — solar system">Solsystemet<span>AN ATLAS OF LIVING WORLDS</span></a>
+<a class="brand" href="#explore" aria-label="Solsystemet — exploration home">Solsystemet<span>AN ATLAS OF LIVING WORLDS</span></a>
 <nav class="world-nav" aria-label="Explore the solar system"><button data-view="orrery" class="orrery-link">Orrery <span>↗</span></button><div id="planetNav" class="planet-nav"></div></nav>
-<div class="top-actions"><button id="motionToggle" type="button" aria-pressed="true">Motion on</button><button id="aboutButton" type="button" aria-expanded="false">Field notes ↗</button></div>
+<div class="top-actions"><a id="missionsLink" href="#missions">Missions <span id="missionNavCount">0/3</span></a><button id="aboutButton" type="button" aria-expanded="false">Field notes ↗</button></div>
 </header>
+<section id="missionGuide" class="mission-guide" aria-label="Your guided mission" hidden></section>
+<section role="main" id="homeView" class="home-view" aria-labelledby="homeTitle" hidden>
+<div class="home-hero">
+<div class="home-copy"><span class="eyebrow">YOUR NEXT DISCOVERY IS OUT THERE</span><h1 id="homeTitle" tabindex="-1">A little curiosity.<br><em>A whole universe.</em></h1><p>Chase the sunrise. Find an ocean under ice. Watch worlds race around the Sun.</p><a class="explore-action" href="#orrery">Explore the solar system <span aria-hidden="true">↗</span></a><a class="mission-jump" href="#missions">Or take your first mission <span aria-hidden="true">↓</span></a><div class="home-inventory"><span>08 <small>PLANETS</small></span><span>12 <small>MOONS</small></span><span>∞ <small>QUESTIONS</small></span></div></div>
+<div class="home-window"><div id="homeStage"></div><div class="home-scene-caption"><span>A SOLAR SYSTEM IN MOTION <small>Distances composed · worlds enlarged</small></span><button id="homeMotion" type="button" aria-pressed="true">Ⅱ Pause</button></div><p class="home-scene-hint">Pick a world. See where it takes you.</p></div>
+</div>
+<section id="missions" class="mission-library" aria-labelledby="missionsTitle"><div class="mission-library-heading"><div><span class="eyebrow">SMALL MISSIONS / BIG DISCOVERIES</span><h2 id="missionsTitle" tabindex="-1">Where shall we go?</h2><p>Three short adventures. Your hands on the controls.</p></div><div class="discovery-passport"><span id="passportCount">0 / 3</span><span id="passportLabel">DISCOVERIES COLLECTED</span><small id="passportStorage">Saved on this device</small></div></div><div id="missionCards" class="mission-cards"></div><p class="mission-library-note">Explore at your own pace. You can leave a mission whenever curiosity takes you somewhere else.</p></section>
+</section>
 <main id="main" class="primary">
 <section class="narrative" aria-label="Current discovery">
 <div class="chapter-index"><span id="chapterNumber">01</span><span class="index-divider"></span><span id="chapterKind">OUR HOME</span></div>
@@ -63,7 +71,7 @@
 </main>
 <section id="fieldStories" class="field-stories" aria-label="Small stories from a big solar system"><div class="story-intro"><span class="eyebrow">TAKE A THOUGHT HOME</span><h2>Imagine that.</h2></div><div id="storyGrid" class="story-grid"></div></section>
 <section id="moonDiscoveries" class="moon-discoveries" aria-labelledby="moonDiscoveriesTitle" hidden><div class="moon-discoveries-heading"><div><span class="eyebrow">SMALL WORLDS / BIG SURPRISES</span><h2 id="moonDiscoveriesTitle"></h2><p id="moonDiscoveriesIntro"></p></div><a id="featuredMoonSystem" href="#jupiter-moons">Explore their orbits ↗</a></div><div id="featuredMoonCards" class="moon-cards"></div></section>
-<section id="beltView" class="belt-view" hidden aria-labelledby="beltTitle">
+<section role="main" id="beltView" class="belt-view" hidden aria-labelledby="beltTitle">
 <nav class="neighbourhood-nav" aria-label="Around the asteroid belt"><a href="#orrery">← Whole solar system</a><a href="#mars">Mars ↗</a><a href="#jupiter">Jupiter ↗</a></nav>
 <div class="belt-heading"><div><span class="eyebrow">BETWEEN MARS & JUPITER / SMALL WORLDS</span><h1 id="beltTitle">The asteroid belt<span>.</span></h1></div><div><p class="lead">Leftovers from the making of worlds.</p><p>Drift past vast, fractured rocks. Watch sunlight reveal their craters as each one slowly tumbles. Every so often, two meet — and a few new fragments drift away.</p></div></div>
 <div id="beltStage" class="belt-stage">
@@ -76,7 +84,7 @@
 <p class="belt-scale-note">An imagined close-up journey. We have brought the rocks much closer together so you can explore them. <strong>The real belt is mostly empty space.</strong> <a href="sources.html#asteroids" target="_blank" rel="noopener">Field notes ↗</a></p>
 <section class="belt-stories" aria-label="Stories from the asteroid belt"><div class="story-intro"><span class="eyebrow">SMALL WORLDS / BIG SURPRISES</span><h2>Space between<br> the stones.</h2><p>There is much more here than a collection of rocks.</p></div><div id="beltEntryStories" class="story-grid"></div></section>
 </section>
-<section id="orreryView" class="orrery-view" hidden aria-label="Interactive solar system orrery">
+<section role="main" id="orreryView" class="orrery-view" hidden aria-label="Interactive solar system orrery">
 <div class="orrery-heading"><div><span class="eyebrow">THE SOLAR SYSTEM / IN MOTION</span><h1>One star. Many worlds.</h1></div><p>Every world keeps a different time.<br>Click a planet to visit its world.<br>Count its journeys in the chart below.</p></div>
 <nav class="neighbourhood-nav" aria-label="Moons and small worlds"><a href="#earth-moons">Earth & the Moon ↗</a><a href="#jupiter-moons">Jupiter’s moons ↗</a><a href="#saturn-moons">Saturn’s moons ↗</a><a href="#belt">The asteroid belt ↗</a></nav>
 <div id="orreryStage" class="orrery-stage">
@@ -88,14 +96,14 @@
 <div id="orreryStatus" class="orrery-status" role="status">Preparing the solar system…</div>
 </div>
 <div class="orbit-selected"><span id="orbitKind" class="eyebrow">THIRD WORLD FROM THE SUN</span><h2 id="orbitName">Earth</h2><p id="orbitFact">One familiar journey.</p><button id="followOrbit" class="follow-orbit">Follow Earth ⊙</button><div class="orbit-entry-links"><a id="visitPlanet" href="#earth">View Earth <span>↗</span></a><a id="orbitMoons" href="#earth-moons">Earth & the Moon ↗</a></div></div>
-<section id="beltDiscovery" class="belt-discovery" hidden><div><span class="eyebrow">BETWEEN MARS & JUPITER</span><h2>A lot more space than stone.</h2><p>Millions of rocky leftovers circle the Sun here. They are spread so far apart that spacecraft can cross the belt without weaving through a maze.</p></div><div id="beltStories" class="story-grid"></div></section>
+<section id="beltDiscovery" class="belt-discovery" hidden><div><span class="eyebrow">BETWEEN MARS & JUPITER</span><h2>A lot more space than stone.</h2><p>Millions of rocky leftovers circle the Sun here. They are spread so far apart that spacecraft can cross the belt without weaving through a maze.</p></div><a class="outline-action belt-entry-link" href="#belt">Take a flight through the belt ↗</a></section>
 <div class="orbit-console"><div class="time-actions"><button id="orbitPlay" class="play-action" aria-pressed="false">▶ Play time</button><button id="oneYear" class="year-action">Watch one Earth year ↗</button></div><div class="orbit-timeline"><label for="orbitDay"><span id="orbitTime">Day 0</span><span id="orbitYearLabel">ONE EARTH YEAR / 365.26 DAYS</span></label><input id="orbitDay" type="range" min="0" max="1000" step="1" value="0" aria-label="Scrub through one Earth year"><div class="range-caption"><span>BEGIN</span><span>½ YEAR</span><span>ONE YEAR</span></div></div><div class="orbit-speed"><label for="orbitSpeed">TIME PASSES AT</label><select id="orbitSpeed"><option value="2">2 days / second</option><option value="20" selected>20 days / second</option><option value="100">100 days / second</option></select></div></div>
 <div id="yearInsight" class="year-insight" aria-live="polite"><span class="eyebrow">TRY THIS</span><p>Watch one Earth year. How many times will Mercury pass the starting line?</p></div>
 <p class="trip-key">COUNT WHOLE TRIPS AROUND THE SUN <span>The circle fills as each world makes its next trip.</span></p>
 <div class="orbit-scoreboard" id="orbitScoreboard" aria-label="Whole trips around the Sun, with progress through the next trip"></div>
 <p class="orbit-model-note">A working model, not today’s sky. Elliptical paths and relative orbital periods follow NASA/JPL data. Planet and Sun sizes are enlarged independently; “True spacing” puts the orbital distances on one scale. <a href="sources.html#orrery" target="_blank">How the model works ↗</a></p>
 </section>
-<section id="moonSystemView" class="moon-system-view" hidden aria-label="Explore a planet and its moons">
+<section role="main" id="moonSystemView" class="moon-system-view" hidden aria-label="Explore a planet and its moons">
 <nav class="neighbourhood-nav" aria-label="Choose a moon system"><a href="#orrery">← Whole solar system</a><a id="moonParentLink" href="#earth">← View Earth</a><a href="#earth-moons">Earth & the Moon</a><a href="#jupiter-moons">Jupiter’s moons</a><a href="#saturn-moons">Saturn’s moons</a></nav>
 <div class="orrery-heading"><div><span id="moonSystemEyebrow" class="eyebrow">WORLDS AROUND A WORLD</span><h1 id="moonSystemTitle">Jupiter’s moons.</h1></div><p id="moonSystemIntro">Choose a moon. Follow its journey.</p></div>
 <nav id="moonPageLinks" class="moon-page-links" aria-label="Visit a moon page"></nav>
@@ -111,8 +119,10 @@
 <h3>Earth</h3><p>NASA’s Blue Marble July 2004 surface composite, with a separate cloud layer and city lights. The cloud layer moves independently and casts shadows. Local solar time follows longitude and the same Sun direction used by the renderer; it is not civil clock time. The model has no seasons.</p>
 <h3>Jupiter & Saturn</h3><p>Jupiter uses spacecraft imagery. Cloud drift is illustrative, not a measured wind simulation. Saturn uses a mapped, gently banded atmosphere and a separate ring plane, with both ring-on-planet and planet-on-ring shadows. Each world is framed separately, not at a common scale.</p>
 <h3>The orrery</h3><p>One clock drives all eight elliptical orbits, using fixed J2000 NASA/JPL elements and orbital periods. Starting positions are illustrative, not the current sky. Composed view spreads the planets for clarity. True spacing uses the same distance scale for every orbit; bodies remain enlarged as navigational markers. The one-year experiment stops automatically after one Earth orbit.</p><h3>Moons & small worlds</h3><p>Visit Earth’s Moon, the four Galilean moons of Jupiter and seven major moons of Saturn. Their orbit views use measured periods, circular paths and enlarged bodies. The asteroid belt has an imagined fly-through with generated rock shapes and compressed spacing. Its orrery view uses a small illustrative sample; individual rocks are exaggerated so you can see the band. Uranus’s gold dot and lines are drawn teaching guides, not atmospheric features.</p><h3>The sky beyond</h3><p>The pale band behind the worlds is the Milky Way, our home galaxy. NASA’s catalogue-based star map gives it real stars and dark dust lanes. We brighten the sky so you can see it beside the sunlit planets. <a href="sources.html#sky" target="_blank" rel="noopener">Sky credits & notes ↗</a></p><h3>Image sources</h3><p><a href="https://science.nasa.gov/earth/earth-observatory/blue-marble-next-generation/base-topography/" target="_blank" rel="noopener">NASA Blue Marble</a> · <a href="https://ssi.solarsystemscope.com/textures/" target="_blank" rel="noopener">Solar System Scope / CC BY 4.0</a> · <a href="sources.html" target="_blank">Full imagery credits & rendering notes</a></p>
-<h3>Motion & performance</h3><p>Each world starts rotating when you arrive. Pause or “Motion off” stops rotation and cloud drift. Drag or use arrow keys over the scene to inspect a world. Reduced motion is respected. If the graphics engine is unavailable, a still illustration is shown and simulation controls are disabled.</p><label class="pref"><input id="lowPower" type="checkbox"> Energy-saving display quality</label>
+<h3>Motion & performance</h3><p>Each world starts rotating when you arrive. Pause stops rotation and cloud drift. Orbital scenes and asteroid flight also start moving on arrival. Drag or use arrow keys over the scene to inspect a world. Reduced motion is respected. If the graphics engine is unavailable, a still illustration is shown and simulation controls are disabled.</p><label class="pref"><input id="lowPower" type="checkbox"> Energy-saving planet display</label>
 </dialog>
+<div id="routeAnnouncement" class="sr-only" role="status"></div>
+<div id="missionAnnouncement" class="sr-only" role="status"></div>
 <div id="toast" class="toast" role="status"></div>
-</div><script type="module" src="app.js?v=20261014h"></script>
+</div><script type="module" src="app.js?v=20261014missions"></script>
 </body></html>

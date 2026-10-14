@@ -6,7 +6,7 @@ const $=id=>document.getElementById(id),YEAR=WORLDS.earth.period,EPOCH=16550;
 const reduced=matchMedia('(prefers-reduced-motion: reduce)');
 export class Orrery {
  constructor(){
-  this.active=false;this.days=0;this.playing=false;this.experiment=false;this.selected='earth';this.spacing=0;this.targetSpacing=0;this.speed=20;this.lastRead=0;
+  this.active=false;this.days=0;this.playing=!reduced.matches;this.experiment=false;this.selected='earth';this.spacing=0;this.targetSpacing=0;this.speed=20;this.lastRead=0;
   const canvas=$('orreryCanvas');this.renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:false});this.renderer.setPixelRatio(Math.min(devicePixelRatio,2));this.renderer.setClearColor(0x030507);this.renderer.outputColorSpace=THREE.SRGBColorSpace;this.renderer.toneMapping=THREE.ACESFilmicToneMapping;this.renderer.toneMappingExposure=1.1;
   this.scene=new THREE.Scene();this.camera=new THREE.PerspectiveCamera(38,1,.03,1500);this.camera.position.set(0,30,42);
   this.controls=new OrbitControls(this.camera,canvas);this.controls.enableDamping=true;this.controls.dampingFactor=.065;this.controls.enablePan=false;this.controls.minDistance=3;this.controls.maxDistance=140;this.controls.minPolarAngle=.04;this.controls.maxPolarAngle=Math.PI*.88;this.controls.rotateSpeed=.6;this.controls.zoomSpeed=.8;
@@ -18,6 +18,7 @@ export class Orrery {
   Promise.allSettled(loads).then(results=>{$('orreryStatus').textContent=results.some(r=>r.status==='rejected')?'Some surface maps unavailable — the orbital model is still active.':'';});
   this.observer=new ResizeObserver(()=>this.resize());this.observer.observe($('orreryStage'));
   $('orbitFocus').innerHTML=ORDER.map(id=>`<option value="${id}">${WORLDS[id].title}</option>`).join('');
+  reduced.addEventListener('change',e=>{if(e.matches){this.playing=false;this.experiment=false;this.updateUI();}});
   this.bind();this.select('earth');this.trail=new THREE.Line(new THREE.BufferGeometry(),new THREE.LineBasicMaterial({color:0xd5c198,transparent:true,opacity:.88}));this.scene.add(this.trail);this.resize();this.updateUI();
  }
  buildSun(){
@@ -34,7 +35,6 @@ export class Orrery {
   for(let n=0;n<1050;n++){const a=2.1+random()*1.2;this.asteroids.push({a,e:.025+random()*.065,i:(random()-.5)*9,L:random()*360,peri:random()*360,node:random()*360,period:365.256*Math.pow(a,1.5)});}
   const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(new Float32Array(this.asteroids.length*3),3));this.belt=new THREE.Points(g,new THREE.PointsMaterial({color:0xa89d87,size:.044,transparent:true,opacity:.48,sizeAttenuation:true,depthWrite:false}));this.scene.add(this.belt);
   this.beltLabel=document.createElement('a');this.beltLabel.href='#belt';this.beltLabel.className='orbit-label belt-label';this.beltLabel.textContent='Asteroid belt';this.beltLabel.setAttribute('aria-label','Visit the asteroid belt');$('orbitLabels').append(this.beltLabel);
-  fetch('assets/research/moon-stories.json').then(r=>r.json()).then(data=>{const stories=data.belt?.stories||data.asteroid_belt?.stories||[];for(const story of stories){const a=document.createElement('article');a.className='story';const h=document.createElement('h3'),p=document.createElement('p'),link=document.createElement('a');h.textContent=story.title;p.textContent=story.text;link.textContent='Field source ↗';link.href=story.source;link.target='_blank';link.rel='noopener';a.append(h,p,link);$('beltStories').append(a);}}).catch(()=>{});
  }
  showBelt(){this.select('mars');this.beltSelected=true;$('orbitMoons').hidden=true;ORDER.forEach(id=>{this.labels[id].removeAttribute('aria-current');this.orbits[id].material.opacity=.3;});document.querySelectorAll('[data-orbit]').forEach(b=>b.setAttribute('aria-pressed','false'));this.following=null;this.fly('belt');$('beltButton').setAttribute('aria-pressed','true');$('beltDiscovery').hidden=false;$('orbitKind').textContent='ROCKY LEFTOVERS FROM THE BEGINNING';$('orbitName').textContent='Asteroid belt';$('orbitFact').innerHTML='A wide band of small worlds <strong>between Mars and Jupiter.</strong><br><span>The points are a tiny, enlarged sample of the real belt.</span>';$('followOrbit').textContent='Return to whole system ↙';$('visitPlanet').hidden=false;$('visitPlanet').href='#belt';$('visitPlanet').innerHTML='Enter the asteroid belt <span>↗</span>';history.replaceState(null,'','#orrery/belt');}
  async buildPlanet(id){
@@ -70,7 +70,7 @@ export class Orrery {
   $('beltButton').onclick=()=>{location.hash='belt';};
   $('innerSystem').onclick=()=>this.fly('inner');
   $('obliqueView').onclick=()=>this.fly('perspective');$('overheadView').onclick=()=>this.fly('top');
-  $('resetOrbit').onclick=()=>{this.speed=20;$('orbitSpeed').value='20';this.days=0;this.playing=false;this.experiment=false;$('yearInsight').innerHTML='<span class="eyebrow">TRY THIS</span><p>One circle means one trip around the Sun. Watch one Earth year and count the whole trips.</p>';this.setSpacing(0);this.select('earth');this.updateUI();};
+  $('resetOrbit').onclick=()=>{this.speed=20;$('orbitSpeed').value='20';this.days=0;this.playing=!reduced.matches;this.experiment=false;$('yearInsight').innerHTML='<span class="eyebrow">TRY THIS</span><p>One circle means one trip around the Sun. Watch one Earth year and count the whole trips.</p>';this.setSpacing(0);this.select('earth');this.updateUI();};
   const canvas=$('orreryCanvas');
   const hitWorld=e=>{
    const r=canvas.getBoundingClientRect(),ray=new THREE.Raycaster();
@@ -115,11 +115,11 @@ export class Orrery {
   $('orbitDay').value=Math.min(1000,Math.round(this.days/YEAR*1000));$('orbitDay').setAttribute('aria-valuetext',Math.round(this.days)+' Earth days');$('orbitTime').textContent='Day '+Math.floor(this.days).toLocaleString();
   document.querySelectorAll('[data-orbit]').forEach(el=>{const laps=this.days/WORLDS[el.dataset.orbit].period;const whole=Math.floor(laps+1e-8),part=Math.max(0,laps-whole),circ=87.96;el.querySelector('strong').innerHTML=`<svg class="trip-dial" viewBox="0 0 34 34" aria-hidden="true"><circle cx="17" cy="17" r="14"/><circle class="trip-progress" cx="17" cy="17" r="14" stroke-dasharray="${part*circ} ${circ}"/></svg>${whole}<small>whole<br>${whole===1?'trip':'trips'}</small>`;let caption=el.querySelector('.trip-caption');if(!caption){caption=document.createElement('span');caption.className='trip-caption';el.append(caption);}caption.textContent=part<.001?'Ready for trip '+(whole+1):'Trip '+(whole+1)+' underway';el.setAttribute('aria-label',WORLDS[el.dataset.orbit].title+': '+whole+' whole '+(whole===1?'trip; ':'trips; ')+Math.round(part*100)+' percent of the next trip');});
  }
- show(){this.active=true;this.resize();}
+ show({ambient=false}={}){this.ambient=ambient;this.active=true;if(this.days>=YEAR)this.days=0;this.playing=!reduced.matches;this.experiment=false;this.resize();this.updateUI();}
  hide(){this.active=false;this.playing=false;this.updateUI();}
  frame(dt,now){
   if(!this.active)return;
-  if(this.playing){this.days+=dt*this.speed;if(this.days>=YEAR){this.days=YEAR;this.playing=false;this.experiment=false;$('yearInsight').innerHTML='<span class="eyebrow">ONE YEAR LATER</span><p>Mercury finished <strong>4 whole trips.</strong> Earth finished <strong>1 whole trip.</strong> Neptune is still near the start of its first. Each circle below shows the trip still underway.</p>';this.updateUI();}}
+  if(this.playing){this.days+=dt*this.speed;if(this.days>=YEAR&&!this.ambient){this.days=YEAR;this.playing=false;this.experiment=false;$('yearInsight').innerHTML='<span class="eyebrow">ONE YEAR LATER</span><p>Mercury finished <strong>4 whole trips.</strong> Earth finished <strong>1 whole trip.</strong> Neptune is still near the start of its first. Each circle below shows the trip still underway.</p>';this.updateUI();}}
   this.spacing+=(this.targetSpacing-this.spacing)*(1-Math.exp(-dt*5));if(Math.abs(this.spacing-this.targetSpacing)<.0001)this.spacing=this.targetSpacing;
   if(this.flight){this.flight.t+=dt;const t=Math.min(1,this.flight.t/(reduced.matches?.01:1.25)),e=t*t*(3-2*t);this.camera.position.lerpVectors(this.flight.start,this.flight.end,e);this.controls.target.lerpVectors(this.flight.targetStart,this.flight.targetEnd,e);if(t===1)this.flight=null;}
   this.sun.scale.setScalar(THREE.MathUtils.lerp(1.7,.08,this.spacing));this.glow.scale.setScalar(THREE.MathUtils.lerp(11,.65,this.spacing));this.sun.material.uniforms.time.value=this.days*.02;
