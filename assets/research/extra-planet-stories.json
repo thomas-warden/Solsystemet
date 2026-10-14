@@ -1,0 +1,63 @@
+{
+  "researched": "2026-10-14",
+  "note": "One additional story per planet. Checked against planet-stories-and-orbits.json to avoid repeats.",
+  "planets": {
+    "mercury": [
+      {
+        "title": "Ice beside the Sun.",
+        "text": "Even Mercury has water ice. Deep craters near its poles contain places that sunlight never reaches. Those permanent shadows stay cold enough to protect ice on the planet closest to the Sun.",
+        "source": "https://www.jpl.nasa.gov/news/nasa-spacecraft-finds-new-mercury-water-ice-evidence/"
+      }
+    ],
+    "venus": [
+      {
+        "title": "Clouds made of acid.",
+        "text": "The bright clouds around Venus contain droplets of sulfuric acid. They may look soft and white from far away, but they are very different from the water clouds above Earth.",
+        "source": "https://science.nasa.gov/venus/venus-facts/"
+      }
+    ],
+    "earth": [
+      {
+        "title": "Our longest mountains are underwater.",
+        "text": "Earth’s longest mountain range is hidden beneath the ocean. Looking down from space, you see blue water covering many of our planet’s mountains and volcanoes.",
+        "source": "https://science.nasa.gov/earth/facts/"
+      }
+    ],
+    "mars": [
+      {
+        "title": "Two moons shaped like potatoes.",
+        "text": "Mars has two little moons called Phobos and Deimos. Neither is round like our Moon. They are so small that their gravity cannot pull them into a ball, leaving them with lumpy shapes.",
+        "source": "https://science.nasa.gov/mars/facts/"
+      }
+    ],
+    "jupiter": [
+      {
+        "title": "Jupiter has rings too.",
+        "text": "Jupiter has faint rings made of dark dust. They are hard to see in ordinary light. Voyager 1 discovered them in 1979, revealing a feature hidden beside the bright giant.",
+        "source": "https://science.nasa.gov/jupiter/jupiter-facts/"
+      }
+    ],
+    "saturn": [
+      {
+        "title": "A summer that lasts for years.",
+        "text": "Saturn takes about 29 Earth years to circle the Sun. It has seasons like Earth, but each one lasts roughly seven years. A child could spend most of primary school in one Saturn summer.",
+        "source": "https://science.nasa.gov/saturn/facts/",
+        "derivation": "Approximate season length is one quarter of Saturn's 29.4-Earth-year orbit; actual seasons differ slightly in duration."
+      }
+    ],
+    "uranus": [
+      {
+        "title": "Moons named after story characters.",
+        "text": "Many of Uranus’s moons are named after characters from plays and poems by William Shakespeare and Alexander Pope. This planet has a whole company of characters travelling around it.",
+        "source": "https://science.nasa.gov/uranus/facts/"
+      }
+    ],
+    "neptune": [
+      {
+        "title": "A planet found with mathematics.",
+        "text": "Uranus was not moving quite as expected. Astronomers calculated where another planet’s gravity might be pulling it. Their prediction helped observers find Neptune through a telescope in 1846.",
+        "source": "https://science.nasa.gov/neptune/neptune-facts/"
+      }
+    ]
+  }
+}

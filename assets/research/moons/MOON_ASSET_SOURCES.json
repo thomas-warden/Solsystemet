@@ -1,0 +1,383 @@
+{
+  "created": "2026-10-14",
+  "scope": "Production textures for the twelve requested moons; optional reconstructed Titan surface.",
+  "attribution_requirement": "Keep author credits, source links and CC license links available in the site credits; identify modifications. No NASA/USGS/Celestia endorsement is implied.",
+  "orientation_warning": "All maps are north-up equirectangular. Prime-meridian alignment and epoch are not uniform across sources; scene rotation is illustrative unless separately calibrated.",
+  "colour_warning": "Cassini six-icy-moon maps are enhanced UV/IR colour. Europa and Callisto are monochrome. Titan visible view is the haze map; surface is a reconstruction.",
+  "assets": [
+    {
+      "file": "moon.jpg",
+      "source_file": "moon-sss-8k.jpg",
+      "source_url": "https://cloud.solarsystemscope.com/textures/download/8k_moon.jpg",
+      "source_page": "https://cloud.solarsystemscope.com/textures/",
+      "credit": "Solar System Scope / INOVE, based on NASA imagery",
+      "license": "CC-BY-4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "source_dimensions": [
+        8192,
+        4096
+      ],
+      "dimensions": [
+        4096,
+        2048
+      ],
+      "bytes": 4259542,
+      "sha256": "85ef6d3274b34082f7fe6390dd20e58a47be2f82a9a476dc52433f0e28ef220d",
+      "source_sha256": "d1875bcec83588ca25e4802e576f6bb9f88b39e1e403cb41ff55867419c54796",
+      "source_original_retained": false,
+      "projection": "Simple cylindrical / equirectangular; north at top",
+      "processing": "Lanczos resizing; RGB JPEG quality 93, 4:4:4. No AI-generated detail. No color adjustment.",
+      "notes": [
+        "Grey cratered lunar surface and dark maria. Provider adjusts textures for visual rendering; not a calibrated albedo or live lunar view."
+      ]
+    },
+    {
+      "file": "io.jpg",
+      "source_file": "io.png",
+      "source_url": "https://raw.githubusercontent.com/CelestiaProject/CelestiaContent/master/textures/hires/io.png",
+      "source_page": "https://github.com/CelestiaProject/CelestiaContent/blob/master/README",
+      "credit": "ItzImcool (2024–2025); AstroChara (2026); NASA/JPL-Caltech/ASI/USGS; NASA/JPL/SwRI/MSSS/Gerald Eichstädt/Jason Perry/John Rogers",
+      "license": "CC-BY-4.0",
+      "license_url": "https://raw.githubusercontent.com/CelestiaProject/CelestiaContent/master/textures/hires/io.png.license",
+      "source_dimensions": [
+        4096,
+        2048
+      ],
+      "dimensions": [
+        2048,
+        1024
+      ],
+      "bytes": 501992,
+      "sha256": "df6dc9f83d101113877262aabb96d16487417a55022c3d26e1764580121c48f1",
+      "source_sha256": "7c06333e3a738cb0921877c7d8be51a0ec42a6a72c9199d9b56377889cb132c4",
+      "source_original_retained": false,
+      "projection": "Simple cylindrical / equirectangular; north at top",
+      "processing": "Lanczos resizing; RGB JPEG quality 93, 4:4:4. No AI-generated detail. No color adjustment.",
+      "notes": [
+        "Observed Voyager/Galileo USGS map with JunoCam reprojections and retouching. Sulfur colours, volcanic patches and plume deposits are stitched observations from different epochs; no active eruption state is implied.",
+        "Juno additions and reconstructed transitions mean this is a processed global texture, not a single photograph."
+      ]
+    },
+    {
+      "file": "ganymede.jpg",
+      "source_file": "ganymede.jpg",
+      "source_url": "https://raw.githubusercontent.com/CelestiaProject/CelestiaContent/master/textures/hires/ganymede.jpg",
+      "source_page": "https://github.com/CelestiaProject/CelestiaContent/blob/master/README",
+      "credit": "Askaniy Anpilogov (2019); NASA/JPL-Caltech/ASI/USGS; NASA/JPL-Caltech/Björn Jónsson; NASA/JPL-Caltech/SwRI/MSSS/Brian Swift",
+      "license": "CC-BY-3.0",
+      "license_url": "https://raw.githubusercontent.com/CelestiaProject/CelestiaContent/master/textures/hires/ganymede.jpg.license",
+      "source_dimensions": [
+        4096,
+        2048
+      ],
+      "dimensions": [
+        2048,
+        1024
+      ],
+      "bytes": 498568,
+      "sha256": "7b70e5a69850b0bbc547ce03e0a114bc57e0953b1948b917eb6919cf1b11bd57",
+      "source_sha256": "0f2aee3be112d66d5d7d814b75e7ed3305db3c719aa427b5a112884a36a360cd",
+      "source_original_retained": false,
+      "projection": "Simple cylindrical / equirectangular; north at top",
+      "processing": "Lanczos resizing; RGB JPEG quality 93, 4:4:4. No AI-generated detail. No color adjustment.",
+      "notes": [
+        "USGS observed colour mosaic with Juno observations and gap work; visible mosaic transitions and nonuniform detail are present.",
+        "Restrained grey-brown colour; not all locations have equally sharp source coverage."
+      ]
+    },
+    {
+      "file": "titan.jpg",
+      "source_file": "titan-clouds.jpg",
+      "source_url": "https://raw.githubusercontent.com/CelestiaProject/CelestiaContent/master/textures/hires/titan-clouds.jpg",
+      "source_page": "https://github.com/CelestiaProject/CelestiaContent/blob/master/README",
+      "credit": "Gordan Ugarković; Kevin M. Gill; ShadowDragon777 (2025); AstroChara (2026)",
+      "license": "CC-BY-4.0",
+      "license_url": "https://raw.githubusercontent.com/CelestiaProject/CelestiaContent/master/textures/hires/titan-clouds.jpg.license",
+      "source_dimensions": [
+        4096,
+        2048
+      ],
+      "dimensions": [
+        2048,
+        1024
+      ],
+      "bytes": 48875,
+      "sha256": "f3e17eddf89d12df388e1f3828e99fa3ec2203a825754ec152eb985ec74525f6",
+      "source_sha256": "f10f9db6db73eabd7398ccba1bf835ab5010801cf2956d4d5ec557558e4a1a92",
+      "source_original_retained": false,
+      "projection": "Simple cylindrical / equirectangular; north at top",
+      "processing": "Lanczos resizing; RGB JPEG quality 93, 4:4:4. No AI-generated detail. No color adjustment.",
+      "notes": [
+        "Recommended visible-light Titan default: smooth ochre atmospheric haze. Based on processed observations; representative atmosphere, not a current cloud map.",
+        "Do not show surface features through this opaque visible-light haze."
+      ]
+    },
+    {
+      "file": "titan-surface.jpg",
+      "source_file": "titan.png",
+      "source_url": "https://raw.githubusercontent.com/CelestiaProject/CelestiaContent/master/textures/hires/titan.png",
+      "source_page": "https://github.com/CelestiaProject/CelestiaContent/blob/master/README",
+      "credit": "Askaniy Anpilogov, Pedro Garcia, AstroChara (2026); Martonchik & Orton (1994); Karkoschka et al. (2016); Seignovert et al. (2019); NASA/JPL-Caltech/ASI/USGS; Caltech-JPL/University of Arizona/LPG-University of Nantes-CNRS",
+      "license": "CC-BY-3.0",
+      "license_url": "https://raw.githubusercontent.com/CelestiaProject/CelestiaContent/master/textures/hires/titan.png.license",
+      "source_dimensions": [
+        4096,
+        2048
+      ],
+      "dimensions": [
+        2048,
+        1024
+      ],
+      "bytes": 147645,
+      "sha256": "3273266e11c3f00cef792e33b7c8fcc9eccca4b9460fe10c05a9d1995da629cd",
+      "source_sha256": "fe440ed822243633369ebb9ee28d320e2ef63ac1a899dc98d76d5fffb1053225",
+      "source_original_retained": false,
+      "projection": "Simple cylindrical / equirectangular; north at top",
+      "processing": "Lanczos resizing; RGB JPEG quality 93, 4:4:4. No AI-generated detail. No color adjustment.",
+      "notes": [
+        "Optional surface-under-haze view only. Reconstructed from Cassini VIMS/ISS, colour informed by Huygens; polar lakes are hand-drawn from radar mosaics.",
+        "This is not an unobstructed visible-light photograph; label explicitly as a reconstructed surface."
+      ]
+    },
+    {
+      "file": "dione.jpg",
+      "source_file": "dione-nasa.jpg",
+      "source_url": "https://assets.science.nasa.gov/dynamicimage/assets/science/psd/photojournal/pia/pia18/pia18434/PIA18434.jpg?fit=clip&w=4096",
+      "source_page": "https://photojournal.jpl.nasa.gov/catalog/PIA18434",
+      "credit": "NASA/JPL-Caltech/Space Science Institute/Lunar and Planetary Institute; mosaic processing by Paul Schenk",
+      "license": "NASA/JPL image-use policy; public image reuse for all purposes subject to attribution/no endorsement",
+      "license_url": "https://www.jpl.nasa.gov/jpl-image-use-policy/",
+      "source_dimensions": [
+        4096,
+        2048
+      ],
+      "dimensions": [
+        2048,
+        1024
+      ],
+      "bytes": 806206,
+      "sha256": "9baaa50a811a213beeb31c671b790f3775bfa2c01e03bc958f9762ccfd76baf4",
+      "source_sha256": "2c660c5079748f3834aa357478ad0194138e0a5b368bbc8d2bdc6eb2c2da3ea2",
+      "source_original_retained": false,
+      "projection": "Simple cylindrical / equirectangular; north at top",
+      "processing": "Lanczos resizing; RGB JPEG quality 93, 4:4:4. No AI-generated detail. No color adjustment.",
+      "notes": [
+        "Cassini 2014 global mosaic. Source colours include ultraviolet and infrared and are enhanced beyond human vision; do not describe as true colour.",
+        "Source has uneven coverage, pre-existing terrain shading and softened polar areas. It is an image mosaic, not a height map.",
+        "Suggested naturalistic rendering: low saturation (approximately 0.2–0.35) with neutral lighting. This suggestion is artistic, not a calibrated colour conversion."
+      ],
+      "photojournal_id": "PIA18434"
+    },
+    {
+      "file": "enceladus.jpg",
+      "source_file": "enceladus-nasa.jpg",
+      "source_url": "https://assets.science.nasa.gov/dynamicimage/assets/science/psd/photojournal/pia/pia18/pia18435/PIA18435.jpg?fit=clip&w=4096",
+      "source_page": "https://photojournal.jpl.nasa.gov/catalog/PIA18435",
+      "credit": "NASA/JPL-Caltech/Space Science Institute/Lunar and Planetary Institute; mosaic processing by Paul Schenk",
+      "license": "NASA/JPL image-use policy; public image reuse for all purposes subject to attribution/no endorsement",
+      "license_url": "https://www.jpl.nasa.gov/jpl-image-use-policy/",
+      "source_dimensions": [
+        4096,
+        2048
+      ],
+      "dimensions": [
+        2048,
+        1024
+      ],
+      "bytes": 928318,
+      "sha256": "4db87071c3168121fe13276cfb69f5bfc8886329318a7fb1b4dc72aabf6bddd0",
+      "source_sha256": "52beb0786b1551d5d53312cc4697a0ead766507fb3d085d5e733692c47078d43",
+      "source_original_retained": false,
+      "projection": "Simple cylindrical / equirectangular; north at top",
+      "processing": "Lanczos resizing; RGB JPEG quality 93, 4:4:4. No AI-generated detail. No color adjustment.",
+      "notes": [
+        "Cassini 2014 global mosaic. Source colours include ultraviolet and infrared and are enhanced beyond human vision; do not describe as true colour.",
+        "Source has uneven coverage, pre-existing terrain shading and softened polar areas. It is an image mosaic, not a height map.",
+        "Suggested naturalistic rendering: low saturation (approximately 0.2–0.35) with neutral lighting. This suggestion is artistic, not a calibrated colour conversion."
+      ],
+      "photojournal_id": "PIA18435"
+    },
+    {
+      "file": "iapetus.jpg",
+      "source_file": "iapetus-nasa.jpg",
+      "source_url": "https://assets.science.nasa.gov/dynamicimage/assets/science/psd/photojournal/pia/pia18/pia18436/PIA18436.jpg?fit=clip&w=4096",
+      "source_page": "https://photojournal.jpl.nasa.gov/catalog/PIA18436",
+      "credit": "NASA/JPL-Caltech/Space Science Institute/Lunar and Planetary Institute; mosaic processing by Paul Schenk",
+      "license": "NASA/JPL image-use policy; public image reuse for all purposes subject to attribution/no endorsement",
+      "license_url": "https://www.jpl.nasa.gov/jpl-image-use-policy/",
+      "source_dimensions": [
+        4096,
+        2048
+      ],
+      "dimensions": [
+        2048,
+        1024
+      ],
+      "bytes": 591428,
+      "sha256": "3618fb55222e1aebbf432cc579d115c8a07e6623ad5570b8f76bad20983c068a",
+      "source_sha256": "c9e69fce0ca9dbd3f102c2170bbc7753c3b3b05cff042ab906399c31088bf38e",
+      "source_original_retained": false,
+      "projection": "Simple cylindrical / equirectangular; north at top",
+      "processing": "Lanczos resizing; RGB JPEG quality 93, 4:4:4. No AI-generated detail. No color adjustment.",
+      "notes": [
+        "Cassini 2014 global mosaic. Source colours include ultraviolet and infrared and are enhanced beyond human vision; do not describe as true colour.",
+        "Source has uneven coverage, pre-existing terrain shading and softened polar areas. It is an image mosaic, not a height map.",
+        "Suggested naturalistic rendering: low saturation (approximately 0.2–0.35) with neutral lighting. This suggestion is artistic, not a calibrated colour conversion."
+      ],
+      "photojournal_id": "PIA18436"
+    },
+    {
+      "file": "mimas.jpg",
+      "source_file": "mimas-nasa.jpg",
+      "source_url": "https://assets.science.nasa.gov/dynamicimage/assets/science/psd/photojournal/pia/pia18/pia18437/PIA18437.jpg?fit=clip&w=4096",
+      "source_page": "https://photojournal.jpl.nasa.gov/catalog/PIA18437",
+      "credit": "NASA/JPL-Caltech/Space Science Institute/Lunar and Planetary Institute; mosaic processing by Paul Schenk",
+      "license": "NASA/JPL image-use policy; public image reuse for all purposes subject to attribution/no endorsement",
+      "license_url": "https://www.jpl.nasa.gov/jpl-image-use-policy/",
+      "source_dimensions": [
+        4096,
+        2048
+      ],
+      "dimensions": [
+        2048,
+        1024
+      ],
+      "bytes": 729372,
+      "sha256": "6cd08a722d41152dd3ce339d9aa99fffe1252f13aa58227534c1e96f03b5286f",
+      "source_sha256": "5e3ace06269c460cce1a387980770a5a71d95eaba4b35ea52c9b11ede11dc107",
+      "source_original_retained": false,
+      "projection": "Simple cylindrical / equirectangular; north at top",
+      "processing": "Lanczos resizing; RGB JPEG quality 93, 4:4:4. No AI-generated detail. No color adjustment.",
+      "notes": [
+        "Cassini 2014 global mosaic. Source colours include ultraviolet and infrared and are enhanced beyond human vision; do not describe as true colour.",
+        "Source has uneven coverage, pre-existing terrain shading and softened polar areas. It is an image mosaic, not a height map.",
+        "Suggested naturalistic rendering: low saturation (approximately 0.2–0.35) with neutral lighting. This suggestion is artistic, not a calibrated colour conversion."
+      ],
+      "photojournal_id": "PIA18437"
+    },
+    {
+      "file": "rhea.jpg",
+      "source_file": "rhea-nasa.jpg",
+      "source_url": "https://assets.science.nasa.gov/dynamicimage/assets/science/psd/photojournal/pia/pia18/pia18438/PIA18438.jpg?fit=clip&w=4096",
+      "source_page": "https://photojournal.jpl.nasa.gov/catalog/PIA18438",
+      "credit": "NASA/JPL-Caltech/Space Science Institute/Lunar and Planetary Institute; mosaic processing by Paul Schenk",
+      "license": "NASA/JPL image-use policy; public image reuse for all purposes subject to attribution/no endorsement",
+      "license_url": "https://www.jpl.nasa.gov/jpl-image-use-policy/",
+      "source_dimensions": [
+        4096,
+        2048
+      ],
+      "dimensions": [
+        2048,
+        1024
+      ],
+      "bytes": 927565,
+      "sha256": "de5e914d57d00c02c617d3ea994727244bd1d493f4c094d553ad354926bfb9f9",
+      "source_sha256": "05e31694766806b7878339f1cc5a69b263377c31f3a01b4696d9a411060a63af",
+      "source_original_retained": false,
+      "projection": "Simple cylindrical / equirectangular; north at top",
+      "processing": "Lanczos resizing; RGB JPEG quality 93, 4:4:4. No AI-generated detail. No color adjustment.",
+      "notes": [
+        "Cassini 2014 global mosaic. Source colours include ultraviolet and infrared and are enhanced beyond human vision; do not describe as true colour.",
+        "Source has uneven coverage, pre-existing terrain shading and softened polar areas. It is an image mosaic, not a height map.",
+        "Suggested naturalistic rendering: low saturation (approximately 0.2–0.35) with neutral lighting. This suggestion is artistic, not a calibrated colour conversion."
+      ],
+      "photojournal_id": "PIA18438"
+    },
+    {
+      "file": "tethys.jpg",
+      "source_file": "tethys-nasa.jpg",
+      "source_url": "https://assets.science.nasa.gov/dynamicimage/assets/science/psd/photojournal/pia/pia18/pia18439/PIA18439.jpg?fit=clip&w=4096",
+      "source_page": "https://photojournal.jpl.nasa.gov/catalog/PIA18439",
+      "credit": "NASA/JPL-Caltech/Space Science Institute/Lunar and Planetary Institute; mosaic processing by Paul Schenk",
+      "license": "NASA/JPL image-use policy; public image reuse for all purposes subject to attribution/no endorsement",
+      "license_url": "https://www.jpl.nasa.gov/jpl-image-use-policy/",
+      "source_dimensions": [
+        4096,
+        2048
+      ],
+      "dimensions": [
+        2048,
+        1024
+      ],
+      "bytes": 907626,
+      "sha256": "68da38acc6dff43957a156599c2a147c07ff815059aea42ec96726fe299c8b8e",
+      "source_sha256": "876d95b80fdbbe470d75af9926cb9a1b44caba20bf5d3d0bf06a43fada1af048",
+      "source_original_retained": false,
+      "projection": "Simple cylindrical / equirectangular; north at top",
+      "processing": "Lanczos resizing; RGB JPEG quality 93, 4:4:4. No AI-generated detail. No color adjustment.",
+      "notes": [
+        "Cassini 2014 global mosaic. Source colours include ultraviolet and infrared and are enhanced beyond human vision; do not describe as true colour.",
+        "Source has uneven coverage, pre-existing terrain shading and softened polar areas. It is an image mosaic, not a height map.",
+        "Suggested naturalistic rendering: low saturation (approximately 0.2–0.35) with neutral lighting. This suggestion is artistic, not a calibrated colour conversion."
+      ],
+      "photojournal_id": "PIA18439"
+    },
+    {
+      "file": "europa.jpg",
+      "source_file": "europa-usgs.tif",
+      "source_url": "https://planetarymaps.usgs.gov/mosaic/Europa_Voyager_GalileoSSI_global_mosaic_500m.tif",
+      "source_page": "https://astrogeology.usgs.gov/search/map/europa_voyager_galileo_ssi_global_mosaic_500m",
+      "credit": "USGS Astrogeology / NASA/JPL Galileo and Voyager; Tammy Becker, B. Archinal, T. Colvin, M. Davies, A. Gitlin, R. Kirk, L. Weller (2010)",
+      "license": "US public domain; USGS-produced mosaic; no use constraints",
+      "license_url": "https://www.usgs.gov/information-policies-and-instructions/copyrights-and-credits",
+      "source_dimensions": [
+        19631,
+        9816
+      ],
+      "dimensions": [
+        2048,
+        1024
+      ],
+      "bytes": 698107,
+      "sha256": "5f76a087a1816014a3be03a3ee705cf565cdcb9947d4262e3ad3cd02e845d0a1",
+      "source_sha256": "a323f0c9ccb47d5af9902ea8297fe81f9a9708795645b80801f103c3f7c9a624",
+      "source_original_retained": false,
+      "projection": "Simple cylindrical / equirectangular; north at top",
+      "processing": "Lanczos resize to 2048×1024. A nearest-neighbour source zero-data mask identifies gaps. Valid mask eroded 3 px to exclude edge ringing; gaps interpolated along latitude, smoothed with 16 px Gaussian blur and blended at 1 px boundary. Source pixels away from gap margins unchanged. RGB JPEG quality 93, 4:4:4. No AI-generated detail.",
+      "notes": [
+        "Observed monochrome global mosaic. Any material tint added by the renderer is approximate and is not observed per-pixel colour.",
+        "Resolution varies strongly by location. Source mosaics include older low-resolution gap images, photometric differences and stitched image boundaries.",
+        "Source zero-valued missing coverage is preserved separately in europa-coverage.png (white = observed mosaic, black = missing source). Missing areas are visually filled with smooth interpolation only; no crater/geological details are invented."
+      ],
+      "longitude_convention": "Positive west, 0 to 360 degrees (USGS source metadata)",
+      "missing_source_sample_fraction": 0.04332780838012695
+    },
+    {
+      "file": "callisto.jpg",
+      "source_file": "callisto-usgs.tif",
+      "source_url": "https://planetarymaps.usgs.gov/mosaic/Callisto_Voyager_GalileoSSI_global_mosaic_1km.tif",
+      "source_page": "https://astrogeology.usgs.gov/search/map/callisto_galileo_voyager_global_mosaic_1km",
+      "credit": "USGS Astrogeology / NASA/JPL Galileo and Voyager",
+      "license": "US public domain; USGS-produced mosaic; no use constraints",
+      "license_url": "https://www.usgs.gov/information-policies-and-instructions/copyrights-and-credits",
+      "source_dimensions": [
+        15138,
+        7569
+      ],
+      "dimensions": [
+        2048,
+        1024
+      ],
+      "bytes": 594569,
+      "sha256": "3f387d6b2e1a7ab66421ba55b29460d00702f8bda1556b383fd8663c95d57910",
+      "source_sha256": "e1f0bd2e0e05de605d067d6b5f5ededddaf31ca6c064562a1ca770f15a7dbaa3",
+      "source_original_retained": false,
+      "projection": "Simple cylindrical / equirectangular; north at top",
+      "processing": "Lanczos resize to 2048×1024. A nearest-neighbour source zero-data mask identifies gaps. Valid mask eroded 3 px to exclude edge ringing; gaps interpolated along latitude, smoothed with 16 px Gaussian blur and blended at 1 px boundary. Source pixels away from gap margins unchanged. RGB JPEG quality 93, 4:4:4. No AI-generated detail.",
+      "notes": [
+        "Observed monochrome global mosaic. Any material tint added by the renderer is approximate and is not observed per-pixel colour.",
+        "Resolution varies strongly by location. Source mosaics include older low-resolution gap images, photometric differences and stitched image boundaries.",
+        "Source zero-valued missing coverage is preserved separately in callisto-coverage.png (white = observed mosaic, black = missing source). Missing areas are visually filled with smooth interpolation only; no crater/geological details are invented."
+      ],
+      "longitude_convention": "Positive west, 0 to 360 degrees (USGS source metadata)",
+      "missing_source_sample_fraction": 0.0386962890625
+    }
+  ],
+  "excluded_candidates": [
+    "Older Celestia Europa, Callisto, icy Saturn moon and Ceres textures were inspected but omitted because no individual license was verified. Downloaded unused candidates were removed.",
+    "Optional Ceres/Vesta not included in the bounded delivery. DLR Vesta preview encountered uses CC-BY-NC-ND and was excluded."
+  ],
+  "originals": "Original large downloads removed after production conversion and hashing to keep the site payload small. Exact source URLs/hashes above allow retrieval. CC license text snapshots are retained under originals/.",
+  "visual_validation": "All production maps checked on a contact sheet; Europa and Callisto gap handling inspected separately."
+}

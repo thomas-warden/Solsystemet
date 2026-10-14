@@ -1,30 +1,138 @@
-const root=document.getElementById('atlas');
-const $=id=>document.getElementById(id);
-const profiles={earth:{title:'Earth',chapter:'OUR HOME',number:'01',lead:'A living planet, turning beneath the Sun.',text:'Clouds move. Sunlight travels across the continents. Every moment, somewhere on Earth, a new day begins.',question:'How does day become night?',hint:'Choose a city, then turn Earth. Watch its position in sunlight.',gesture:'DRAG TO TURN EARTH',note:'NASA-BASED SURFACE · SIMULATED CLOUDS'},jupiter:{title:'Jupiter',chapter:'AN OCEAN OF CLOUDS',number:'02',lead:'A giant world with an atmosphere in motion.',text:'Vast bands of cloud flow past each other. The Great Red Spot is a storm that has endured for centuries.',question:'What makes a storm bigger than Earth?',hint:'Accelerate Jupiter’s cloud bands. Approach the Great Red Spot, then compare its scale.',gesture:'DRAG TO INSPECT JUPITER',note:'ARTISTIC ATMOSPHERE · NOT OBSERVED WINDS'},saturn:{title:'Saturn',chapter:'A WORLD OF RINGS',number:'03',lead:'A planet surrounded by orbiting ice.',text:'Its rings look like a solid disc from afar. They are made of countless pieces, moving at different speeds.',question:'Can something so wide be so thin?',hint:'Move above and below the rings. Then follow two pieces of ice as they orbit.',gesture:'DRAG VERTICALLY TO CHANGE VIEW',note:'SIMPLIFIED RING STRUCTURE · PHYSICAL ORBIT RULE'}};
+import { PlanetRenderer } from './renderer.js';
+import { FAMILIES } from './moons.js';
+import { ORDER, WORLDS } from './worlds.js';
+const $=id=>document.getElementById(id),root=$('atlas'),canvas=$('universe');
+$('planetNav').innerHTML=ORDER.map(id=>`<button data-world="${id}" type="button"><i style="background:${WORLDS[id].color}"></i>${WORLDS[id].title}</button>`).join('');
+$('worldCards').innerHTML=ORDER.map(id=>`<button data-world="${id}"><small>${WORLDS[id].number}</small><strong>${WORLDS[id].title}</strong></button>`).join('');
+let orrery,orreryPromise,moonSystem,moonPromise,view='planet',stories,extraStories={};
+fetch('assets/research/planet-stories-and-orbits.json').then(r=>r.json()).then(data=>{stories=data.planets;showStories();});
+fetch('assets/research/extra-planet-stories.json').then(r=>r.json()).then(data=>{extraStories=data.planets||data;showStories();}).catch(()=>{});
+function showStories(){
+ const entries=[...(WORLDS[state.world].stories||stories?.[state.world]?.stories||[]),...(extraStories[state.world]?.stories||extraStories[state.world]||[])];
+ $('storyGrid').replaceChildren();
+ for(const story of entries){const el=document.createElement('article');el.className='story';const title=document.createElement('h3'),body=document.createElement('p'),link=document.createElement('a');title.textContent=story.title;body.textContent=story.text;link.href=story.source;link.target='_blank';link.rel='noopener';link.textContent='Field source ↗';el.append(title,body,link);$('storyGrid').append(el);}
+}
+async function showMoonSystem(parent){
+ view='moons';window.scrollTo(0,0);root.classList.remove('cinema');orrery?.hide();$('main').hidden=true;$('fieldStories').hidden=true;$('orreryView').hidden=true;$('moonSystemView').hidden=false;root.dataset.view='moons';$('motionToggle').hidden=true;history.replaceState(null,'','#'+parent+'-moons');
+ document.querySelector('button[data-view="orrery"]').setAttribute('aria-pressed','false');document.querySelectorAll('button[data-world]').forEach(b=>{b.classList.remove('is-active');b.setAttribute('aria-pressed','false');});
+ try{moonPromise||=import('./moon-system.js').then(({MoonSystem})=>new MoonSystem());moonSystem=await moonPromise;if(view==='moons')moonSystem.show(parent);}catch(e){$('moonStatus').textContent='The moon system could not start. Individual moon views remain available below.';console.error(e);}
+}
+async function showOrrery(selected){moonSystem?.hide();$('moonSystemView').hidden=true;view='orrery';window.scrollTo(0,0);root.classList.remove('cinema');$('cinemaButton').setAttribute('aria-pressed','false');$('cinemaButton').textContent='View only ⤢';$('main').hidden=true;$('fieldStories').hidden=true;$('orreryView').hidden=false;root.dataset.view='orrery';$('motionToggle').hidden=true;history.replaceState(null,'','#orrery');document.querySelector('button[data-view="orrery"]').setAttribute('aria-pressed','true');document.querySelectorAll('button[data-world]').forEach(b=>{b.classList.remove('is-active');b.setAttribute('aria-pressed','false');});
+ try{orreryPromise||=import('./orrery.js').then(({Orrery})=>new Orrery());orrery=await orreryPromise;if(view==='orrery'){orrery.show();if(selected==='belt')orrery.showBelt();else if(selected)orrery.select(selected);else if(orrery.beltSelected){orrery.select('earth');orrery.fly('perspective');}}}catch(e){$('orreryStatus').textContent='The orbital scene could not start. Planet views remain available.';console.error(e);}}
+const reduced=matchMedia('(prefers-reduced-motion: reduce)');
+const profiles=WORLDS;
 const cities={'abu-dhabi':{name:'Abu Dhabi',lon:54.37,lat:24.45},stockholm:{name:'Stockholm',lon:18.06,lat:59.33},tokyo:{name:'Tokyo',lon:139.69,lat:35.68},'new-york':{name:'New York',lon:-74.01,lat:40.71},quito:{name:'Quito',lon:-78.47,lat:-.18}};
-let world='earth',earthProgress=.3,city='abu-dhabi',running=false,clouds=true,lights=true,storm=false,compare=false,saturnAngle=24,particles=false,jSpeed=1.8,elapsed=0,cameraDrag=false,lastY=0,lastX=0,reduced=matchMedia('(prefers-reduced-motion:reduce)').matches,quality=1,gl=null,program=null,tex={},raf=0,last=0;
-function toast(s){const el=$('toast');el.textContent=s;el.classList.add('show');clearTimeout(toast.timer);toast.timer=setTimeout(()=>el.classList.remove('show'),2600)}
-function updateText(){let p=profiles[world];root.dataset.world=world;$('worldTitle').innerHTML=p.title+'<span class="title-dot">.</span>';$('chapterNumber').textContent=p.number;$('chapterKind').textContent=p.chapter;$('worldLead').textContent=p.lead;$('worldText').textContent=p.text;$('experimentQuestion').textContent=p.question;$('experimentHint').textContent=p.hint;$('gestureText').textContent=p.gesture;$('modelNote').textContent=p.note;$('instrumentLabel').textContent='OBSERVATION / '+p.number;['earth','jupiter','saturn'].forEach(w=>{$(w+'Instrument').hidden=w!==world;document.querySelectorAll('[data-world="'+w+'"]').forEach(b=>{b.classList.toggle('is-active',w===world);b.classList.toggle('is-current',w===world)})});$('playLabel').textContent=world==='earth'?'Play one day':world==='jupiter'?'Animate clouds':'Orbit the rings';updateReadouts();$('fallbackPlanet').src='assets/'+world+'-cover.webp';history.replaceState(null,'','#'+world)}
-function switchWorld(w){if(!profiles[w])return;world=w;elapsed=0;running=false;$('playButton').setAttribute('aria-pressed','false');$('playButton').querySelector('.play-icon').textContent='▶';updateText()}
-function updateReadouts(){let c=cities[city];let hours=((earthProgress*24+(c.lon-54.37)/15)%24+24)%24;let h=Math.floor(hours),m=Math.floor((hours-h)*60);$('solarClock').textContent=String(h).padStart(2,'0')+':'+String(m).padStart(2,'0');let day=hours>=6&&hours<18;$('dayStatus').textContent=day?'Daylight':'Nighttime';$('dayDot').classList.toggle('night',!day);$('jupiterReading').textContent='×'+jSpeed.toFixed(1);$('saturnReading').textContent=Math.abs(saturnAngle)+'°';$('saturnAngle').value=saturnAngle;$('earthRotation').value=Math.round(earthProgress*1000);$('simulationStatus').textContent=running?'IN MOTION':'READY';$('stormButton').setAttribute('aria-pressed',String(storm));$('earthCompare').setAttribute('aria-pressed',String(compare));$('particleButton').setAttribute('aria-pressed',String(particles));$('particleInsight').textContent=particles?'Inner ice takes less time to complete an orbit than outer ice. Their paths are illustrative; their relative speeds follow Kepler’s law.':'The rings look solid from far away. They are made of countless orbiting pieces.'}
-document.querySelectorAll('[data-world]').forEach(b=>{if(b.tagName==='BUTTON')b.addEventListener('click',()=>switchWorld(b.dataset.world))});$('citySelect').addEventListener('change',e=>{city=e.target.value;updateReadouts()});$('earthRotation').addEventListener('input',e=>{earthProgress=+e.target.value/1000;running=false;updateReadouts()});$('cloudToggle').addEventListener('change',e=>clouds=e.target.checked);$('lightsToggle').addEventListener('change',e=>lights=e.target.checked);$('jupiterTime').addEventListener('input',e=>{jSpeed=1+Number(e.target.value)*.17;updateReadouts()});$('saturnAngle').addEventListener('input',e=>{saturnAngle=Number(e.target.value);updateReadouts()});[['saturnTop',65],['saturnEdge',0],['saturnBelow',-60]].forEach(([id,v])=>$(id).addEventListener('click',()=>{saturnAngle=v;updateReadouts()}));$('stormButton').onclick=()=>{storm=!storm;updateReadouts();toast(storm?'Approaching the storm · illustrated reconstruction':'Back to a wide view')};$('earthCompare').onclick=()=>{compare=!compare;updateReadouts();toast(compare?'The Great Red Spot is larger than Earth, though its size changes over time.':'Scale comparison closed')};$('particleButton').onclick=()=>{particles=!particles;updateReadouts()};$('playButton').onclick=()=>{running=!running;updateReadouts();$('playButton').setAttribute('aria-pressed',String(running));$('playButton').querySelector('.play-icon').textContent=running?'Ⅱ':'▶'};$('resetButton').onclick=()=>{running=false;earthProgress=.3;saturnAngle=24;particles=false;storm=false;compare=false;jSpeed=1.8;$('jupiterTime').value=5;updateReadouts();toast('Observation reset')};$('aboutButton').onclick=()=>{$('aboutPanel').hidden=false;$('aboutButton').setAttribute('aria-expanded','true')};$('closeAbout').onclick=()=>{$('aboutPanel').hidden=true;$('aboutButton').setAttribute('aria-expanded','false')};$('aboutPanel').addEventListener('click',e=>{if(e.target===$('aboutPanel'))$('closeAbout').click()});$('lowPower').onchange=e=>{quality=e.target.checked?.6:1;resize()};$('soundToggle').onclick=()=>{if(!('speechSynthesis'in window))return toast('Speech is unavailable on this device');speechSynthesis.cancel();let p=profiles[world];let say=new SpeechSynthesisUtterance(p.title+'. '+p.lead+' '+p.question+' '+p.hint);say.rate=.85;speechSynthesis.speak(say)};window.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('aboutPanel').hidden)$('closeAbout').click()});
-const canvas=$('universe');canvas.addEventListener('pointerdown',e=>{cameraDrag=true;lastX=e.clientX;lastY=e.clientY;canvas.setPointerCapture(e.pointerId)});canvas.addEventListener('pointerup',()=>cameraDrag=false);canvas.addEventListener('pointercancel',()=>cameraDrag=false);canvas.addEventListener('pointermove',e=>{if(!cameraDrag)return;const dx=e.clientX-lastX,dy=e.clientY-lastY;lastX=e.clientX;lastY=e.clientY;if(world==='earth')earthProgress=((earthProgress+dx/750)%1+1)%1;else if(world==='saturn')saturnAngle=Math.max(-75,Math.min(75,saturnAngle-dy*.3));else elapsed+=dx*.01;running=false;updateReadouts()});
-// This scene is rendered continuously in a WebGL2 fragment shader, not by switching prerendered views.
-const vert=`#version 300 es\nin vec2 position;out vec2 uv;void main(){uv=position*.5+.5;gl_Position=vec4(position,0.,1.);}`;
-const frag=`#version 300 es
-precision highp float;in vec2 uv;out vec4 outColor;uniform vec2 res;uniform float time;uniform float spin;uniform float w;uniform float cloudsOn;uniform float lightsOn;uniform float angle;uniform float stormView;uniform float compareEarth;uniform float ringParticles;uniform float speed;uniform sampler2D earthTex;uniform sampler2D cloudTex;uniform sampler2D nightTex;uniform sampler2D jupiterTex;uniform sampler2D saturnTex;
-#define PI 3.14159265359
-float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}vec3 rotY(vec3 p,float a){float c=cos(a),s=sin(a);return vec3(c*p.x+s*p.z,p.y,-s*p.x+c*p.z);}vec3 rotX(vec3 p,float a){float c=cos(a),s=sin(a);return vec3(p.x,c*p.y-s*p.z,s*p.y+c*p.z);}float sphere(vec3 ro,vec3 rd,float r){float b=dot(ro,rd),c=dot(ro,ro)-r*r,d=b*b-c;return d<0. ? -1. : -b-sqrt(d);}vec2 sphereUV(vec3 n){return vec2(atan(n.z,n.x)/(2.*PI)+.5,asin(clamp(n.y,-1.,1.))/PI+.5);}vec3 sky(vec2 p){float a=hash(floor(p*680.));float star=smoothstep(.9975,1.,a);return vec3(.006,.011,.018)+vec3(.45,.60,.77)*pow(star,4.)*.6;}
-void main(){vec2 p=(gl_FragCoord.xy-res*.5)/res.y;vec3 col=sky(p);float wf=w;float radius=wf==2.? .52:.47;vec2 center=vec2(.235,0.015);if(res.x<800.){center=vec2(.14,.16);radius=.40;}if(wf==1. && stormView>.5)radius*=1.2;vec2 q=p-center;vec3 ro=vec3(0.,0.,3.2);vec3 rd=normalize(vec3(q,-1.9));vec3 light=normalize(vec3(-.75,.23,.9));float t=sphere(ro,rd,radius);float zdepth=0.;
-// Saturn rings: geometric plane intersection, with physically directional shading and radial opacity bands.
-if(wf==2.){vec3 rr=rotX(rd,-radians(angle));vec3 org=rotX(ro,-radians(angle));float tt=-org.y/max(abs(rr.y),.0001)*sign(rr.y);if(tt>0.){vec3 pos=org+rr*tt;float r=length(pos.xz);if(r>.67&&r<1.25){float bands=sin(r*150.)*.13+sin(r*420.)*.09;float gap=smoothstep(.89,.92,r)-smoothstep(.99,1.02,r);float opacity=.51+bands-gap*.44;bool ahead=(tt<t||t<0.);vec3 rc=mix(vec3(.55,.47,.35),vec3(.83,.77,.65),smoothstep(.68,1.26,r));float shadow=smoothstep(-.13,.21,pos.x);rc*=.55+.45*shadow;float particle=ringParticles>.5?step(.995,hash(floor(pos.xz*vec2(250.,200.)+time*vec2(2.1,1.6)/sqrt(r*r*r))))*.7:0.;if(ahead)col=mix(col,rc+particle,clamp(opacity,0.,.91));}}}
-if(t>0.){vec3 n=normalize(ro+rd*t);vec3 np=rotY(n,spin);vec2 st=sphereUV(np);float lam=max(dot(n,light),0.);float twilight=smoothstep(-.25,.22,dot(n,light));vec3 base=vec3(0.);if(wf==0.){base=texture(earthTex,st).rgb;vec2 cuv=vec2(fract(st.x+time*.0013),st.y);float cloud=texture(cloudTex,cuv).r*cloudsOn;float cloud2=texture(cloudTex,vec2(fract(st.x-time*.00032),st.y)).r*cloudsOn;float cover=clamp(pow(cloud,2.2)*.70+cloud2*.18,0.,.88);base=mix(base,vec3(.83,.87,.91),cover);float ocean=(1.-smoothstep(.12,.49,base.g-base.r*.32))*smoothstep(.03,.24,base.b-base.r);float spec=pow(max(dot(reflect(-light,n),-rd),0.),42.)*ocean*.65;base+=spec*vec3(.9,.85,.73);base*=.12+.88*lam;vec3 night=texture(nightTex,st).rgb;night=pow(night,vec3(1.2))*1.6;float darkness=1.-smoothstep(-.11,.14,dot(n,light));base+=night*darkness*lightsOn*.9;float limb=pow(1.-abs(dot(n,rd)),3.);base+=vec3(.08,.24,.45)*limb*twilight*.9;}else if(wf==1.){st.x=fract(st.x+sin(st.y*85.+time*speed*.06)*.012+time*speed*.001*sin(st.y*23.));base=texture(jupiterTex,st).rgb;float turbulence=sin(st.x*150.+time*.10*speed+sin(st.y*75.))*.035;float band=sin(st.y*155.+time*.045*speed)*.055;base+=turbulence+band;float spot=length(vec2((fract(st.x-.67+.5)-.5)*2.2,(st.y-.50)*3.1));float swell=smoothstep(.20,.05,spot);base=mix(base,vec3(.66,.30,.18)+vec3(.12,.06,.04)*sin(spot*38.-time*.05*speed),swell*.68);base*=.19+.81*lam;}else{base=texture(saturnTex,st).rgb;base*=.25+.75*lam;float ringShadow=smoothstep(.04,.01,abs(n.y))*smoothstep(0.,.2,dot(n,light));base*=1.-ringShadow*.3;}col=base;float fres=pow(1.-max(dot(n,-rd),0.),3.);if(wf==0.)col+=vec3(.2,.43,.71)*fres*.46;else col+=vec3(.48,.44,.33)*fres*.12;}
-if(wf==1.&&compareEarth>.5){vec2 ep=p-vec2(.64,-.21);float er=.07;float ed=length(ep);if(ed<er){float zz=sqrt(max(0.,1.-ed*ed/(er*er)));vec3 nn=vec3(ep/er,zz);vec2 eu=sphereUV(nn);col=texture(earthTex,eu).rgb*(.16+.84*max(dot(nn,light),0.));}float outline=smoothstep(.012,.003,abs(ed-er));col=mix(col,vec3(.9,.88,.8),outline*.6);}
-float vign=1.-.42*smoothstep(.3,1.4,length(p));outColor=vec4(pow(max(col*vign,vec3(0.)),vec3(.91)),1.);
-}`;
-function makeShader(t,src){let sh=gl.createShader(t);gl.shaderSource(sh,src);gl.compileShader(sh);if(!gl.getShaderParameter(sh,gl.COMPILE_STATUS))throw new Error(gl.getShaderInfoLog(sh));return sh}
-function initGL(){try{gl=canvas.getContext('webgl2',{alpha:false,antialias:true,powerPreference:'high-performance'});if(!gl)throw Error('WebGL2 unavailable');program=gl.createProgram();gl.attachShader(program,makeShader(gl.VERTEX_SHADER,vert));gl.attachShader(program,makeShader(gl.FRAGMENT_SHADER,frag));gl.linkProgram(program);if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw Error(gl.getProgramInfoLog(program));gl.useProgram(program);let pos=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,pos);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);let loc=gl.getAttribLocation(program,'position');gl.enableVertexAttribArray(loc);gl.vertexAttribPointer(loc,2,gl.FLOAT,false,0,0);for(let [i,key,file] of [['earthTex','earth.jpg'],['cloudTex','clouds.png'],['nightTex','night.png'],['jupiterTex','jupiter.jpg'],['saturnTex','saturn.jpg']].map((row,i)=>[i,...row])){let t=gl.createTexture();gl.activeTexture(gl.TEXTURE0+i);gl.bindTexture(gl.TEXTURE_2D,t);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.REPEAT);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR_MIPMAP_LINEAR);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,1,1,0,gl.RGBA,gl.UNSIGNED_BYTE,new Uint8Array([110,123,139,255]));gl.uniform1i(gl.getUniformLocation(program,key),i);let im=new Image();im.onload=()=>{gl.activeTexture(gl.TEXTURE0+i);gl.bindTexture(gl.TEXTURE_2D,t);gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,true);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,im);gl.generateMipmap(gl.TEXTURE_2D)};im.src='assets/'+file;tex[key]=t}resize();return true}catch(err){console.warn('ATLAS GPU fallback:',err);root.classList.add('no-webgl');$('frameRateLabel').textContent='ILLUSTRATED FALLBACK';return false}}
-function resize(){let box=canvas.getBoundingClientRect(),dpr=Math.min(devicePixelRatio||1,quality===1?1.7:1);canvas.width=Math.max(1,Math.floor(box.width*dpr));canvas.height=Math.max(1,Math.floor(box.height*dpr));gl?.viewport(0,0,canvas.width,canvas.height)}window.addEventListener('resize',resize);
-function uniform(n,v){let loc=gl.getUniformLocation(program,n);if(typeof v==='number')gl.uniform1f(loc,v)}
-function frame(ts){let dt=Math.min(.06,(ts-last)/1000||.016);last=ts;if(running){if(world==='earth')earthProgress=(earthProgress+dt/19)%1;else elapsed+=dt}if(!reduced||running)elapsed+=dt*.11;if(gl){gl.useProgram(program);gl.uniform2f(gl.getUniformLocation(program,'res'),canvas.width,canvas.height);uniform('time',elapsed);uniform('spin',world==='earth'?earthProgress*Math.PI*2:elapsed*.13);uniform('w',world==='earth'?0:world==='jupiter'?1:2);uniform('cloudsOn',clouds?1:0);uniform('lightsOn',lights?1:0);uniform('angle',saturnAngle);uniform('stormView',storm?1:0);uniform('compareEarth',compare?1:0);uniform('ringParticles',particles?1:0);uniform('speed',jSpeed);gl.drawArrays(gl.TRIANGLE_STRIP,0,4)}if(running||Math.round(ts)%17===0)updateReadouts();raf=requestAnimationFrame(frame)}
-updateText();initGL();requestAnimationFrame(frame);
+const state={world:'earth',otherSpin:0,moonTilt:0,lightPhase:.943,axisTilt:98,titanSurface:false,earthProgress:.3,jupiterSpin:2.224,saturnSpin:.4,angle:24,renderAngle:24,spin:0,time:0,clouds:true,lights:true,zoom:0,storm:false,compare:false,particles:false,speed:1,running:false,motion:!reduced.matches,city:'abu-dhabi'};
+let renderer,ready=false,last=0,lastReadout=0,drag=null;
+const wrap=v=>((v%1)+1)%1;
+function toast(text){$('toast').textContent=text;$('toast').classList.add('show');clearTimeout(toast.timer);toast.timer=setTimeout(()=>$('toast').classList.remove('show'),3500);}
+function setRunning(value){state.running=value;if(value&&state.world==='saturn')state.particles=true;if(value)state.motion=true;updateReadouts();}
+function updateReadouts(){
+ const p=profiles[state.world];
+ $('playButton').setAttribute('aria-pressed',String(state.running));$('playIcon').textContent=state.running?'Ⅱ':'▶';$('playLabel').textContent=state.running?'Pause':p.play;
+ $('motionToggle').hidden=view!=='planet';
+ $('motionToggle').setAttribute('aria-pressed',String(state.motion));$('motionToggle').textContent=state.motion?'Motion on':'Motion off';
+ $('earthRotation').value=Math.round(state.earthProgress*1000);
+ const spin=state.earthProgress*Math.PI*2-1.3;
+ const sunLon=(Math.atan2(-1.8,1.3)+spin)*180/Math.PI;
+ const hour=wrap((12+(cities[state.city].lon-sunLon)/15)/24)*24;
+ $('solarClock').textContent=String(Math.floor(hour)).padStart(2,'0')+':'+String(Math.floor(hour%1*60)).padStart(2,'0');
+ const c=cities[state.city],lat=c.lat*Math.PI/180,lon=c.lon*Math.PI/180-spin;
+ const n=[Math.cos(lat)*Math.sin(lon),Math.sin(lat),Math.cos(lat)*Math.cos(lon)];
+ const daylight=n[0]*-1.8+n[1]*.55+n[2]*1.3>0;
+ $('dayStatus').textContent=daylight?'Daylight':'Nighttime';
+ $('jupiterReading').textContent='×'+state.speed.toFixed(1);$('saturnReading').textContent=state.angle+'°';$('saturnAngle').value=state.angle;
+ $('stormButton').setAttribute('aria-pressed',String(state.storm));$('earthCompare').setAttribute('aria-pressed',String(state.compare));$('particleButton').setAttribute('aria-pressed',String(state.particles));
+ $('compareLabel').hidden=state.world!=='jupiter'||!state.compare;
+ positionComparison();
+ $('phaseReading').textContent=state.lightPhase<.4?'Full light':state.lightPhase<1.25?'Gibbous':state.lightPhase<1.8?'Half light':'Crescent';$('tiltReading').textContent=state.axisTilt+'°';$('axisGuide').hidden=state.world!=='uranus';$('axisGuide').style.transform='translateX(-50%) rotate('+state.axisTilt+'deg)';
+ const turn=Math.abs(state.otherSpin-Math.PI*2)<1e-6?360:Math.round(wrap(state.otherSpin/(Math.PI*2))*360);$('uranusSpin').value=turn;$('spinReading').textContent=turn+'°';
+ $('particleInsight').hidden=state.world!=='saturn'||!state.particles;
+ for(const [id,a] of [['saturnTop',55],['saturnEdge',0],['saturnBelow',-35]])$(id).classList.toggle('is-active',state.angle===a);
+ positionCity(n);
+}
+function positionCity(n){
+ const c=cities[state.city],lat=c.lat*Math.PI/180,lon=c.lon*Math.PI/180-(state.earthProgress*Math.PI*2-1.3);
+ n=n||[Math.cos(lat)*Math.sin(lon),Math.sin(lat),Math.cos(lat)*Math.cos(lon)];
+ const a=.15,r=-.12;const y=Math.cos(a)*n[1]-Math.sin(a)*n[2],z=Math.sin(a)*n[1]+Math.cos(a)*n[2];const x=Math.cos(r)*n[0]-Math.sin(r)*y,yy=Math.sin(r)*n[0]+Math.cos(r)*y;
+ const rect=canvas.getBoundingClientRect(),half=1.13,aspect=rect.width/rect.height;
+ $('cityMarker').hidden=state.world!=='earth'||z<.12||!ready;
+ $('cityMarker').style.left=(.5+x/(2*half*aspect))*rect.width+'px';$('cityMarker').style.top=(.5-yy/(2*half))*rect.height+'px';$('cityMarkerName').textContent=c.name;
+}
+function positionComparison(){
+ const half=1.13+(.64-1.13)*state.zoom,r=canvas.getBoundingClientRect();
+ // GRS centre on the historical map; same model-to-view transform as the shader.
+ const lat=-.127*Math.PI,lon=.354*Math.PI*2-state.jupiterSpin;
+ const x=Math.cos(lat)*Math.sin(lon),y=.935*Math.sin(lat),z=Math.cos(lat)*Math.cos(lon);
+ const yy=Math.cos(.04)*y-Math.sin(.04)*z,xx=Math.cos(.035)*x-Math.sin(.035)*yy,ys=Math.sin(.035)*x+Math.cos(.035)*yy;
+ $('compareLabel').style.left=(r.width/2+xx*r.height/(2*half)+.0892*r.height/(2*half)+9)+'px';
+ $('compareLabel').style.top=(r.height/2-(ys+.39*state.zoom)*r.height/(2*half))+'px';
+}
+async function switchWorld(world){
+ if(world==='orrery'||world==='belt'){await showOrrery(world==='belt'?'belt':undefined);return;}
+ if(world.endsWith('-moons')&&FAMILIES[world.replace('-moons','')]){await showMoonSystem(world.replace('-moons',''));return;}
+ moonSystem?.hide();$('moonSystemView').hidden=true;
+ view='planet';window.scrollTo(0,0);if(orrery)orrery.hide();$('main').hidden=false;$('fieldStories').hidden=false;$('orreryView').hidden=true;root.dataset.view='planet';$('motionToggle').hidden=false;document.querySelector('button[data-view="orrery"]').setAttribute('aria-pressed','false');
+ if(!profiles[world])world='earth';state.world=world;state.running=false;state.storm=false;state.zoom=0;state.compare=false;state.otherSpin=world==='mars'?3.9:world==='mimas'?.9:0;state.moonTilt=0;state.lightPhase=.943;state.axisTilt=98;$('sunAngle').value=54;$('axisTilt').value=98;ready=false;
+ const p=profiles[world];root.dataset.world=world;
+ for(const [id,value] of Object.entries({chapterNumber:p.number,chapterKind:p.chapter,worldLead:p.lead,worldText:p.text,experimentQuestion:p.question,experimentHint:p.hint,gestureText:p.gesture,sceneCaption:p.caption,modelNote:p.note,factValue:p.fact,factUnit:p.unit}))$(id).textContent=value;
+ $('worldTitle').innerHTML=p.title.replace(/^The /,'')+'<span>.</span>';root.classList.toggle('moon-detail',!!p.parent);
+ canvas.setAttribute('aria-label','Interactive '+p.title+'. '+(world==='saturn'?'Drag vertically to change the viewpoint.':p.parent?'Drag or use arrow keys to turn and tilt the moon.':'Drag to turn the world.'));
+ for(const w of ['earth','jupiter','saturn'])$(w+'Instrument').hidden=w!==world;
+ $('otherInstrument').hidden=['earth','jupiter','saturn'].includes(world);$('tiltControl').hidden=world!=='uranus';$('phaseControl').hidden=world==='uranus';$('findOrbit').textContent=p.parent?'See '+WORLDS[p.parent].title+' and its moons ↗':'Find '+p.title+' in the orrery ↗';$('titanSurface').hidden=world!=='titan';state.titanSurface=false;$('titanSurface').setAttribute('aria-pressed','false');$('titanSurface').textContent='Look beneath the haze ↗';$('spinControl').hidden=world!=='uranus';$('spinGuideNote').hidden=world!=='uranus';const family=p.parent||world;$('familyLink').hidden=!FAMILIES[family];$('familyLink').href='#'+family+'-moons';$('familyLink').textContent=p.parent?'← The '+WORLDS[family].title+' system':'Explore '+(family==='earth'?'the Moon':(FAMILIES[family]?.length||0)+' moons')+' ↗';showStories();
+ document.querySelectorAll('button[data-world]').forEach(b=>{const active=b.dataset.world===world;b.classList.toggle('is-active',active);b.classList.toggle('is-current',active);b.setAttribute('aria-pressed',String(active));});
+ $('fallbackPlanet').src=p.parent?'assets/research/'+p.map:'assets/'+world+'-still.jpg';$('fallbackPlanet').classList.toggle('map-fallback',!!p.parent);$('fallbackPlanet').alt=p.title+' illustration; interactive rendering is unavailable.';
+ history.replaceState(null,'','#'+world);$('assetStatus').textContent='Loading surface maps';updateReadouts();
+ if(renderer)await renderer.setWorld(world);
+}
+function unavailable(message){
+ ready=false;root.classList.add('no-webgl');$('fallbackPlanet').hidden=false;$('assetStatus').textContent='Still illustration';$('cityMarker').hidden=true;
+ document.querySelectorAll('.instrument input,.instrument select,.instrument button,#playButton').forEach(el=>el.disabled=true);
+ console.error('Solsystemet:',message);toast(message);
+}
+try{renderer=new PlanetRenderer(canvas,()=>{ready=true;root.classList.remove('no-webgl');$('fallbackPlanet').hidden=true;$('assetStatus').textContent='';document.querySelectorAll('.instrument input,.instrument select,.instrument button,#playButton').forEach(el=>el.disabled=false);updateReadouts();},unavailable);}catch(e){unavailable(e.message);}
+document.querySelectorAll('button[data-world]').forEach(b=>b.onclick=()=>switchWorld(b.dataset.world));
+document.querySelector('.brand').onclick=e=>{e.preventDefault();showOrrery();};
+document.querySelector('button[data-view="orrery"]').onclick=()=>showOrrery();
+$('findOrbit').onclick=()=>profiles[state.world].parent?showMoonSystem(profiles[state.world].parent):showOrrery(state.world);
+$('uranusSpin').oninput=e=>{state.otherSpin=Number(e.target.value)*Math.PI/180;state.motion=false;setRunning(false);};
+$('titanSurface').onclick=()=>{state.titanSurface=!state.titanSurface;$('titanSurface').setAttribute('aria-pressed',String(state.titanSurface));$('titanSurface').textContent=state.titanSurface?'Return to the orange haze ↙':'Look beneath the haze ↗';$('sceneCaption').textContent=state.titanSurface?'TITAN / RECONSTRUCTED SURFACE · INFRARED & RADAR':profiles.titan.caption;$('modelNote').textContent=state.titanSurface?'RECONSTRUCTED MAP · NOT A VISIBLE-LIGHT VIEW · SEE FIELD NOTES':profiles.titan.note;};
+$('sunAngle').oninput=e=>{state.lightPhase=Number(e.target.value)*Math.PI/180;updateReadouts();};
+$('axisTilt').oninput=e=>{state.axisTilt=Number(e.target.value);updateReadouts();};
+$('citySelect').onchange=e=>{state.city=e.target.value;updateReadouts();};
+$('earthRotation').oninput=e=>{state.earthProgress=Number(e.target.value)/1000;state.motion=false;setRunning(false);};
+$('cloudToggle').onchange=e=>state.clouds=e.target.checked;$('lightsToggle').onchange=e=>state.lights=e.target.checked;
+$('jupiterTime').oninput=e=>{state.speed=1+Number(e.target.value)*.1;updateReadouts();};
+$('saturnAngle').oninput=e=>{state.angle=Number(e.target.value);updateReadouts();};
+for(const [id,angle] of [['saturnTop',55],['saturnEdge',0],['saturnBelow',-35]])$(id).onclick=()=>{state.angle=angle;updateReadouts();};
+$('stormButton').onclick=()=>{state.storm=!state.storm;if(state.storm)state.jupiterSpin=2.224;else state.compare=false;updateReadouts();};
+$('earthCompare').onclick=()=>{state.compare=!state.compare;if(state.compare){state.storm=true;state.jupiterSpin=2.224;state.motion=false;state.running=false;}updateReadouts();};
+$('particleButton').onclick=()=>{state.particles=!state.particles;if(state.particles)state.motion=true;updateReadouts();};
+$('playButton').onclick=()=>setRunning(!state.running);
+$('motionToggle').onclick=()=>{state.motion=!state.motion;if(!state.motion)state.running=false;updateReadouts();};
+$('resetButton').onclick=()=>{Object.assign(state,{earthProgress:.3,jupiterSpin:2.224,saturnSpin:.4,otherSpin:state.world==='mars'?3.9:state.world==='mimas'?.9:0,moonTilt:0,lightPhase:.943,axisTilt:98,titanSurface:false,angle:24,storm:false,zoom:0,compare:false,particles:false,speed:1,running:false,motion:!reduced.matches,time:0,clouds:true,lights:true});$('cloudToggle').checked=true;$('lightsToggle').checked=true;$('jupiterTime').value=0;$('sunAngle').value=54;$('axisTilt').value=98;$('titanSurface').setAttribute('aria-pressed','false');$('titanSurface').textContent='Look beneath the haze ↗';$('sceneCaption').textContent=profiles[state.world].caption;$('modelNote').textContent=profiles[state.world].note;updateReadouts();};
+$('cinemaButton').onclick=()=>{const active=root.classList.toggle('cinema');$('cinemaButton').setAttribute('aria-pressed',String(active));$('cinemaButton').textContent=active?'Return to exploration ↙':'View only ⤢';};
+$('aboutButton').onclick=()=>{$('aboutPanel').showModal();$('aboutButton').setAttribute('aria-expanded','true');};
+$('closeAbout').onclick=()=>$('aboutPanel').close();$('aboutPanel').onclose=()=>{$('aboutButton').setAttribute('aria-expanded','false');$('aboutButton').focus();};
+$('aboutPanel').onclick=e=>{if(e.target===$('aboutPanel')){const r=$('aboutPanel').getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)$('aboutPanel').close();}};
+$('lowPower').onchange=e=>{if(renderer){renderer.quality=e.target.checked?.6:1;renderer.resize();}};
+window.addEventListener('keydown',e=>{if(e.key==='Escape'&&root.classList.contains('cinema'))$('cinemaButton').click();});
+reduced.addEventListener('change',e=>{if(e.matches){state.motion=false;state.running=false;updateReadouts();}});
+function move(dx,dy){if(state.world==='earth')state.earthProgress=wrap(state.earthProgress-dx/900);else if(state.world==='jupiter'){state.jupiterSpin-=dx*.008;state.storm=false;state.compare=false;}else if(state.world==='saturn')state.angle=Math.round(Math.max(-70,Math.min(70,state.angle-dy*.25)));else{state.otherSpin-=dx*.008;if(profiles[state.world].parent)state.moonTilt=Math.max(-75,Math.min(75,state.moonTilt-dy*.25));}state.running=false;state.motion=false;updateReadouts();}
+canvas.onpointerdown=e=>{drag={x:e.clientX,y:e.clientY};canvas.setPointerCapture(e.pointerId);};canvas.onpointermove=e=>{if(drag){move(e.clientX-drag.x,e.clientY-drag.y);drag={x:e.clientX,y:e.clientY};}};canvas.onpointerup=canvas.onpointercancel=()=>drag=null;
+canvas.onkeydown=e=>{if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)){e.preventDefault();move(e.key==='ArrowLeft'?-20:e.key==='ArrowRight'?20:0,e.key==='ArrowUp'?-20:e.key==='ArrowDown'?20:0);}};
+window.addEventListener('hashchange',()=>switchWorld(location.hash.slice(1)));
+function frame(ts){
+ const dt=Math.min((ts-last)/1000||.016,.05);last=ts;
+ if(!document.hidden&&view==='moons'&&moonSystem)moonSystem.frame(dt,ts);
+ if(!document.hidden&&view==='orrery'&&orrery)orrery.frame(dt,ts);
+ if(!document.hidden&&ready&&view==='planet'){
+  if(state.motion){state.time+=dt*(state.running?3:1);if(state.world==='earth')state.earthProgress=wrap(state.earthProgress-dt/(state.running?35:900));if(state.world==='jupiter'&&!state.storm)state.jupiterSpin+=dt*(state.running?.035:.007);if(state.world==='saturn')state.saturnSpin+=dt*.007;state.otherSpin+=dt*(state.world==='uranus'?(state.running?.72:.09):(state.running?.13:.012))*(state.world==='venus'?-1:1);}
+  const k=reduced.matches?1:1-Math.exp(-dt*6);state.zoom+=((state.storm?1:0)-state.zoom)*k;state.renderAngle+=(state.angle-state.renderAngle)*k;
+  state.spin=state.world==='earth'?state.earthProgress*Math.PI*2-1.3:state.world==='jupiter'?state.jupiterSpin:state.world==='saturn'?state.saturnSpin:state.otherSpin;
+  renderer.render({...state,angle:profiles[state.world].parent?state.moonTilt:state.renderAngle});
+  if(ts-lastReadout>100){updateReadouts();lastReadout=ts;}
+ }
+ requestAnimationFrame(frame);
+}
+switchWorld(location.hash.slice(1)||'earth');requestAnimationFrame(frame);

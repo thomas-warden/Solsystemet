@@ -15,3 +15,12 @@ coverage/
 .env
 .env.*
 !.env.example
+
+# Unused research downloads and inspection sheets
+assets/research/*-original*
+assets/research/*-preview.*
+assets/research/jupiter-hubble-opal-2019.jpg
+assets/research/jupiter-cassini-juno-preview.jpg
+assets/research/earth-night-8k.jpg
+assets/research/saturn-rings-sss-8k.png
+assets/research/moons/contact-sheet.jpg

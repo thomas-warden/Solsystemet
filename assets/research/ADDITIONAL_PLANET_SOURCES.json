@@ -1,0 +1,128 @@
+{
+  "accessed": "2026-10-13",
+  "assets": [
+    {
+      "source_page": "https://cloud.solarsystemscope.com/textures/",
+      "license": "CC BY 4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "credit": "Solar System Scope / INOVE, based on NASA imagery",
+      "projection": "Equirectangular; north at image top; repeat horizontally, clamp at poles.",
+      "planet": "Mercury",
+      "file": "mercury-4k.jpg",
+      "source_asset": "https://cloud.solarsystemscope.com/textures/download/8k_mercury.jpg",
+      "original_file": "mercury-sss-original-8k.jpg",
+      "preparation": "8192x4096 source downsampled to 4096x2048 with Lanczos, JPEG quality 94, no recoloring.",
+      "limitations": "NASA-derived processed surface map. Provider tunes colors and fills unmapped gaps; not calibrated scientific albedo.",
+      "rendering_guidance": "Neutral gray, cratered dry body. Hard terminator, virtually no atmospheric rim. Avoid globally embossed relief unrelated to light.",
+      "dimensions": [
+        4096,
+        2048
+      ],
+      "bytes": 4020120,
+      "sha256": "e37eec9f7a395f7355cf788a38a8fa665b1876875a657fc1dc67219924d5d497"
+    },
+    {
+      "source_page": "https://cloud.solarsystemscope.com/textures/",
+      "license": "CC BY 4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "credit": "Solar System Scope / INOVE, based on NASA imagery",
+      "projection": "Equirectangular; north at image top; repeat horizontally, clamp at poles.",
+      "planet": "Venus",
+      "file": "venus-clouds-4k.jpg",
+      "source_asset": "https://cloud.solarsystemscope.com/textures/download/4k_venus_atmosphere.jpg",
+      "original_file": "venus-clouds-sss-original-4k.jpg",
+      "preparation": "Unmodified source copied as production filename.",
+      "limitations": "Visible-cloud visualization, not a surface radar map. Strong cloud markings and yellow are deliberately enhanced; do not label the raw texture natural color.",
+      "rendering_guidance": "Reduce contrast strongly and mix toward pale ivory/cream in shader; use only about 10-20% of source variation. Visible-light Venus is relatively featureless; strong UV cloud pattern is an optional clearly labeled enhanced view.",
+      "dimensions": [
+        4096,
+        2048
+      ],
+      "bytes": 1546146,
+      "sha256": "a14aeba3c6ad7a56f989bb32008dec548077aeded420495b34df98f2dc14ba91"
+    },
+    {
+      "source_page": "https://cloud.solarsystemscope.com/textures/",
+      "license": "CC BY 4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "credit": "Solar System Scope / INOVE, based on NASA imagery",
+      "projection": "Equirectangular; north at image top; repeat horizontally, clamp at poles.",
+      "planet": "Mars",
+      "file": "mars-4k.jpg",
+      "source_asset": "https://cloud.solarsystemscope.com/textures/download/8k_mars.jpg",
+      "original_file": "mars-sss-original-8k.jpg",
+      "preparation": "8192x4096 source downsampled to 4096x2048 with Lanczos, JPEG quality 94, no recoloring.",
+      "limitations": "NASA-derived processed surface map with provider color saturation, terrain compositing and possible gap filling. Polar coverage/atmospheric state is representative, not today.",
+      "rendering_guidance": "Rust/ochre geology, dark albedo regions, white ice. Source orange is saturated; reduce saturation modestly in renderer and retain thin understated dusty atmosphere.",
+      "dimensions": [
+        4096,
+        2048
+      ],
+      "bytes": 3113832,
+      "sha256": "fc5846bee6f88ed25d102620dedb39d1b895a8cca95644fe825673d0d9697a51"
+    },
+    {
+      "source_page": "https://cloud.solarsystemscope.com/textures/",
+      "license": "CC BY 4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "credit": "Solar System Scope / INOVE, based on NASA imagery",
+      "projection": "Equirectangular; north at image top; repeat horizontally, clamp at poles.",
+      "planet": "Uranus",
+      "file": "uranus-4k.jpg",
+      "source_asset": "https://cloud.solarsystemscope.com/textures/download/2k_uranus.jpg",
+      "original_file": "uranus-sss-original-2k.jpg",
+      "preparation": "Native 2048x1024 source resampled to 4096x2048 with Lanczos for consistent texture dimensions. No added detail or recoloring.",
+      "limitations": "4k is a resampled asset, not 4k observational detail. Broad smooth cyan haze represents atmospheric appearance. Provider enhances color and fills gaps.",
+      "rendering_guidance": "Pale cyan, subtle bands, restrained haze. Avoid adding dramatic cloud storms or glowing rings. Axial tilt is the meaningful visual distinction.",
+      "dimensions": [
+        4096,
+        2048
+      ],
+      "bytes": 340547,
+      "sha256": "21bc52e7561ba53ee9c9f4ae3f5ce0dac25e7fc36d74bfe10c2224a7b5c8abbb"
+    },
+    {
+      "planet": "Neptune",
+      "file": "neptune-4k.jpg",
+      "original_file": "neptune-voyager-original.jpg",
+      "source_page": "https://github.com/CelestiaProject/CelestiaContent",
+      "source_asset": "https://raw.githubusercontent.com/CelestiaProject/CelestiaContent/master/textures/hires/neptune.jpg",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "license_evidence": "https://raw.githubusercontent.com/CelestiaProject/CelestiaContent/master/textures/hires/neptune.jpg.license",
+      "credit": "NASA/JPL-Caltech/Björn Jónsson; Askaniy Anpilogov (2018); Karkoschka, E. (1994)",
+      "projection": "Equirectangular; north at image top; repeat horizontally, clamp at poles.",
+      "preparation": "Source 4096x2048 saved as JPEG quality 94; no color changes or invented details.",
+      "limitations": "Historic Voyager-based map, improved/recolored by Celestia contributor; dark storms are historical, not current weather. Colors approximate natural muted blue but not a newly calibrated 2024 spectrum-derived reconstruction.",
+      "rendering_guidance": "Already muted gray-blue/cyan, suitable without neon-blue tinting. Keep pale cloud features and diffuse atmosphere; do not paint a synthetic storm over the existing one.",
+      "dimensions": [
+        4096,
+        2048
+      ],
+      "bytes": 747521,
+      "sha256": "59fffb9f72b1b2da3869a0311fb60df2a4ea23314de2206fc31d2a184e65d59f"
+    }
+  ],
+  "color_references": [
+    {
+      "url": "https://www.ox.ac.uk/news/2024-01-05-new-images-reveal-what-neptune-and-uranus-really-look-0",
+      "finding": "Oxford study of STIS/MUSE and rebalanced Voyager/WFC3 data reports Uranus and Neptune similar pale greenish-blue; Neptune only slightly bluer. Common vivid Neptune imagery was stretched/enhanced."
+    },
+    {
+      "url": "https://science.nasa.gov/photojournal/uranus-in-true-and-false-color/",
+      "finding": "NASA documents slight true-color Uranus contrasts; extreme bands and orange/yellow limb in the false-color view are image processing artifacts."
+    },
+    {
+      "url": "https://www.nasa.gov/technology/nasa-studies-cubesat-mission-to-solve-venusian-mystery/",
+      "finding": "NASA distinguishes comparatively featureless visible-light Venus from highly patterned ultraviolet views."
+    },
+    {
+      "url": "https://science.nasa.gov/resource/venus-cloud-patterns/",
+      "finding": "Galileo Venus cloud patterns use violet filter, high-pass filtering and colorization, not unaltered visible-eye color."
+    }
+  ],
+  "rejected_asset": {
+    "source_asset": "https://raw.githubusercontent.com/CelestiaProject/CelestiaContent/master/textures/hires/uranus.jpg",
+    "reason": "CC BY-NC-SA 3.0 is more restrictive than selected CC BY source; downloaded files removed to prevent accidental publication."
+  }
+}

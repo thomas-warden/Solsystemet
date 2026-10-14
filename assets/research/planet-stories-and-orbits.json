@@ -1,0 +1,70 @@
+{
+  "researched": "2026-10-13",
+  "audience": "Children aged 8–9, read together or independently",
+  "modelLabel": "A model of the planets’ journeys. Orbits and relative year lengths follow NASA/JPL data. Planet sizes are enlarged so you can find them. This is not a live view of the sky.",
+  "dataNotes": {
+    "orbitalElements": "Fixed J2000 elements from JPL Approximate Positions Table 1. Earth is represented by the Earth–Moon barycenter. Use fixed elements for an illustrative Kepler model, not a live ephemeris. Mean anomaly at epoch is meanLongitudeDeg minus longitudePerihelionDeg; argument of perihelion is longitudePerihelionDeg minus longitudeAscendingNodeDeg.",
+    "period": "Sidereal orbital periods in Julian years from JPL Planetary Physical Parameters. Convert years to days with 365.25. For a fixed ellipse model, advance mean anomaly uniformly, then solve Kepler’s equation; do not advance true anomaly uniformly.",
+    "radius": "Equatorial radii in km from JPL Planetary Physical Parameters; useful for the Earth diameter comparison. Gas-giant radii are at the one-bar atmospheric level.",
+    "composedView": "If orbit gaps are compressed for legibility, label them as composed spacing. In a true-distance mode, keep the semi-major-axis ratios while still explicitly enlarging planet radii.",
+    "sources": ["https://ssd.jpl.nasa.gov/planets/approx_pos.html", "https://ssd.jpl.nasa.gov/planets/phys_par.html"]
+  },
+  "planets": {
+    "mercury": {
+      "orbit": {"semiMajorAU": 0.38709927, "eccentricity": 0.20563593, "inclinationDeg": 7.00497902, "meanLongitudeDeg": 252.25032350, "longitudePerihelionDeg": 77.45779628, "longitudeAscendingNodeDeg": 48.33076593, "periodYears": 0.2408467, "equatorialRadiusKm": 2440.53},
+      "stories": [
+        {"title": "A sunrise that changes its mind.", "text": "In some places on Mercury, the Sun rises, slips back below the horizon, then rises again. Mercury’s slow spin and changing speed around the Sun create this strange double sunrise.", "source": "https://science.nasa.gov/mercury/facts/"},
+        {"title": "Two birthdays in one day.", "text": "One sunrise-to-sunrise day lasts 176 Earth days. In that time, Mercury goes around the Sun twice. You could have two Mercury birthdays before the next sunrise.", "source": "https://science.nasa.gov/mercury/facts/"}
+      ]
+    },
+    "venus": {
+      "orbit": {"semiMajorAU": 0.72333566, "eccentricity": 0.00677672, "inclinationDeg": 3.39467605, "meanLongitudeDeg": 181.97909950, "longitudePerihelionDeg": 131.60246718, "longitudeAscendingNodeDeg": 76.67984255, "periodYears": 0.61519726, "equatorialRadiusKm": 6051.8},
+      "stories": [
+        {"title": "A birthday before one full turn.", "text": "Venus takes 225 Earth days to circle the Sun, but 243 to turn once. It also spins backwards compared with Earth, so the Sun would rise in the west.", "source": "https://science.nasa.gov/venus/venus-facts/"},
+        {"title": "Pancakes made of rock.", "text": "Hidden under the clouds are flat-topped volcanoes called pancake domes. Some stretch about 60 kilometres across. Thick lava spread out and cooled into these enormous stone pancakes.", "source": "https://science.nasa.gov/venus/venus-facts/"}
+      ]
+    },
+    "earth": {
+      "orbit": {"semiMajorAU": 1.00000261, "eccentricity": 0.01671123, "inclinationDeg": -0.00001531, "meanLongitudeDeg": 100.46457166, "longitudePerihelionDeg": 102.93768193, "longitudeAscendingNodeDeg": 0, "periodYears": 1.0000174, "equatorialRadiusKm": 6378.1366},
+      "stories": [
+        {"title": "Sunlight from eight minutes ago.", "text": "The sunshine arriving on your hand left the Sun about eight minutes earlier. Light is incredibly fast, but even light needs time to cross space.", "source": "https://science.nasa.gov/earth/facts/"},
+        {"title": "A paper-thin place to live.", "text": "Imagine Earth shrunk to the size of a beach ball. The layer of air we can breathe would be only about as thick as paper. Look for that thin blue edge.", "source": "https://spaceplace.nasa.gov/whats-in-the-atmosphere/"}
+      ]
+    },
+    "mars": {
+      "orbit": {"semiMajorAU": 1.52371034, "eccentricity": 0.09339410, "inclinationDeg": 1.84969142, "meanLongitudeDeg": -4.55343205, "longitudePerihelionDeg": -23.94362959, "longitudeAscendingNodeDeg": 49.55953891, "periodYears": 1.8808476, "equatorialRadiusKm": 3396.19},
+      "stories": [
+        {"title": "A volcano 600 kilometres wide.", "text": "Olympus Mons is the largest volcano in the solar system. Its base stretches about 600 kilometres across. Imagine spending hours travelling just to cross one mountain.", "source": "https://www.esa.int/Space_in_Member_States/Germany/Olympus_Mons_auf_dem_Mars_Spektakulaere_Bildserie_vom_groessten_Vulkan_unseres_Sonnensystems"},
+        {"title": "The red planet has blue sunsets.", "text": "Near sunset, a blue glow can gather around the Sun. Tiny grains of Martian dust scatter the light in a different way from the air above us on Earth.", "source": "https://science.nasa.gov/solar-system/planets/mars/what-does-a-sunrise-sunset-look-like-on-mars/"}
+      ]
+    },
+    "jupiter": {
+      "orbit": {"semiMajorAU": 5.20288700, "eccentricity": 0.04838624, "inclinationDeg": 1.30439695, "meanLongitudeDeg": 34.39644051, "longitudePerihelionDeg": 14.72847983, "longitudeAscendingNodeDeg": 100.47390909, "periodYears": 11.862615, "equatorialRadiusKm": 71492},
+      "stories": [
+        {"title": "A storm wider than our world.", "text": "The Great Red Spot is a storm wider than Earth. It changes shape and has been shrinking. Place Earth’s outline over this older spacecraft mosaic to see the difference in scale.", "source": "https://www.nasa.gov/missions/jupiters-great-red-spot-getting-taller-as-it-shrinks-nasa-team-finds/"},
+        {"title": "A giant in a hurry.", "text": "Jupiter is the biggest planet, yet it turns once in only about ten hours. Its fast spin helps pull its clouds into the long stripes you can see.", "source": "https://science.nasa.gov/jupiter/jupiter-facts/"}
+      ]
+    },
+    "saturn": {
+      "orbit": {"semiMajorAU": 9.53667594, "eccentricity": 0.05386179, "inclinationDeg": 2.48599187, "meanLongitudeDeg": 49.95424423, "longitudePerihelionDeg": 92.59887831, "longitudeAscendingNodeDeg": 113.66242448, "periodYears": 29.447498, "equatorialRadiusKm": 60268},
+      "stories": [
+        {"title": "You could fly between the pieces.", "text": "Saturn’s rings are not solid hoops. They are countless separate pieces, mostly ice, from tiny grains to chunks as big as houses. Every piece travels around Saturn on its own.", "source": "https://science.nasa.gov/saturn/facts/"},
+        {"title": "Six corners made of wind.", "text": "Around Saturn’s north pole, a huge band of wind forms a hexagon: a shape with six sides. The pattern is about 30,000 kilometres across, wider than two Earths side by side.", "source": "https://science.nasa.gov/saturn/facts/"}
+      ]
+    },
+    "uranus": {
+      "orbit": {"semiMajorAU": 19.18916464, "eccentricity": 0.04725744, "inclinationDeg": 0.77263783, "meanLongitudeDeg": 313.23810451, "longitudePerihelionDeg": 170.95427630, "longitudeAscendingNodeDeg": 74.01692503, "periodYears": 84.016846, "equatorialRadiusKm": 25559},
+      "stories": [
+        {"title": "A planet tipped on its side.", "text": "Earth spins like a slightly tilted top. Uranus is tipped almost onto its side. As it journeys around the Sun, its poles take turns facing the sunlight.", "source": "https://science.nasa.gov/uranus/facts/"},
+        {"title": "One birthday in a lifetime.", "text": "A year on Uranus lasts about 84 Earth years. If you counted birthdays by its trips around the Sun, you would be 84 years old on Earth at your first Uranus birthday.", "source": "https://science.nasa.gov/uranus/facts/"}
+      ]
+    },
+    "neptune": {
+      "orbit": {"semiMajorAU": 30.06992276, "eccentricity": 0.00859048, "inclinationDeg": 1.77004347, "meanLongitudeDeg": -55.12002969, "longitudePerihelionDeg": 44.96476227, "longitudeAscendingNodeDeg": 131.78422574, "periodYears": 164.79132, "equatorialRadiusKm": 24764},
+      "stories": [
+        {"title": "Wind at 2,000 kilometres an hour.", "text": "Neptune’s winds can race at more than 2,000 kilometres an hour. They carry clouds of frozen methane around a world that receives very little warmth from the distant Sun.", "source": "https://science.nasa.gov/neptune/neptune-facts/"},
+        {"title": "Sunshine with a four-hour journey.", "text": "Sunlight takes about four hours to reach Neptune. Light that reaches Earth in eight minutes still has almost the whole journey to Neptune ahead of it.", "source": "https://science.nasa.gov/neptune/neptune-facts/"}
+      ]
+    }
+  }
+}
