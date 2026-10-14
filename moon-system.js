@@ -1,14 +1,16 @@
+import { addCelestialSky } from './sky-scene.js?v=20261014d';
 import * as THREE from './vendor/three.module.js';
 import { OrbitControls } from './vendor/OrbitControls.js';
-import { WORLDS } from './worlds.js';
-import { MOONS, FAMILIES, moonPosition } from './moons.js';
+import { WORLDS } from './worlds.js?v=20261014d';
+import { MOONS, FAMILIES, moonPosition } from './moons.js?v=20261014d';
 const $=id=>document.getElementById(id),TAU=Math.PI*2;
 export class MoonSystem {
  constructor(){
   this.active=false;this.days=0;this.playing=false;this.parent='';this.items={};this.textures=new Map();this.request=0;
   this.renderer=new THREE.WebGLRenderer({canvas:$('moonCanvas'),antialias:true});this.renderer.setPixelRatio(Math.min(devicePixelRatio,2));this.renderer.setClearColor(0x030507);this.renderer.outputColorSpace=THREE.SRGBColorSpace;this.renderer.toneMapping=THREE.ACESFilmicToneMapping;this.renderer.toneMappingExposure=1.1;
-  this.scene=new THREE.Scene();this.camera=new THREE.PerspectiveCamera(38,1,.03,500);this.camera.position.set(0,17,25);this.controls=new OrbitControls(this.camera,$('moonCanvas'));this.controls.enableDamping=true;this.controls.enablePan=false;this.controls.minDistance=4;this.controls.maxDistance=90;this.controls.maxPolarAngle=Math.PI*.9;this.controls.target.set(0,0,0);
+  this.scene=new THREE.Scene();this.sky=addCelestialSky(this.scene);this.camera=new THREE.PerspectiveCamera(38,1,.03,500);this.camera.position.set(0,17,25);this.controls=new OrbitControls(this.camera,$('moonCanvas'));this.controls.enableDamping=true;this.controls.enablePan=false;this.controls.minDistance=4;this.controls.maxDistance=90;this.controls.maxPolarAngle=Math.PI*.9;this.controls.target.set(0,0,0);
   this.scene.add(new THREE.AmbientLight(0x73879a,.34));const light=new THREE.DirectionalLight(0xffedcf,2.9);light.position.set(-8,5,7);this.scene.add(light);this.group=new THREE.Group();this.scene.add(this.group);this.sphere=new THREE.SphereGeometry(1,64,40);this.loader=new THREE.TextureLoader();this.labels=[];
+  $('moonFocus').onchange=e=>this.select(e.target.value);
   $('moonPlay').onclick=()=>{if(this.days>=this.span)this.days=0;this.playing=!this.playing;this.updateUI();};$('moonDay').oninput=e=>{this.days=Number(e.target.value)/1000*this.span;this.playing=false;this.updateUI();};$('moonPerspective').onclick=()=>this.setView(false);$('moonTop').onclick=()=>this.setView(true);$('moonReset').onclick=()=>{this.days=0;this.playing=false;this.select(FAMILIES[this.parent][0]);this.setView(false);this.updateUI();};
   const canvas=$('moonCanvas');
   canvas.addEventListener('pointerdown',e=>{if(e.isPrimary&&e.button===0)this.pointer={id:e.pointerId,x:e.clientX,y:e.clientY,moved:false};});
@@ -28,15 +30,15 @@ export class MoonSystem {
   this.observer=new ResizeObserver(()=>this.resize());this.observer.observe($('moonStage'));
  }
  texture(path){if(!this.textures.has(path))this.textures.set(path,this.loader.loadAsync(path).then(t=>{t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=Math.min(8,this.renderer.capabilities.getMaxAnisotropy());return t;}));return this.textures.get(path);}
- async show(parent){
-  this.active=true;if(this.parent===parent){this.resize();return;}this.parent=parent;this.days=0;this.playing=false;this.selected=FAMILIES[parent][0];const token=++this.request;
-  for(const child of [...this.group.children]){child.traverse(o=>{if(o.geometry&&o.geometry!==this.sphere)o.geometry.dispose();if(o.material)o.material.dispose();});this.group.remove(child);}this.items={};this.labels=[];$('moonLabels').replaceChildren();$('moonCards').replaceChildren();
-  const ids=FAMILIES[parent];$('moonCards').hidden=ids.length===1;this.span=parent==='earth'?28:parent==='jupiter'?17:80;this.maxRadius=parent==='earth'?4.6:parent==='jupiter'?8.3:11.4;
+ async show(parent,selected){
+  this.active=true;if(this.parent===parent){this.select(selected||this.selected);this.resize();return;}this.parent=parent;this.days=0;this.playing=false;this.selected=selected||FAMILIES[parent][0];const token=++this.request;
+  for(const child of [...this.group.children]){child.traverse(o=>{if(o.geometry&&o.geometry!==this.sphere)o.geometry.dispose();if(o.material)o.material.dispose();});this.group.remove(child);}this.items={};this.labels=[];$('moonLabels').replaceChildren();
+  const ids=FAMILIES[parent];this.span=parent==='earth'?28:parent==='jupiter'?17:80;this.maxRadius=parent==='earth'?4.6:parent==='jupiter'?8.3:11.4;
   $('moonSystemTitle').textContent=parent==='earth'?'Earth & the Moon.':WORLDS[parent].title+'’s moons.';$('moonSystemIntro').innerHTML=parent==='earth'?'Two worlds, one familiar sky.<br>Watch the Moon circle our home.':parent==='jupiter'?'Four moons. Four different worlds.<br>Fire, ice and hidden oceans.':'Seven moons beyond the rings.<br>Ice fountains, methane rain and a mountain seam.';
   $('moonSystemEyebrow').textContent=parent==='earth'?'OUR NEAREST NEIGHBOUR':parent==='jupiter'?'THE FOUR GALILEAN MOONS':'SEVEN MAJOR MOONS OF SATURN';$('moonClockNote').textContent=parent==='jupiter'?'Io makes about four trips while Ganymede makes one.':parent==='saturn'?'Watch the inner moons hurry past distant Iapetus.':'The Moon takes about 27 Earth days to circle Earth.';$('moonTimeSpan').textContent=this.span+' EARTH DAYS';
-  document.querySelectorAll('#moonSystemView .neighbourhood-nav a').forEach(a=>a.setAttribute('aria-current',a.hash==='#'+parent+'-moons'?'page':'false'));
+  
   const jobs=[this.makeBody(parent,1.3,0,0)];
-  ids.forEach((id,i)=>{const p=MOONS[id],r=parent==='earth'?4.6:3.5+i*(parent==='jupiter'?1.6:1.3166667),size=parent==='earth'?1.3*p.radius/WORLDS.earth.radius:Math.max(.115,1.3*p.radius/WORLDS[parent].radius*5.5);jobs.push(this.makeBody(id,size,r,i));const card=document.createElement('button');card.className='moon-card';card.dataset.moon=id;card.setAttribute('aria-label','Select '+p.title);card.innerHTML=`<span class="moon-mini" style="background-image:url('assets/research/${p.map}')"></span><strong>${p.title}</strong><small>ABOUT ${p.period.toFixed(p.period<10?1:0)} EARTH DAYS / ORBIT</small><p>${p.lead}</p>`;card.onclick=()=>this.select(id);$('moonCards').append(card);});
+  ids.forEach((id,i)=>{const p=MOONS[id],r=parent==='earth'?4.6:3.5+i*(parent==='jupiter'?1.6:1.3166667),size=parent==='earth'?1.3*p.radius/WORLDS.earth.radius:Math.max(.115,1.3*p.radius/WORLDS[parent].radius*5.5);jobs.push(this.makeBody(id,size,r,i));});
   if(parent==='saturn')jobs.push(this.makeRings());this.setView(false);this.resize();this.select(this.selected);this.updateUI();$('moonStatus').textContent='Preparing the moon system…';const results=await Promise.allSettled(jobs);if(token===this.request)$('moonStatus').textContent=results.some(r=>r.status==='rejected')?'Some imagery is unavailable. The orbit model is still active.':'';
  }
  async makeBody(id,size,r,index){
@@ -50,7 +52,7 @@ export class MoonSystem {
   if(id==='earth'){const clouds=new THREE.Mesh(this.sphere,new THREE.MeshStandardMaterial({color:0xffffff,alphaMap:await this.texture('assets/orbits/clouds.jpg'),transparent:true,opacity:.92,depthWrite:false,roughness:1}));clouds.scale.setScalar(1.007);mesh.add(clouds);}
  }
  async makeRings(){const geo=new THREE.RingGeometry(1.3*1.235,1.3*2.27,160),pos=geo.attributes.position,uv=geo.attributes.uv;for(let n=0;n<pos.count;n++)uv.setXY(n,(Math.hypot(pos.getX(n),pos.getY(n))/1.3-1.235)/1.035,.5);const material=new THREE.MeshStandardMaterial({transparent:true,side:THREE.DoubleSide,roughness:1,depthWrite:false});const mesh=new THREE.Mesh(geo,material);mesh.rotation.x=-Math.PI/2;this.group.add(mesh);material.map=await this.texture('assets/research/saturn-rings-radial-8k.png');material.needsUpdate=true;}
- select(id){if(!MOONS[id])return;this.selected=id;const p=MOONS[id];$('moonSelectedKind').textContent=p.chapter;$('moonSelectedName').textContent=p.title;$('moonSelectedStory').textContent=p.lead+' '+p.stories[0].text;$('visitMoon').href='#'+id;$('visitMoon').textContent='Visit '+p.title.replace(/^The /,'the ')+' ↗';for(const {id:key,label} of this.labels){label.classList.toggle('is-selected',key===id);if(this.items[key].orbit)this.items[key].orbit.material.opacity=key===id?.65:.23;}document.querySelectorAll('[data-moon]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.moon===id)));}
+ select(id){if(!MOONS[id])return;this.selected=id;if(location.hash.startsWith('#'+this.parent+'-moons'))history.replaceState(null,'','#'+this.parent+'-moons/'+id);$('moonFocus').value=id;const p=MOONS[id];$('moonSelectedKind').textContent=p.chapter;$('moonSelectedName').textContent=p.title;$('moonSelectedStory').textContent=p.lead+' '+p.stories[0].text;$('visitMoon').href='#'+id;$('visitMoon').textContent='Visit '+p.title.replace(/^The /,'the ')+' ↗';for(const {id:key,label} of this.labels){label.classList.toggle('is-selected',key===id);if(this.items[key].orbit)this.items[key].orbit.material.opacity=key===id?.65:.23;}}
  setView(top){this.top=top;this.controls.target.set(0,0,0);const dist=this.distance();this.camera.position.set(0,top?dist:dist*.6,top?.01:dist*.8);this.controls.update();$('moonTop').setAttribute('aria-pressed',String(top));$('moonPerspective').setAttribute('aria-pressed',String(!top));}
  distance(){return (this.maxRadius+.9)*Math.max(this.top?3.25:2.35,3.65/Math.max(.4,this.camera.aspect));}
  resize(){if(!this.parent)return;const r=$('moonStage').getBoundingClientRect();if(!r.width||!r.height)return;const old=this.camera.aspect;this.camera.aspect=r.width/r.height;this.camera.updateProjectionMatrix();this.renderer.setSize(r.width,r.height,false);if(Math.abs(old-this.camera.aspect)>.05)this.setView(this.top);}

@@ -1,3 +1,4 @@
+import { addCelestialSky } from './sky-scene.js?v=20261014d';
 import * as THREE from './vendor/three.module.js';
 const $ = id => document.getElementById(id);
 const reduced = matchMedia('(prefers-reduced-motion: reduce)');
@@ -72,13 +73,7 @@ export class BeltFlight {
   reduced.addEventListener('change',e=>{if(e.matches){this.playing=false;this.look={x:0,y:0};this.updateUI();}});
   $('beltStatus').textContent='';
  }
- buildStars(){
-  const random=randomGenerator(317),points=[];
-  for(let i=0;i<550;i++){const a=random()*Math.PI*2,y=random()*2-1,r=Math.sqrt(1-y*y);points.push(r*Math.cos(a)*440,y*440,r*Math.sin(a)*440);}
-  const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute(points,3));
-  this.scene.add(new THREE.Points(geometry,new THREE.PointsMaterial({color:0x7a8b9c,size:.42,transparent:true,opacity:.5,fog:false,depthWrite:false})));
- }
-
+ buildStars(){this.sky=addCelestialSky(this.scene);}
  buildRocks(){
   const material=new THREE.MeshStandardMaterial({roughness:1,metalness:0,vertexColors:true});
   // Several scales of mineral relief, attached to the rotating surface.

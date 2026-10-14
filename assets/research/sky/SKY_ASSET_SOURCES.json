@@ -1,0 +1,12 @@
+{
+  "title": "Deep Star Maps 2020",
+  "source": "https://svs.gsfc.nasa.gov/4851/",
+  "original": "https://svs.gsfc.nasa.gov/vis/a000000/a004800/a004851/starmap_2020_4k.exr",
+  "download_mirror": "https://raw.githubusercontent.com/Foaming-Hippo/UPS/21449a7645de3de6d4d42287e09e4d1b63f9da5c/models/starmap_2020_4k.exr",
+  "original_git_blob_sha1": "62bb12ba64290f7ceef20bb847c78104cf55124e",
+  "credit": "NASA/Goddard Space Flight Center Scientific Visualization Studio. Gaia DR2: ESA/Gaia/DPAC. Visualization: Ernie Wright (USRA).",
+  "processing": "Celestial 4096 x 2048 EXR converted with macOS sips to display RGB PNG, then WebP quality 94. Shader adjusts exposure and framing; positions are catalogue-derived. Not a current Earth sky or a single photographic exposure.",
+  "file": "deep-star-map-4k.webp",
+  "bytes": 157102,
+  "sha256": "4d0d0d8fc30ab46325a4cf2b82daf024939a40dc0ef0d6c3ef3f65456b3eacb3"
+}

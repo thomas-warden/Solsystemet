@@ -65,6 +65,11 @@ export const MOONS={
     "title": "Tides in solid ground.",
     "text": "Jupiter’s pull can make Io’s rocky surface rise and fall by about 100 metres. Imagine the ground beneath you lifting as high as a tall building. All that flexing heats the moon inside.",
     "source": "https://science.nasa.gov/jupiter/jupiter-moons/io/facts/"
+   },
+   {
+    "title": "Fountains made of lava.",
+    "text": "Some of Io’s volcanoes throw fountains of lava kilometres into the sky. Imagine a fountain whose spray is glowing rock. Io may be small, but its eruptions are enormous.",
+    "source": "https://science.nasa.gov/jupiter/jupiter-moons/io/facts/"
    }
   ]
  },
@@ -98,6 +103,13 @@ export const MOONS={
     "title": "An enormous ice puzzle.",
     "text": "Some dark bands have edges that fit together like jigsaw pieces. They suggest that Europa’s icy shell has cracked and moved apart, with new material filling the gaps.",
     "source": "https://science.nasa.gov/jupiter/jupiter-moons/europa/europa-facts/"
+   },
+   {
+    "title": "A moon that gets squeezed warm.",
+    "text": "Jupiter’s gravity stretches and relaxes Europa as it goes around. This repeated flexing creates heat inside. Even far from the Sun, a frozen surface can hide liquid water below.",
+    "source": "https://science.nasa.gov/jupiter/jupiter-moons/europa/europa-facts/",
+    "related": "enceladus",
+    "action": "Meet another ocean moon ↗"
    }
   ]
  },
@@ -131,6 +143,13 @@ export const MOONS={
     "title": "Northern lights on a moon.",
     "text": "Ganymede is the only moon known to make its own magnetic field. Glowing bands of gas form near its poles, rather like Earth’s northern and southern lights.",
     "source": "https://science.nasa.gov/jupiter/jupiter-moons/ganymede/facts/"
+   },
+   {
+    "title": "One, two, four. A rhythm in space.",
+    "text": "While Ganymede makes one trip around Jupiter, Europa makes two and Io makes four. Their repeated gravitational tugs help keep this remarkable rhythm. Try counting the trips in their orrery.",
+    "source": "https://science.nasa.gov/jupiter/jupiter-moons/ganymede/facts/",
+    "related": "jupiter-moons/ganymede",
+    "action": "Watch their orbits ↗"
    }
   ]
  },
@@ -197,6 +216,11 @@ export const MOONS={
     "title": "A robot bounced here.",
     "text": "The Huygens probe landed on Titan in 2005. Scientists worked out that it bounced, slid and wobbled before coming to rest. Its pictures gave us a view from beneath the orange haze.",
     "source": "https://www.jpl.nasa.gov/news/bounce-skid-wobble-how-huygens-landed-on-titan/"
+   },
+   {
+    "title": "Here, ice is the rock.",
+    "text": "Titan is about −179°C at the surface. Water ice stays so hard that it plays the part of rock in the landscape. The rivers flowing over that frozen ground are made of liquid methane and ethane.",
+    "source": "https://science.nasa.gov/saturn/moons/titan/facts/"
    }
   ]
  },
@@ -230,6 +254,13 @@ export const MOONS={
     "title": "A moon that feeds a ring.",
     "text": "Some ice grains escape Enceladus and spread around Saturn. They help make the faint E ring. This tiny moon keeps adding fresh material to an enormous ring.",
     "source": "https://science.nasa.gov/saturn/moons/enceladus/"
+   },
+   {
+    "title": "Hot springs beneath a frozen world.",
+    "text": "Tiny grains found by Cassini suggest that hot water meets rock deep beneath the ice. Scientists think Enceladus may have hot springs on its ocean floor, far below the freezing surface.",
+    "source": "https://science.nasa.gov/saturn/moons/enceladus/",
+    "related": "europa",
+    "action": "Visit Europa’s hidden ocean ↗"
    }
   ]
  },

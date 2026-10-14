@@ -1,4 +1,5 @@
-import { WORLDS } from './worlds.js';
+import { SKY_URL, SKY_GLSL } from './sky.js?v=20261014d';
+import { WORLDS } from './worlds.js?v=20261014d';
 // Solsystemet: analytic ellipsoids, a separately lit cloud shell and a depth-sorted ring plane.
 // Textures remain photographic maps; motion is an illustrative reconstruction.
 const vertex = `#version 300 es
@@ -10,6 +11,7 @@ out vec4 color;
 uniform vec2 resolution;
 uniform float world, spin, time, cameraAngle, cloudsOn, lightsOn, storm, compareEarth, particles, speed, lightPhase, axisTilt;
 uniform sampler2D surfaceMap, cloudMap, nightMap, ringMap, earthMap;
+${SKY_GLSL.replaceAll("texture2D(", "texture(")}
 const float PI=3.141592653589793;
 vec3 linearize(vec3 c){return pow(max(c,vec3(0.)),vec3(2.2));}
 vec3 rotateX(vec3 p,float a){float c=cos(a),s=sin(a);return vec3(p.x,c*p.y-s*p.z,s*p.y+c*p.z);}
@@ -83,10 +85,15 @@ void main(){
  if(world==6.||world>=8.)light=rotateX(rotateZ(light,-roll),-angle);
  vec3 shape=vec3(1.,world==2.?.902:world==1.?.935:world==6.?.977:1.,1.);
  vec2 ht=hitEllipsoid(ro,rd,shape);float t=ht.x;
- vec3 result=linearize(vec3(3.,5.,7.)/255.)/1.18;
+ vec3 result;
  if(t>0.){
   vec3 p=ro+rd*t,n=normalize(p/(shape*shape));
   result=renderSurface(p,n,rd,light);
+ }else{
+  // The distant sky keeps its framing while the foreground world is enlarged.
+  vec2 skyPlane=(gl_FragCoord.xy/resolution-.5)*vec2(aspect,1.)*2.;
+  vec3 sky=skyColor(normalize(vec3(skyPlane*.5424,-1.8)));
+  result=-log(max(vec3(.001),1.-linearize(sky)))/1.18;
  }
  if(world==0.){
   // Clouds sit above the globe. Their brightness comes from direct sunlight,
@@ -157,9 +164,10 @@ export class PlanetRenderer {
   const shader=(type,source)=>{const s=gl.createShader(type);gl.shaderSource(s,source);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw Error(gl.getShaderInfoLog(s));return s;};
   this.program=gl.createProgram();gl.attachShader(this.program,shader(gl.VERTEX_SHADER,vertex));gl.attachShader(this.program,shader(gl.FRAGMENT_SHADER,fragment));gl.linkProgram(this.program);if(!gl.getProgramParameter(this.program,gl.LINK_STATUS))throw Error(gl.getProgramInfoLog(this.program));gl.useProgram(this.program);
   const buffer=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);let position=gl.getAttribLocation(this.program,'position');gl.enableVertexAttribArray(position);gl.vertexAttribPointer(position,2,gl.FLOAT,false,0,0);
-  this.locations={};for(const name of ['resolution','world','spin','time','cameraAngle','cloudsOn','lightsOn','storm','compareEarth','particles','speed','lightPhase','axisTilt','surfaceMap','cloudMap','nightMap','ringMap','earthMap'])this.locations[name]=gl.getUniformLocation(this.program,name);
+  this.locations={};for(const name of ['resolution','world','spin','time','cameraAngle','cloudsOn','lightsOn','storm','compareEarth','particles','speed','lightPhase','axisTilt','surfaceMap','cloudMap','nightMap','ringMap','earthMap','skyMap','skyReady'])this.locations[name]=gl.getUniformLocation(this.program,name);
   this.placeholder=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,this.placeholder);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,1,1,0,gl.RGBA,gl.UNSIGNED_BYTE,new Uint8Array([0,0,0,255]));gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
   this.anisotropy=gl.getExtension('EXT_texture_filter_anisotropic');
+  this.load('sky',SKY_URL).catch(()=>console.warn('Celestial map unavailable; showing a simple star field.'));
   this.highDetail=gl.getParameter(gl.MAX_TEXTURE_SIZE)>=8192&&innerWidth>700;
   this.observer=new ResizeObserver(()=>this.resize());this.observer.observe(canvas);
   canvas.addEventListener('webglcontextlost',e=>{e.preventDefault();this.ready=false;onError('Graphics connection interrupted. Reload to restore the scene.');});
@@ -184,9 +192,9 @@ export class PlanetRenderer {
  render(s){
   if(!this.ready)return;
   const gl=this.gl;gl.useProgram(this.program);
-  for(const [i,key,name] of [[0,'surfaceMap',s.world==='titan'&&s.titanSurface?'titan-surface':s.world],[1,'cloudMap','cloud'],[2,'nightMap','night'],[3,'ringMap','ring'],[4,'earthMap','earth']]){gl.activeTexture(gl.TEXTURE0+i);gl.bindTexture(gl.TEXTURE_2D,this.maps[name]||this.placeholder);gl.uniform1i(this.locations[key],i);}
+  for(const [i,key,name] of [[0,'surfaceMap',s.world==='titan'&&s.titanSurface?'titan-surface':s.world],[1,'cloudMap','cloud'],[2,'nightMap','night'],[3,'ringMap','ring'],[4,'earthMap','earth'],[5,'skyMap','sky']]){gl.activeTexture(gl.TEXTURE0+i);gl.bindTexture(gl.TEXTURE_2D,this.maps[name]||this.placeholder);gl.uniform1i(this.locations[key],i);}
   gl.uniform2f(this.locations.resolution,this.canvas.width,this.canvas.height);
-  const values={world:s.world==='titan'&&!s.titanSurface?9:(WORLDS[s.world].parent==='saturn'&&s.world!=='titan'?10:WORLDS[s.world].parent?8:['earth','jupiter','saturn','mercury','venus','mars','uranus','neptune'].indexOf(s.world)),spin:s.spin,time:s.time,cameraAngle:s.angle,cloudsOn:+s.clouds,lightsOn:+s.lights,storm:s.zoom,compareEarth:+s.compare,particles:+s.particles,speed:s.speed,lightPhase:s.lightPhase,axisTilt:s.axisTilt};
+  const values={skyReady:this.maps.sky?1:0,world:s.world==='titan'&&!s.titanSurface?9:(WORLDS[s.world].parent==='saturn'&&s.world!=='titan'?10:WORLDS[s.world].parent?8:['earth','jupiter','saturn','mercury','venus','mars','uranus','neptune'].indexOf(s.world)),spin:s.spin,time:s.time,cameraAngle:s.angle,cloudsOn:+s.clouds,lightsOn:+s.lights,storm:s.zoom,compareEarth:+s.compare,particles:+s.particles,speed:s.speed,lightPhase:s.lightPhase,axisTilt:s.axisTilt};
   for(const [k,v] of Object.entries(values))gl.uniform1f(this.locations[k],v);
   gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
  }

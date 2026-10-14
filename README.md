@@ -72,3 +72,18 @@ Historical image composites are not a live feed. Cloud movement is illustrative.
 - The belt's cruise speed is about a quarter of the previous speed. Fewer, much larger bodies have crater relief, broken planes, fissures and layered surface detail, with geometry selected by apparent size.
 - Bodies turn about independently chosen axes at different rates and directions. Small, occasional staged contacts release chips and a brief dust veil.
 - Collision objects are pooled and recycled behind the viewer; subsequent pairs enter through the distant fog. The real belt's sparse spacing and illustrative collisions are explained in Field notes.
+
+## Celestial background
+
+- One locally bundled NASA/SVS catalogue-based sky map supplies varied star colours, brightness, the Milky Way and dark dust lanes. The 4096 × 2048 WebP is about 154 KiB.
+- Shared sky shading appears in every planet and moon close-up, all orbital models and the asteroid flight. It is rendered behind solid bodies and transparent rings.
+- The distant sky is fixed during globe rotation and close-up zoom. Three.js scenes respond to camera direction while ignoring translation, keeping stars at infinity.
+- No additional animated layers or atmospheric twinkling. A sparse static fallback remains available if the map fails to load. Existing pause and reduced-motion behavior is unchanged.
+- sky.js holds common exposure and sampling; sky-scene.js adds the Three.js background. Sources and artistic-exposure limits are in sources.html#sky and the sky asset manifest.
+
+## Moon discovery and navigation
+
+- Earth has a direct View the Moon link, with the Earth–Moon orrery as a separate destination. Jupiter and Saturn show direct moon-page links beside their descriptions and a curated set of moon cards below.
+- Moon-system labels and cards open entries directly. A separately labelled orbit selector highlights a path, and parent-planet links make the way back explicit. The solar orrery has the same selection control and contextual moon-system links.
+- Hash routes retain browser Back/Forward history. Optional routes such as #orrery/jupiter and #jupiter-moons/europa keep the requested world selected. Legacy #orrery-belt still resolves.
+- Five expanded moon pages add sourced stories about tidal heat, lava fountains, orbital rhythm, hot springs and ice behaving as rock. The other existing moon entries remain available.

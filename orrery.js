@@ -1,6 +1,7 @@
+import { addCelestialSky } from './sky-scene.js?v=20261014d';
 import * as THREE from './vendor/three.module.js';
 import { OrbitControls } from './vendor/OrbitControls.js';
-import { ORDER, WORLDS, orbitalPosition } from './worlds.js';
+import { ORDER, WORLDS, orbitalPosition } from './worlds.js?v=20261014d';
 const $=id=>document.getElementById(id),YEAR=WORLDS.earth.period,EPOCH=16550;
 const reduced=matchMedia('(prefers-reduced-motion: reduce)');
 export class Orrery {
@@ -16,6 +17,7 @@ export class Orrery {
   const loads=ORDER.map(id=>this.buildPlanet(id));
   Promise.allSettled(loads).then(results=>{$('orreryStatus').textContent=results.some(r=>r.status==='rejected')?'Some surface maps unavailable — the orbital model is still active.':'';});
   this.observer=new ResizeObserver(()=>this.resize());this.observer.observe($('orreryStage'));
+  $('orbitFocus').innerHTML=ORDER.map(id=>`<option value="${id}">${WORLDS[id].title}</option>`).join('');
   this.bind();this.select('earth');this.trail=new THREE.Line(new THREE.BufferGeometry(),new THREE.LineBasicMaterial({color:0xd5c198,transparent:true,opacity:.88}));this.scene.add(this.trail);this.resize();this.updateUI();
  }
  buildSun(){
@@ -26,7 +28,7 @@ export class Orrery {
   const glowCanvas=document.createElement('canvas');glowCanvas.width=glowCanvas.height=256;const c=glowCanvas.getContext('2d'),g=c.createRadialGradient(128,128,20,128,128,128);g.addColorStop(0,'rgba(255,221,166,.55)');g.addColorStop(.3,'rgba(252,172,81,.22)');g.addColorStop(.6,'rgba(228,111,41,.055)');g.addColorStop(1,'rgba(200,90,20,0)');c.fillStyle=g;c.fillRect(0,0,256,256);
   this.glow=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(glowCanvas),transparent:true,depthWrite:false,blending:THREE.AdditiveBlending}));this.glow.scale.set(9,9,1);this.scene.add(this.glow);
  }
- buildStars(){let seed=77;const random=()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296;};const positions=[],colors=[];for(let i=0;i<750;i++){const y=random()*2-1,a=random()*Math.PI*2,r=250+random()*100,s=Math.sqrt(1-y*y);positions.push(r*s*Math.cos(a),r*y,r*s*Math.sin(a));let v=.07+random()*.25;colors.push(v*.8,v*.9,v);}const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));geo.setAttribute('color',new THREE.Float32BufferAttribute(colors,3));this.scene.add(new THREE.Points(geo,new THREE.PointsMaterial({size:.65,sizeAttenuation:true,vertexColors:true,transparent:true,opacity:.7,depthWrite:false})));}
+ buildStars(){this.sky=addCelestialSky(this.scene);}
  buildBelt(){
   let seed=921;const random=()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296;};this.asteroids=[];
   for(let n=0;n<1050;n++){const a=2.1+random()*1.2;this.asteroids.push({a,e:.025+random()*.065,i:(random()-.5)*9,L:random()*360,peri:random()*360,node:random()*360,period:365.256*Math.pow(a,1.5)});}
@@ -34,7 +36,7 @@ export class Orrery {
   this.beltLabel=document.createElement('a');this.beltLabel.href='#belt';this.beltLabel.className='orbit-label belt-label';this.beltLabel.textContent='Asteroid belt';this.beltLabel.setAttribute('aria-label','Visit the asteroid belt');$('orbitLabels').append(this.beltLabel);
   fetch('assets/research/moon-stories.json').then(r=>r.json()).then(data=>{const stories=data.belt?.stories||data.asteroid_belt?.stories||[];for(const story of stories){const a=document.createElement('article');a.className='story';const h=document.createElement('h3'),p=document.createElement('p'),link=document.createElement('a');h.textContent=story.title;p.textContent=story.text;link.textContent='Field source ↗';link.href=story.source;link.target='_blank';link.rel='noopener';a.append(h,p,link);$('beltStories').append(a);}}).catch(()=>{});
  }
- showBelt(){this.select('mars');this.beltSelected=true;ORDER.forEach(id=>{this.labels[id].removeAttribute('aria-current');this.orbits[id].material.opacity=.3;});document.querySelectorAll('[data-orbit]').forEach(b=>b.setAttribute('aria-pressed','false'));this.following=null;this.fly('belt');$('beltButton').setAttribute('aria-pressed','true');$('beltDiscovery').hidden=false;$('orbitKind').textContent='ROCKY LEFTOVERS FROM THE BEGINNING';$('orbitName').textContent='Asteroid belt';$('orbitFact').innerHTML='A wide band of small worlds <strong>between Mars and Jupiter.</strong><br><span>The points are a tiny, enlarged sample of the real belt.</span>';$('followOrbit').textContent='Return to whole system ↙';$('visitPlanet').hidden=true;history.replaceState(null,'','#orrery-belt');}
+ showBelt(){this.select('mars');this.beltSelected=true;$('orbitMoons').hidden=true;ORDER.forEach(id=>{this.labels[id].removeAttribute('aria-current');this.orbits[id].material.opacity=.3;});document.querySelectorAll('[data-orbit]').forEach(b=>b.setAttribute('aria-pressed','false'));this.following=null;this.fly('belt');$('beltButton').setAttribute('aria-pressed','true');$('beltDiscovery').hidden=false;$('orbitKind').textContent='ROCKY LEFTOVERS FROM THE BEGINNING';$('orbitName').textContent='Asteroid belt';$('orbitFact').innerHTML='A wide band of small worlds <strong>between Mars and Jupiter.</strong><br><span>The points are a tiny, enlarged sample of the real belt.</span>';$('followOrbit').textContent='Return to whole system ↙';$('visitPlanet').hidden=false;$('visitPlanet').href='#belt';$('visitPlanet').innerHTML='Enter the asteroid belt <span>↗</span>';history.replaceState(null,'','#orrery/belt');}
  async buildPlanet(id){
   const p=WORLDS[id],group=new THREE.Group();this.scene.add(group);
   const material=new THREE.MeshStandardMaterial({color:0xffffff,roughness:1,metalness:0});
@@ -61,6 +63,7 @@ export class Orrery {
   $('orbitPlay').onclick=()=>{this.playing=!this.playing;if(this.playing&&this.days>=YEAR)this.days=0;this.experiment=false;this.updateUI();};
   $('oneYear').onclick=()=>{this.days=0;this.speed=20;$('orbitSpeed').value='20';this.playing=true;this.experiment=true;this.updateUI();};
   $('orbitDay').oninput=e=>{this.days=Number(e.target.value)/1000*YEAR;this.playing=false;this.experiment=false;this.updateUI();};
+  $('orbitFocus').onchange=e=>this.select(e.target.value);
   $('orbitSpeed').onchange=e=>{this.speed=Number(e.target.value);};
   $('composedSpace').onclick=()=>this.setSpacing(0);$('trueSpace').onclick=()=>this.setSpacing(1);
   $('followOrbit').onclick=()=>{if(this.beltSelected){this.select('earth');this.fly('perspective');return;}if(this.following){this.following=null;this.fly('perspective');}else this.follow(this.selected);this.select(this.selected);};
@@ -91,12 +94,13 @@ export class Orrery {
   canvas.onkeydown=e=>{const keys=['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','+','=','-'];if(!keys.includes(e.key))return;e.preventDefault();this.flight=null;const s=new THREE.Spherical().setFromVector3(this.camera.position);if(e.key==='ArrowLeft')s.theta-=.12;if(e.key==='ArrowRight')s.theta+=.12;if(e.key==='ArrowUp')s.phi=Math.max(.05,s.phi-.1);if(e.key==='ArrowDown')s.phi=Math.min(Math.PI*.88,s.phi+.1);if(['+','='].includes(e.key))s.radius=Math.max(3,s.radius*.85);if(e.key==='-')s.radius=Math.min(140,s.radius/ .85);this.camera.position.setFromSpherical(s);this.controls.update();};
  }
  select(id){
-  if(location.hash==='#orrery-belt')history.replaceState(null,'','#orrery');this.beltSelected=false;$('beltDiscovery').hidden=true;$('beltButton').setAttribute('aria-pressed','false');$('visitPlanet').hidden=false;
-  const changed=this.selected!==id;this.selected=id;if(changed&&this.following)this.follow(id);const p=WORLDS[id];$('orbitKind').textContent=['FIRST','SECOND','THIRD','FOURTH','FIFTH','SIXTH','SEVENTH','EIGHTH'][ORDER.indexOf(id)]+' WORLD FROM THE SUN';$('orbitName').textContent=p.title;
+  this.beltSelected=false;$('beltDiscovery').hidden=true;$('beltButton').setAttribute('aria-pressed','false');$('visitPlanet').hidden=false;
+  const changed=this.selected!==id;this.selected=id;if(location.hash.startsWith('#orrery'))history.replaceState(null,'','#orrery/'+id);$('orbitFocus').value=id;if(changed&&this.following)this.follow(id);const p=WORLDS[id];$('orbitKind').textContent=['FIRST','SECOND','THIRD','FOURTH','FIFTH','SIXTH','SEVENTH','EIGHTH'][ORDER.indexOf(id)]+' WORLD FROM THE SUN';$('orbitName').textContent=p.title;
   const year=p.period<730?Math.round(p.period)+' Earth days':(p.period/YEAR).toFixed(p.period>30000?0:1)+' Earth years';
   $('followOrbit').textContent=this.following?'Return to whole system ↙':'Follow '+p.title+' ⊙';
   $('orbitFact').innerHTML=`One year here takes <strong>${year}</strong>.<br><span>${p.a.toFixed(2)}× Earth’s distance from the Sun.</span>`;
-  $('visitPlanet').href='#'+id;$('visitPlanet').innerHTML='Travel to '+p.title+' <span>↗</span>';
+  $('visitPlanet').href='#'+id;$('visitPlanet').innerHTML='View '+p.title+' <span>↗</span>';
+  $('orbitMoons').hidden=!['earth','jupiter','saturn'].includes(id);$('orbitMoons').href='#'+id+'-moons';$('orbitMoons').textContent=id==='earth'?'Earth & the Moon ↗':p.title+'’s moons ↗';
   ORDER.forEach(key=>{if(key===id)this.labels[key]?.setAttribute('aria-current','true');else this.labels[key]?.removeAttribute('aria-current');if(this.orbits[key])this.orbits[key].material.opacity=key===id?.62:.30;});
   document.querySelectorAll('[data-orbit]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.orbit===id)));
  }

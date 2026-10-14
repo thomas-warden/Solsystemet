@@ -1,34 +1,37 @@
-import { PlanetRenderer } from './renderer.js';
-import { FAMILIES } from './moons.js';
-import { ORDER, WORLDS } from './worlds.js';
+import { PlanetRenderer } from './renderer.js?v=20261014d';
+import { FAMILIES } from './moons.js?v=20261014d';
+import { resolveRoute, renderFamilyNavigation, renderMoonShelf, renderMoonSystemNavigation } from './navigation.js?v=20261014d';
+import { ORDER, WORLDS } from './worlds.js?v=20261014d';
 const $=id=>document.getElementById(id),root=$('atlas'),canvas=$('universe');
 $('planetNav').innerHTML=ORDER.map(id=>`<button data-world="${id}" type="button"><i style="background:${WORLDS[id].color}"></i>${WORLDS[id].title}</button>`).join('');
 $('worldCards').innerHTML=ORDER.map(id=>`<button data-world="${id}"><small>${WORLDS[id].number}</small><strong>${WORLDS[id].title}</strong></button>`).join('');
-let orrery,orreryPromise,moonSystem,moonPromise,beltFlight,beltPromise,view='planet',stories,extraStories={};
+let orrery,orreryPromise,moonSystem,moonPromise,beltFlight,beltPromise,view='planet',moonTarget='',stories,extraStories={};
 fetch('assets/research/planet-stories-and-orbits.json').then(r=>r.json()).then(data=>{stories=data.planets;showStories();});
 fetch('assets/research/extra-planet-stories.json').then(r=>r.json()).then(data=>{extraStories=data.planets||data;showStories();}).catch(()=>{});
 function showStories(){
  const entries=[...(WORLDS[state.world].stories||stories?.[state.world]?.stories||[]),...(extraStories[state.world]?.stories||extraStories[state.world]||[])];
  $('storyGrid').replaceChildren();
- for(const story of entries){const el=document.createElement('article');el.className='story';const title=document.createElement('h3'),body=document.createElement('p'),link=document.createElement('a');title.textContent=story.title;body.textContent=story.text;link.href=story.source;link.target='_blank';link.rel='noopener';link.textContent='Field source ↗';el.append(title,body,link);$('storyGrid').append(el);}
+ for(const story of entries){const el=document.createElement('article');el.className='story';const title=document.createElement('h3'),body=document.createElement('p'),link=document.createElement('a');title.textContent=story.title;body.textContent=story.text;link.href=story.source;link.target='_blank';link.rel='noopener';link.textContent='Field source ↗';el.append(title,body,link);if(story.related){const next=document.createElement('a');next.className='story-next';next.href='#'+story.related;next.textContent=story.action;el.append(next);}$('storyGrid').append(el);}
 }
-async function showMoonSystem(parent){
- view='moons';beltFlight?.hide();$('beltView').hidden=true;window.scrollTo(0,0);root.classList.remove('cinema');orrery?.hide();$('main').hidden=true;$('fieldStories').hidden=true;$('orreryView').hidden=true;$('moonSystemView').hidden=false;root.dataset.view='moons';$('motionToggle').hidden=true;history.replaceState(null,'','#'+parent+'-moons');
+async function showMoonSystem(parent,selected){
+ moonTarget=parent+'/'+(selected||'');const target=moonTarget;renderMoonSystemNavigation(parent,selected);$('moonDiscoveries').hidden=true;
+ view='moons';beltFlight?.hide();$('beltView').hidden=true;window.scrollTo(0,0);root.classList.remove('cinema');orrery?.hide();$('main').hidden=true;$('fieldStories').hidden=true;$('orreryView').hidden=true;$('moonSystemView').hidden=false;root.dataset.view='moons';$('motionToggle').hidden=true;
  document.querySelector('button[data-view="orrery"]').setAttribute('aria-pressed','false');document.querySelectorAll('button[data-world]').forEach(b=>{b.classList.remove('is-active');b.setAttribute('aria-pressed','false');});
- try{moonPromise||=import('./moon-system.js').then(({MoonSystem})=>new MoonSystem());moonSystem=await moonPromise;if(view==='moons')moonSystem.show(parent);}catch(e){$('moonStatus').textContent='The moon system could not start. Individual moon views remain available below.';console.error(e);}
+ try{moonPromise||=import('./moon-system.js?v=20261014d').then(({MoonSystem})=>new MoonSystem());moonSystem=await moonPromise;if(view==='moons'&&moonTarget===target)await moonSystem.show(parent,selected);}catch(e){$('moonStatus').textContent='The moon system could not start. Individual moon views remain available below.';console.error(e);}
 }
-async function showOrrery(selected){beltFlight?.hide();$('beltView').hidden=true;moonSystem?.hide();$('moonSystemView').hidden=true;view='orrery';window.scrollTo(0,0);root.classList.remove('cinema');$('cinemaButton').setAttribute('aria-pressed','false');$('cinemaButton').textContent='View only ⤢';$('main').hidden=true;$('fieldStories').hidden=true;$('orreryView').hidden=false;root.dataset.view='orrery';$('motionToggle').hidden=true;history.replaceState(null,'','#orrery');document.querySelector('button[data-view="orrery"]').setAttribute('aria-pressed','true');document.querySelectorAll('button[data-world]').forEach(b=>{b.classList.remove('is-active');b.setAttribute('aria-pressed','false');});
- try{orreryPromise||=import('./orrery.js').then(({Orrery})=>new Orrery());orrery=await orreryPromise;if(view==='orrery'){orrery.show();if(selected==='belt')orrery.showBelt();else if(selected)orrery.select(selected);else if(orrery.beltSelected){orrery.select('earth');orrery.fly('perspective');}}}catch(e){$('orreryStatus').textContent='The orbital scene could not start. Planet views remain available.';console.error(e);}}
+async function showOrrery(selected){$('moonDiscoveries').hidden=true;document.title='The orrery — Solsystemet';beltFlight?.hide();$('beltView').hidden=true;moonSystem?.hide();$('moonSystemView').hidden=true;view='orrery';window.scrollTo(0,0);root.classList.remove('cinema');$('cinemaButton').setAttribute('aria-pressed','false');$('cinemaButton').textContent='View only ⤢';$('main').hidden=true;$('fieldStories').hidden=true;$('orreryView').hidden=false;root.dataset.view='orrery';$('motionToggle').hidden=true;document.querySelector('button[data-view="orrery"]').setAttribute('aria-pressed','true');document.querySelectorAll('button[data-world]').forEach(b=>{b.classList.remove('is-active');b.setAttribute('aria-pressed','false');});
+ try{orreryPromise||=import('./orrery.js?v=20261014d').then(({Orrery})=>new Orrery());orrery=await orreryPromise;if(view==='orrery'){orrery.show();if(selected==='belt')orrery.showBelt();else if(selected)orrery.select(selected);else if(orrery.beltSelected){orrery.select('earth');orrery.fly('perspective');}}}catch(e){$('orreryStatus').textContent='The orbital scene could not start. Planet views remain available.';console.error(e);}}
 async function showBeltEntry(){
+ $('moonDiscoveries').hidden=true;document.title='The asteroid belt — Solsystemet';
  view='belt';window.scrollTo(0,0);root.classList.remove('cinema');orrery?.hide();moonSystem?.hide();
  for(const id of ['main','fieldStories','orreryView','moonSystemView'])$(id).hidden=true;
- $('beltView').hidden=false;root.dataset.view='belt';$('motionToggle').hidden=true;history.replaceState(null,'','#belt');
+ $('beltView').hidden=false;root.dataset.view='belt';$('motionToggle').hidden=true;
  document.querySelector('button[data-view="orrery"]').setAttribute('aria-pressed','false');
  document.querySelectorAll('button[data-world]').forEach(b=>{b.classList.remove('is-active');b.setAttribute('aria-pressed','false');});
- try{beltPromise||=import('./belt.js').then(({BeltFlight})=>new BeltFlight());beltFlight=await beltPromise;if(view==='belt')beltFlight.show();}
+ try{beltPromise||=import('./belt.js?v=20261014d').then(({BeltFlight})=>new BeltFlight());beltFlight=await beltPromise;if(view==='belt')beltFlight.show();}
  catch(e){$('beltStatus').textContent='The flight could not start on this device. You can still explore the stories below.';$('beltPlay').disabled=true;$('beltSpeed').disabled=true;console.error(e);}
 }
-$('locateBelt').onclick=()=>showOrrery('belt');
+$('locateBelt').onclick=()=>navigate('orrery/belt');
 fetch('assets/research/moon-stories.json').then(r=>r.json()).then(data=>{
  for(const story of data.belt.stories){const article=document.createElement('article');article.className='story';const title=document.createElement('h3'),body=document.createElement('p'),link=document.createElement('a');title.textContent=story.title;body.textContent=story.text;link.href=story.source;link.target='_blank';link.rel='noopener';link.textContent='Field source ↗';article.append(title,body,link);$('beltEntryStories').append(article);}
 }).catch(()=>{$('beltEntryStories').textContent='Discover more about these small worlds in the NASA sources linked in Field notes.';});
@@ -81,22 +84,26 @@ function positionComparison(){
  $('compareLabel').style.left=(r.width/2+xx*r.height/(2*half)+.0892*r.height/(2*half)+9)+'px';
  $('compareLabel').style.top=(r.height/2-(ys+.39*state.zoom)*r.height/(2*half))+'px';
 }
-async function switchWorld(world){
- if(world==='belt'){await showBeltEntry();return;}
- if(world==='orrery'||world==='orrery-belt'){await showOrrery(world==='orrery-belt'?'belt':undefined);return;}
- if(world.endsWith('-moons')&&FAMILIES[world.replace('-moons','')]){await showMoonSystem(world.replace('-moons',''));return;}
+function navigate(path){if(location.hash==='#'+path)switchWorld(path);else location.hash=path;}
+async function switchWorld(path){
+ const route=resolveRoute(path);
+ if(path!==route.path)history.replaceState(null,'','#'+route.path);
+ if(route.view==='belt'){await showBeltEntry();return;}
+ if(route.view==='orrery'){await showOrrery(route.selected);return;}
+ if(route.view==='moons'){await showMoonSystem(route.parent,route.selected);return;}
+ const world=route.world;
  moonSystem?.hide();$('moonSystemView').hidden=true;beltFlight?.hide();$('beltView').hidden=true;
- view='planet';window.scrollTo(0,0);if(orrery)orrery.hide();$('main').hidden=false;$('fieldStories').hidden=false;$('orreryView').hidden=true;root.dataset.view='planet';$('motionToggle').hidden=false;document.querySelector('button[data-view="orrery"]').setAttribute('aria-pressed','false');
- if(!profiles[world])world='earth';state.world=world;state.running=!reduced.matches;state.motion=!reduced.matches;state.particles=false;state.storm=false;state.zoom=0;state.compare=false;state.otherSpin=world==='mars'?3.9:world==='mimas'?.9:0;state.moonTilt=0;state.lightPhase=.943;state.axisTilt=98;$('sunAngle').value=54;$('axisTilt').value=98;ready=false;
+ view='planet';root.classList.remove('cinema');$('cinemaButton').setAttribute('aria-pressed','false');$('cinemaButton').textContent='View only ⤢';window.scrollTo(0,0);if(orrery)orrery.hide();$('main').hidden=false;$('fieldStories').hidden=false;$('orreryView').hidden=true;root.dataset.view='planet';$('motionToggle').hidden=false;document.querySelector('button[data-view="orrery"]').setAttribute('aria-pressed','false');
+ state.world=world;state.running=!reduced.matches;state.motion=!reduced.matches;state.particles=false;state.storm=false;state.zoom=0;state.compare=false;state.otherSpin=world==='mars'?3.9:world==='mimas'?.9:0;state.moonTilt=0;state.lightPhase=.943;state.axisTilt=98;$('sunAngle').value=54;$('axisTilt').value=98;ready=false;$('scene').classList.add('is-loading');
  const p=profiles[world];root.dataset.world=world;
  for(const [id,value] of Object.entries({chapterNumber:p.number,chapterKind:p.chapter,worldLead:p.lead,worldText:p.text,experimentQuestion:p.question,experimentHint:p.hint,gestureText:p.gesture,sceneCaption:p.caption,modelNote:p.note,factValue:p.fact,factUnit:p.unit}))$(id).textContent=value;
  $('worldTitle').innerHTML=p.title.replace(/^The /,'')+'<span>.</span>';root.classList.toggle('moon-detail',!!p.parent);
  canvas.setAttribute('aria-label','Interactive '+p.title+'. '+(world==='saturn'?'Drag vertically to change the viewpoint.':p.parent?'Drag or use arrow keys to turn and tilt the moon.':'Drag to turn the world.'));
  for(const w of ['earth','jupiter','saturn'])$(w+'Instrument').hidden=w!==world;
- $('otherInstrument').hidden=['earth','jupiter','saturn'].includes(world);$('tiltControl').hidden=world!=='uranus';$('phaseControl').hidden=world==='uranus';$('findOrbit').textContent=p.parent?'See '+WORLDS[p.parent].title+' and its moons ↗':'Find '+p.title+' in the orrery ↗';$('titanSurface').hidden=world!=='titan';state.titanSurface=false;$('titanSurface').setAttribute('aria-pressed','false');$('titanSurface').textContent='Look beneath the haze ↗';$('spinControl').hidden=world!=='uranus';$('spinGuideNote').hidden=world!=='uranus';const family=p.parent||world;$('familyLink').hidden=!FAMILIES[family];$('familyLink').href='#'+family+'-moons';$('familyLink').textContent=p.parent?'← The '+WORLDS[family].title+' system':'Explore '+(family==='earth'?'the Moon':(FAMILIES[family]?.length||0)+' moons')+' ↗';showStories();
+ $('otherInstrument').hidden=['earth','jupiter','saturn'].includes(world);$('tiltControl').hidden=world!=='uranus';$('phaseControl').hidden=world==='uranus';$('findOrbit').textContent=p.parent?'See '+WORLDS[p.parent].title+' and its moons ↗':'Find '+p.title+' in the orrery ↗';$('titanSurface').hidden=world!=='titan';state.titanSurface=false;$('titanSurface').setAttribute('aria-pressed','false');$('titanSurface').textContent='Look beneath the haze ↗';$('spinControl').hidden=world!=='uranus';$('spinGuideNote').hidden=world!=='uranus';renderFamilyNavigation(world);renderMoonShelf(world);document.title=p.title+' — Solsystemet';showStories();
  document.querySelectorAll('button[data-world]').forEach(b=>{const active=b.dataset.world===world;b.classList.toggle('is-active',active);b.classList.toggle('is-current',active);b.setAttribute('aria-pressed',String(active));});
  $('fallbackPlanet').src=p.parent?'assets/research/'+p.map:'assets/'+world+'-still.jpg';$('fallbackPlanet').classList.toggle('map-fallback',!!p.parent);$('fallbackPlanet').alt=p.title+' illustration; interactive rendering is unavailable.';
- history.replaceState(null,'','#'+world);$('assetStatus').textContent='Loading surface maps';updateReadouts();
+ $('assetStatus').textContent='Loading surface maps';updateReadouts();
  if(renderer)await renderer.setWorld(world);
 }
 function unavailable(message){
@@ -104,11 +111,11 @@ function unavailable(message){
  document.querySelectorAll('.instrument input,.instrument select,.instrument button,#playButton').forEach(el=>el.disabled=true);
  console.error('Solsystemet:',message);toast(message);
 }
-try{renderer=new PlanetRenderer(canvas,()=>{ready=true;root.classList.remove('no-webgl');$('fallbackPlanet').hidden=true;$('assetStatus').textContent='';document.querySelectorAll('.instrument input,.instrument select,.instrument button,#playButton').forEach(el=>el.disabled=false);updateReadouts();},unavailable);}catch(e){unavailable(e.message);}
-document.querySelectorAll('button[data-world]').forEach(b=>b.onclick=()=>switchWorld(b.dataset.world));
-document.querySelector('.brand').onclick=e=>{e.preventDefault();showOrrery();};
-document.querySelector('button[data-view="orrery"]').onclick=()=>showOrrery();
-$('findOrbit').onclick=()=>profiles[state.world].parent?showMoonSystem(profiles[state.world].parent):showOrrery(state.world);
+try{renderer=new PlanetRenderer(canvas,()=>{ready=true;$('scene').classList.remove('is-loading');root.classList.remove('no-webgl');$('fallbackPlanet').hidden=true;$('assetStatus').textContent='';document.querySelectorAll('.instrument input,.instrument select,.instrument button,#playButton').forEach(el=>el.disabled=false);updateReadouts();},unavailable);}catch(e){unavailable(e.message);}
+document.querySelectorAll('button[data-world]').forEach(b=>b.onclick=()=>navigate(b.dataset.world));
+document.querySelector('.brand').onclick=e=>{e.preventDefault();navigate('orrery');};
+document.querySelector('button[data-view="orrery"]').onclick=()=>navigate('orrery');
+$('findOrbit').onclick=()=>navigate(profiles[state.world].parent?profiles[state.world].parent+'-moons/'+state.world:'orrery/'+state.world);
 $('uranusSpin').oninput=e=>{state.otherSpin=Number(e.target.value)*Math.PI/180;state.motion=false;setRunning(false);};
 $('titanSurface').onclick=()=>{state.titanSurface=!state.titanSurface;$('titanSurface').setAttribute('aria-pressed',String(state.titanSurface));$('titanSurface').textContent=state.titanSurface?'Return to the orange haze ↙':'Look beneath the haze ↗';$('sceneCaption').textContent=state.titanSurface?'TITAN / RECONSTRUCTED SURFACE · INFRARED & RADAR':profiles.titan.caption;$('modelNote').textContent=state.titanSurface?'RECONSTRUCTED MAP · NOT A VISIBLE-LIGHT VIEW · SEE FIELD NOTES':profiles.titan.note;};
 $('sunAngle').oninput=e=>{state.lightPhase=Number(e.target.value)*Math.PI/180;updateReadouts();};
