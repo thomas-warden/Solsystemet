@@ -63,3 +63,12 @@ Historical image composites are not a live feed. Cloud movement is illustrative.
 - Rocks approach, tumble, pass beside the camera and disappear behind it. Pause/resume, speed, reset, pointer/keyboard look-around and view-only controls work in this scene.
 - Reduced-motion preferences start the flight paused. Spacing is explicitly compressed for exploration; these are illustrative shapes, not tracked asteroids.
 - belt.js contains the lazily loaded Three.js flight. #orrery-belt locates the band in the orbital model.
+
+
+## Motion and close-pass revision
+
+- Earth and all moons in the neighbourhood orreries open their entries from either the body or its name; dragging remains camera control.
+- Every planet and moon close-up starts rotating on arrival, unless reduced motion is requested. Pause and Motion off stop the same motion; arriving at a new world starts it again.
+- The belt's cruise speed is about a quarter of the previous speed. Fewer, much larger bodies have crater relief, broken planes, fissures and layered surface detail, with geometry selected by apparent size.
+- Bodies turn about independently chosen axes at different rates and directions. Small, occasional staged contacts release chips and a brief dust veil.
+- Collision objects are pooled and recycled behind the viewer; subsequent pairs enter through the distant fog. The real belt's sparse spacing and illustrative collisions are explained in Field notes.
