@@ -1,0 +1,82 @@
+{
+  "accessed": "2026-10-13",
+  "assets": [
+    {
+      "file": "jupiter-cassini-juno-8k.jpg",
+      "fallback_file": "jupiter-cassini-juno-4k.jpg",
+      "original_file": "jupiter-cassini-juno-original.png",
+      "original_dimensions": [
+        14400,
+        7200
+      ],
+      "source_page": "https://www.planetary.org/space-images/merged-cassini-and-juno",
+      "source_asset": "https://planetary.s3.amazonaws.com/assets/images/5-jupiter/2018/jupiter_map_css_plus_juno_bj.png",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "credit": "NASA / JPL-Caltech / SSI / Southwest Research Institute / Malin Space Science Systems / Italian Space Agency (ASI) / Italian National Institute for Astrophysics (INAF) / JIRAM / Björn Jónsson",
+      "preparation": "Downsampled using Lanczos to 8192x4096 (and 4096x2048); JPEG quality 95/94 with 4:4:4 chroma. No color changes or invented detail.",
+      "projection": "Equirectangular; north at top. Approximate image-coordinate Great Red Spot center x=0.854, y=0.627 from top.",
+      "limitations": "Historical Cassini equatorial mosaic combined with Juno polar observations, not one epoch or live atmospheric data. Colors pale cream/ochre; poles gray-blue. Original is 95MB; serve the optimized JPEG only.",
+      "dimensions": [
+        8192,
+        4096
+      ],
+      "bytes": 11451678,
+      "sha256": "e6e3502731eae37eb05e8f4b69d49d7502a22298f777c03912fc39a87639b6f2"
+    },
+    {
+      "file": "saturn-cassini-voyager.jpg",
+      "source_page": "https://github.com/CelestiaProject/CelestiaContent",
+      "source_asset": "https://raw.githubusercontent.com/CelestiaProject/CelestiaContent/master/textures/hires/saturn.jpg",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "license_evidence": "https://raw.githubusercontent.com/CelestiaProject/CelestiaContent/master/textures/hires/saturn.jpg.license",
+      "credit": "NASA/JPL-Caltech/Björn Jónsson; improved and recolored by Askaniy Anpilogov (2019)",
+      "preparation": "Unmodified downloaded JPEG.",
+      "projection": "Simple cylindrical/equirectangular; north at top. Source original map uses planetographic latitude; render on oblate spheroid, equatorial radius 60268 km / polar 54362 km.",
+      "original_map_documentation": "https://bjj.mmedia.is/data/saturn/index.html",
+      "limitations": "Historical Cassini southern hemisphere and Voyager northern hemisphere mosaic, improved/recolored by Celestia contributor. Not current atmospheric observations. Very subtle natural gold banding; avoid artificial high-contrast stripes.",
+      "dimensions": [
+        4096,
+        2048
+      ],
+      "bytes": 687644,
+      "sha256": "09086aa5cb7ff38a41a31477ad967e4fb0e9703b2cb7a23f2c0c0a78381f27c4"
+    },
+    {
+      "file": "saturn-rings-radial-8k.png",
+      "original_file": "saturn-rings-sss-8k.png",
+      "source_page": "https://cloud.solarsystemscope.com/textures/",
+      "source_asset": "https://cloud.solarsystemscope.com/textures/download/8k_saturn_ring_alpha.png",
+      "license": "CC BY 4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "credit": "Solar System Scope / INOVE; based on NASA imagery",
+      "preparation": "Central row y=250 extracted from 8192x500 RGBA source as 8192x1 radial sampler. Color and alpha unchanged.",
+      "projection": "Horizontal coordinate runs radially inner to outer. Sample y=0.5. Alpha is opacity.",
+      "limitations": "Provider supplies texture without published physical radius calibration on download page; do not claim scientific optical-depth precision. Includes slightly saturated color, source-map adjustments and filled gaps. Rendering needs planet shadow on rings, ring shadow on globe, and separate unlit-side response.",
+      "dimensions": [
+        8192,
+        1
+      ],
+      "bytes": 12321,
+      "sha256": "8d5e3805849156a53e2d11090ec83af52ea70ca4e4a9ce240f688fcfed5e8ff7"
+    },
+    {
+      "file": "jupiter-hubble-opal-2019.jpg",
+      "dimensions": [
+        3600,
+        1800
+      ],
+      "bytes": 446728,
+      "sha256": "1e377ead661ffefcdbbaff4515d66df0d4eab72c06025d57b165ec0a8a64f45b",
+      "source_page": "https://science.nasa.gov/asset/hubble/jupiter-global-map-2019/",
+      "source_asset": "https://assets.science.nasa.gov/dynamicimage/assets/science/missions/hubble/releases/2019/08/STScI-01EVSV9A3VN7VYXN5H6Z1GDG93.tif?w=3600",
+      "credit": "NASA, ESA, A. Simon (Goddard Space Flight Center), and M.H. Wong (University of California, Berkeley)",
+      "preparation": "Unmodified JPEG returned by NASA dynamic image service at full source width 3600.",
+      "projection": "Global flat map; north at top. Polar regions above 80 degrees are excluded (black).",
+      "limitations": "Observed in 2019, not current. Lower resolution than selected Cassini/Juno map; polar coverage incomplete. Included as primary NASA research reference."
+    }
+  ],
+  "visual_reference": "https://science.nasa.gov/photojournal/panoramic-rings/",
+  "ring_material_reference": "https://bjj.mmedia.is/data/s_rings/index.html"
+}
