@@ -14,7 +14,7 @@ function noise(x,y,z) {
  const mix=(a,b,t)=>a+(b-a)*t;
  return mix(mix(mix(hash(ix,iy,iz),hash(ix+1,iy,iz),fx),mix(hash(ix,iy+1,iz),hash(ix+1,iy+1,iz),fx),fy),mix(mix(hash(ix,iy,iz+1),hash(ix+1,iy,iz+1),fx),mix(hash(ix,iy+1,iz+1),hash(ix+1,iy+1,iz+1),fx),fy),fz);
 }
-// The same terrain is sampled at two resolutions: relief holds up during a close pass.
+// Detailed bodies and smaller fragments use the same terrain at different densities.
 export function rockGeometry(seed, detail=96) {
  const random=randomGenerator(seed),geometry=new THREE.SphereGeometry(1,detail,Math.round(detail*.7)),positions=geometry.attributes.position,colors=[];
  const stretch=[.9+random()*.6,.78+random()*.65,.8+random()*.5];
@@ -49,6 +49,18 @@ export function rockGeometry(seed, detail=96) {
  geometry.computeBoundingSphere();return geometry;
 }
 const CRUISE=3.4, IMPACT_AT=12;
+// Exact critically damped response: position AND direction use this one gaze.
+// An entering/leaving pointer changes the target, never the camera directly.
+export function advanceLook(gaze,target,dt){
+ const omega=9,decay=Math.exp(-omega*dt);
+ for(const axis of ['x','y']){
+  const velocity=axis==='x'?'vx':'vy',goal=THREE.MathUtils.clamp(target[axis],-1,1);
+  const offset=gaze[axis]-goal,step=(gaze[velocity]+omega*offset)*dt;
+  gaze[axis]=goal+(offset+step)*decay;
+  gaze[velocity]=(gaze[velocity]-omega*step)*decay;
+ }
+ return gaze;
+}
 function orientation(body,age,target) { return target.setFromAxisAngle(body.axis,age*body.rate).multiply(body.initial); }
 function support(geometry,quaternion,scale,side) {
  const point=new THREE.Vector3(),best=new THREE.Vector3(side>0?-Infinity:Infinity,0,0),p=geometry.attributes.position;
@@ -58,10 +70,10 @@ function support(geometry,quaternion,scale,side) {
 
 export class BeltFlight {
  constructor(){
-  this.active=false;this.playing=!reduced.matches;this.speed=1;this.elapsed=0;this.look={x:0,y:0};
+  this.active=false;this.playing=!reduced.matches;this.speed=1;this.elapsed=0;this.look={x:0,y:0};this.gaze={x:0,y:0,vx:0,vy:0};
   const canvas=$('beltCanvas');
-  this.renderer=new THREE.WebGLRenderer({canvas,antialias:true});this.renderer.setPixelRatio(Math.min(devicePixelRatio,1.75));this.renderer.setClearColor(0x030507);
-  this.renderer.outputColorSpace=THREE.SRGBColorSpace;this.renderer.toneMapping=THREE.ACESFilmicToneMapping;this.renderer.toneMappingExposure=1.25;
+  this.renderer=new THREE.WebGLRenderer({canvas,antialias:true,powerPreference:'high-performance'});this.renderer.setPixelRatio(Math.min(devicePixelRatio,2));this.renderer.setClearColor(0x030507);
+  this.renderer.outputColorSpace=THREE.SRGBColorSpace;this.renderer.toneMapping=THREE.ACESFilmicToneMapping;this.renderer.toneMappingExposure=1.1;
   this.scene=new THREE.Scene();this.scene.fog=new THREE.Fog(0x030507,180,260);
   this.camera=new THREE.PerspectiveCamera(58,1,.1,600);
   this.scene.add(new THREE.AmbientLight(0x718093,.21));
@@ -76,42 +88,61 @@ export class BeltFlight {
  buildStars(){this.sky=addCelestialSky(this.scene);}
  buildRocks(){
   const material=new THREE.MeshStandardMaterial({roughness:1,metalness:0,vertexColors:true});
-  // Several scales of mineral relief, attached to the rotating surface.
+  // One packed, mip-filtered map replaces the unfiltered per-pixel noise.
+  // Triplanar projection holds detail on broken faces without UV stretching.
+  const empty=new THREE.DataTexture(new Uint8Array([128,128,128,255]),1,1);
+  empty.needsUpdate=true;
+  this.rockMap={value:empty};
   material.onBeforeCompile=shader=>{
-   shader.vertexShader='varying vec3 rockPosition;\n'+shader.vertexShader;
-   shader.vertexShader=shader.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nrockPosition=position;');
-   shader.fragmentShader=`varying vec3 rockPosition;
-    float rh(vec3 p){return fract(sin(dot(p,vec3(127.1,311.7,74.7)))*43758.5453);}
-    float rn(vec3 p){vec3 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(mix(rh(i),rh(i+vec3(1,0,0)),f.x),mix(rh(i+vec3(0,1,0)),rh(i+vec3(1,1,0)),f.x),f.y),mix(mix(rh(i+vec3(0,0,1)),rh(i+vec3(1,0,1)),f.x),mix(rh(i+vec3(0,1,1)),rh(i+vec3(1,1,1)),f.x),f.y),f.z);}
+   shader.uniforms.rockMap=this.rockMap;
+   shader.vertexShader='varying vec3 rockPosition; varying vec3 rockNormal;\n'+shader.vertexShader;
+   shader.vertexShader=shader.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nrockPosition=position; rockNormal=normal;');
+   shader.fragmentShader=`varying vec3 rockPosition; varying vec3 rockNormal;
+    uniform sampler2D rockMap;
+    uniform mat3 normalMatrix;
    `+shader.fragmentShader;
    shader.fragmentShader=shader.fragmentShader.replace('#include <color_fragment>',`#include <color_fragment>
-    float coarse=rn(rockPosition*19.);
-    float strata=sin(rockPosition.y*110.+rn(rockPosition*8.)*12.)*.5+.5;
-    float grain=rn(rockPosition*88.);
-    float fine=rn(rockPosition*250.);
-    float closeDetail=1.-smoothstep(65.,140.,length(vViewPosition));
-    float relief=coarse*.58+strata*.11+grain*.23+fine*.08*closeDetail;
-    diffuseColor.rgb*=.7+coarse*.35+grain*.10+strata*.05;
+    vec3 weights=pow(abs(normalize(rockNormal)),vec3(4.));
+    weights/=max(dot(weights,vec3(1.)),.0001);
+    vec3 rp=rockPosition*2.3;
+    vec4 faceX=texture2D(rockMap,rp.yz),faceY=texture2D(rockMap,rp.zx),faceZ=texture2D(rockMap,rp.xy);
+    vec4 mineral=faceX*weights.x+faceY*weights.y+faceZ*weights.z;
+    vec2 slopeX=faceX.rg*2.-1.,slopeY=faceY.rg*2.-1.,slopeZ=faceZ.rg*2.-1.;
+    vec3 slope=vec3(0.,slopeX.x,slopeX.y)*weights.x
+              +vec3(slopeY.y,0.,slopeY.x)*weights.y
+              +vec3(slopeZ.x,slopeZ.y,0.)*weights.z;
+    diffuseColor.rgb*=(.65+mineral.b*.68)*mineral.a;
+   `);
+   shader.fragmentShader=shader.fragmentShader.replace('#include <roughnessmap_fragment>',`#include <roughnessmap_fragment>
+    roughnessFactor=.88+mineral.b*.10;
    `);
    shader.fragmentShader=shader.fragmentShader.replace('#include <normal_fragment_maps>',`#include <normal_fragment_maps>
-    vec3 dx=dFdx(vViewPosition),dy=dFdy(vViewPosition);
-    vec3 r1=cross(dy,normal),r2=cross(normal,dx);float det=dot(dx,r1);
-    vec3 grad=sign(det)*(dFdx(relief)*r1+dFdy(relief)*r2);
-    normal=normalize(abs(det)*normal-.075*grad);
+    vec3 objectNormal=normalize(rockNormal);
+    vec3 surfaceNormal=objectNormal-slope+objectNormal*dot(objectNormal,slope);
+    normal=normalize(normalMatrix*surfaceNormal);
    `);
   };
+  // Filtering the relief before lighting prevents grain from sparkling in motion.
+  if(this.renderer)new THREE.TextureLoader().load('assets/rock-material.png?v=20261014h',texture=>{
+   texture.colorSpace=THREE.NoColorSpace;
+   texture.flipY=false; // Packed V slopes follow the generator's image-row direction.
+   texture.wrapS=texture.wrapT=THREE.RepeatWrapping;
+   texture.minFilter=THREE.LinearMipmapLinearFilter;texture.magFilter=THREE.LinearFilter;
+   texture.anisotropy=Math.min(8,this.renderer.capabilities.getMaxAnisotropy());
+   this.renderer.initTexture(texture);this.rockMap.value=texture;empty.dispose();
+  },undefined,()=>console.warn('Rock detail unavailable; retaining sculpted terrain.'));
   this.material=material;
-  this.shapes=Array.from({length:7},(_,i)=>({near:rockGeometry(51+i*17,128),far:rockGeometry(51+i*17,40)}));
+  this.shapes=Array.from({length:7},(_,i)=>({near:rockGeometry(51+i*17,160),far:rockGeometry(51+i*17,64)}));
   this.rocks=[];
   const count=matchMedia('(max-width: 650px)').matches?32:48;
   for(let i=0;i<count;i++){
-   const shape=this.shapes[i%this.shapes.length],mesh=new THREE.Mesh(shape.far,material);this.scene.add(mesh);
+   const shape=this.shapes[i%this.shapes.length],mesh=new THREE.Mesh(i<10?shape.near:shape.far,material);this.scene.add(mesh);
    this.rocks.push({mesh,shape,large:i<10});
   }
   this.turn=new THREE.Quaternion();
  }
  reset(){
-  this.random=randomGenerator(4705);this.elapsed=0;this.passed=0;this.look={x:0,y:0};this.camera.position.set(0,0,0);this.camera.lookAt(0,0,-100);
+  this.random=randomGenerator(4705);this.elapsed=0;this.passed=0;this.look={x:0,y:0};this.gaze={x:0,y:0,vx:0,vy:0};this.camera.position.set(0,0,0);this.camera.lookAt(0,0,-100);
   for(let i=0;i<this.rocks.length;i++)this.place(this.rocks[i],-48-(i/this.rocks.length)*(FAR-48));
   const foreground=[[-26,-3,-58,13],[34,12,-105,17],[-15,37,-156,18]];
   foreground.forEach(([x,y,z,size],i)=>Object.assign(this.rocks[i],{x,y,z,size}));
@@ -138,8 +169,7 @@ export class BeltFlight {
    rock.mesh.position.set(rock.x,rock.y,rock.z);
    if(dt)rock.mesh.quaternion.premultiply(this.turn.setFromAxisAngle(rock.axis,rock.rate*dt));
    rock.mesh.scale.setScalar(rock.size*fade);
-   const distance=rock.mesh.position.distanceTo(this.camera.position);
-   rock.mesh.geometry=distance/rock.size<12?rock.shape.near:rock.shape.far;
+   // Keep the silhouette stable for the entire pass; no visible mesh swapping.
   }
  }
  buildCollisions(){
@@ -190,8 +220,8 @@ export class BeltFlight {
    orientation(event.bigBody,Math.max(0,event.age),event.big.quaternion);
    orientation(event.smallBody,Math.max(0,event.age)+Math.max(0,t)*1.8,event.small.quaternion);
    event.small.position.copy(event.smallAtContact);
-   if(t<0){const approach=Math.min(-t,IMPACT_AT);event.small.position.add(new THREE.Vector3(approach*.95,approach*.37,approach*.12));}
-   else event.small.position.add(new THREE.Vector3(t*.7,-t*.58,t*.24));
+   if(t<0){const approach=Math.min(-t,IMPACT_AT);event.small.position.x+=approach*.95;event.small.position.y+=approach*.37;event.small.position.z+=approach*.12;}
+   else{event.small.position.x+=t*.7;event.small.position.y-=t*.58;event.small.position.z+=t*.24;}
    const life=THREE.MathUtils.smoothstep(t,0,.18)*(1-THREE.MathUtils.smoothstep(t,12,20));
    for(const chip of event.chips){
     chip.mesh.visible=life>0;if(!chip.mesh.visible)continue;
@@ -215,7 +245,7 @@ export class BeltFlight {
   $('beltRestart').onclick=()=>{this.speed=1;$('beltSpeed').value='1';this.reset();};
   $('beltCinema').onclick=()=>this.toggleCinema();
   const canvas=$('beltCanvas');
-  const look=e=>{if(reduced.matches)return;const r=canvas.getBoundingClientRect();this.look.x=((e.clientX-r.left)/r.width-.5)*2;this.look.y=((e.clientY-r.top)/r.height-.5)*2;};
+  const look=e=>{if(reduced.matches)return;const r=canvas.getBoundingClientRect();this.look.x=THREE.MathUtils.clamp(((e.clientX-r.left)/r.width-.5)*2,-1,1);this.look.y=THREE.MathUtils.clamp(((e.clientY-r.top)/r.height-.5)*2,-1,1);};
   canvas.addEventListener('pointerdown',e=>{if(e.isPrimary){this.dragging=true;canvas.setPointerCapture(e.pointerId);look(e);}});
   canvas.addEventListener('pointermove',e=>{if(e.pointerType==='mouse'||this.dragging)look(e);});
   canvas.addEventListener('pointerup',()=>{this.dragging=false;});canvas.addEventListener('pointercancel',()=>{this.dragging=false;this.look={x:0,y:0};});
@@ -240,8 +270,9 @@ export class BeltFlight {
  frame(dt){
   if(!this.active)return;
   const step=this.playing?Math.min(dt,.05):0;this.elapsed+=step;this.drawRocks(step);this.drawCollisions(step);
-  const smooth=reduced.matches?1:1-Math.exp(-dt*2);
-  this.camera.position.x+=(this.look.x*1.5-this.camera.position.x)*smooth;this.camera.position.y+=(-this.look.y*.75-this.camera.position.y)*smooth;
-  this.camera.lookAt(this.look.x*9,-this.look.y*5,-100);this.renderer.render(this.scene,this.camera);
+  if(reduced.matches)Object.assign(this.gaze,{x:this.look.x,y:this.look.y,vx:0,vy:0});
+  else advanceLook(this.gaze,this.look,Math.min(dt,.05));
+  this.camera.position.x=this.gaze.x*1.5;this.camera.position.y=-this.gaze.y*.75;
+  this.camera.lookAt(this.gaze.x*9,-this.gaze.y*5,-100);this.renderer.render(this.scene,this.camera);
  }
 }

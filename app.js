@@ -28,7 +28,7 @@ async function showBeltEntry(){
  $('beltView').hidden=false;root.dataset.view='belt';$('motionToggle').hidden=true;
  document.querySelector('button[data-view="orrery"]').setAttribute('aria-pressed','false');
  document.querySelectorAll('button[data-world]').forEach(b=>{b.classList.remove('is-active');b.setAttribute('aria-pressed','false');});
- try{beltPromise||=import('./belt.js?v=20261014d').then(({BeltFlight})=>new BeltFlight());beltFlight=await beltPromise;if(view==='belt')beltFlight.show();}
+ try{beltPromise||=import('./belt.js?v=20261014h').then(({BeltFlight})=>new BeltFlight());beltFlight=await beltPromise;if(view==='belt')beltFlight.show();}
  catch(e){$('beltStatus').textContent='The flight could not start on this device. You can still explore the stories below.';$('beltPlay').disabled=true;$('beltSpeed').disabled=true;console.error(e);}
 }
 $('locateBelt').onclick=()=>navigate('orrery/belt');

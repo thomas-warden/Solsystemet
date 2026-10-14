@@ -69,7 +69,7 @@ Historical image composites are not a live feed. Cloud movement is illustrative.
 
 - Earth and all moons in the neighbourhood orreries open their entries from either the body or its name; dragging remains camera control.
 - Every planet and moon close-up starts rotating on arrival, unless reduced motion is requested. Pause and Motion off stop the same motion; arriving at a new world starts it again.
-- The belt's cruise speed is about a quarter of the previous speed. Fewer, much larger bodies have crater relief, broken planes, fissures and layered surface detail, with geometry selected by apparent size.
+- The belt's cruise speed is about a quarter of the previous speed. Fewer, much larger bodies have crater relief, broken planes, fissures and layered surface detail. Each body keeps the same mesh throughout its pass, avoiding visible detail changes.
 - Bodies turn about independently chosen axes at different rates and directions. Small, occasional staged contacts release chips and a brief dust veil.
 - Collision objects are pooled and recycled behind the viewer; subsequent pairs enter through the distant fog. The real belt's sparse spacing and illustrative collisions are explained in Field notes.
 
@@ -87,3 +87,10 @@ Historical image composites are not a live feed. Cloud movement is illustrative.
 - Moon-system labels and cards open entries directly. A separately labelled orbit selector highlights a path, and parent-planet links make the way back explicit. The solar orrery has the same selection control and contextual moon-system links.
 - Hash routes retain browser Back/Forward history. Optional routes such as #orrery/jupiter and #jupiter-moons/europa keep the requested world selected. Legacy #orrery-belt still resolves.
 - Five expanded moon pages add sourced stories about tidal heat, lava fountains, orbital rhythm, hot springs and ice behaving as rock. The other existing moon entries remain available.
+
+## Asteroid flight clarity and camera motion
+
+- Pointer and keyboard input drive a single critically damped gaze. Camera position and direction follow it together, including when the pointer enters or leaves the field. Captured drags stay within the viewing limits.
+- The packed 1024px rock material stores surface slopes, mineral reflectance and crevice shading. Triplanar mapping, mipmaps and anisotropic filtering keep the relief stable during motion and at oblique angles. Surface slopes are filtered before lighting, avoiding screen-space derivative artifacts at triangle edges.
+- Large bodies use 160-segment terrain meshes; small bodies use 64. Meshes remain fixed for a whole pass, and rendering uses up to 2× display resolution with antialiasing. Slow travel, independent spins and staged contacts remain intact.
+- The material is generated illustration, not spacecraft photography. The deterministic generator is in scripts/build-rock-material.py (Python, NumPy and Pillow).
