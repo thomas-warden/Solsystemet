@@ -55,3 +55,11 @@ Historical image composites are not a live feed. Cloud movement is illustrative.
 - Uranus has a drawn rotating guide dot/meridian, tilt and one-turn slider.
 - `moons.js` contains profiles and family ordering; `moon-system.js` renders local moon orbits.
 - Credits and reconstruction limits are recorded in `sources.html` and `assets/research/moons/MOON_ASSET_SOURCES.json`.
+
+## Direct navigation and asteroid flight
+
+- Click any planet or its name in the orrery to open that world's entry. Dragging still controls the camera; the trip chart still selects an orbit to follow.
+- The asteroid belt now has a dedicated entry at #belt, with three sourced stories and an imagined flight among generated rocky bodies.
+- Rocks approach, tumble, pass beside the camera and disappear behind it. Pause/resume, speed, reset, pointer/keyboard look-around and view-only controls work in this scene.
+- Reduced-motion preferences start the flight paused. Spacing is explicitly compressed for exploration; these are illustrative shapes, not tracked asteroids.
+- belt.js contains the lazily loaded Three.js flight. #orrery-belt locates the band in the orbital model.

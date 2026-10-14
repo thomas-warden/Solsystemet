@@ -4,7 +4,7 @@ import { ORDER, WORLDS } from './worlds.js';
 const $=id=>document.getElementById(id),root=$('atlas'),canvas=$('universe');
 $('planetNav').innerHTML=ORDER.map(id=>`<button data-world="${id}" type="button"><i style="background:${WORLDS[id].color}"></i>${WORLDS[id].title}</button>`).join('');
 $('worldCards').innerHTML=ORDER.map(id=>`<button data-world="${id}"><small>${WORLDS[id].number}</small><strong>${WORLDS[id].title}</strong></button>`).join('');
-let orrery,orreryPromise,moonSystem,moonPromise,view='planet',stories,extraStories={};
+let orrery,orreryPromise,moonSystem,moonPromise,beltFlight,beltPromise,view='planet',stories,extraStories={};
 fetch('assets/research/planet-stories-and-orbits.json').then(r=>r.json()).then(data=>{stories=data.planets;showStories();});
 fetch('assets/research/extra-planet-stories.json').then(r=>r.json()).then(data=>{extraStories=data.planets||data;showStories();}).catch(()=>{});
 function showStories(){
@@ -13,12 +13,25 @@ function showStories(){
  for(const story of entries){const el=document.createElement('article');el.className='story';const title=document.createElement('h3'),body=document.createElement('p'),link=document.createElement('a');title.textContent=story.title;body.textContent=story.text;link.href=story.source;link.target='_blank';link.rel='noopener';link.textContent='Field source ↗';el.append(title,body,link);$('storyGrid').append(el);}
 }
 async function showMoonSystem(parent){
- view='moons';window.scrollTo(0,0);root.classList.remove('cinema');orrery?.hide();$('main').hidden=true;$('fieldStories').hidden=true;$('orreryView').hidden=true;$('moonSystemView').hidden=false;root.dataset.view='moons';$('motionToggle').hidden=true;history.replaceState(null,'','#'+parent+'-moons');
+ view='moons';beltFlight?.hide();$('beltView').hidden=true;window.scrollTo(0,0);root.classList.remove('cinema');orrery?.hide();$('main').hidden=true;$('fieldStories').hidden=true;$('orreryView').hidden=true;$('moonSystemView').hidden=false;root.dataset.view='moons';$('motionToggle').hidden=true;history.replaceState(null,'','#'+parent+'-moons');
  document.querySelector('button[data-view="orrery"]').setAttribute('aria-pressed','false');document.querySelectorAll('button[data-world]').forEach(b=>{b.classList.remove('is-active');b.setAttribute('aria-pressed','false');});
  try{moonPromise||=import('./moon-system.js').then(({MoonSystem})=>new MoonSystem());moonSystem=await moonPromise;if(view==='moons')moonSystem.show(parent);}catch(e){$('moonStatus').textContent='The moon system could not start. Individual moon views remain available below.';console.error(e);}
 }
-async function showOrrery(selected){moonSystem?.hide();$('moonSystemView').hidden=true;view='orrery';window.scrollTo(0,0);root.classList.remove('cinema');$('cinemaButton').setAttribute('aria-pressed','false');$('cinemaButton').textContent='View only ⤢';$('main').hidden=true;$('fieldStories').hidden=true;$('orreryView').hidden=false;root.dataset.view='orrery';$('motionToggle').hidden=true;history.replaceState(null,'','#orrery');document.querySelector('button[data-view="orrery"]').setAttribute('aria-pressed','true');document.querySelectorAll('button[data-world]').forEach(b=>{b.classList.remove('is-active');b.setAttribute('aria-pressed','false');});
+async function showOrrery(selected){beltFlight?.hide();$('beltView').hidden=true;moonSystem?.hide();$('moonSystemView').hidden=true;view='orrery';window.scrollTo(0,0);root.classList.remove('cinema');$('cinemaButton').setAttribute('aria-pressed','false');$('cinemaButton').textContent='View only ⤢';$('main').hidden=true;$('fieldStories').hidden=true;$('orreryView').hidden=false;root.dataset.view='orrery';$('motionToggle').hidden=true;history.replaceState(null,'','#orrery');document.querySelector('button[data-view="orrery"]').setAttribute('aria-pressed','true');document.querySelectorAll('button[data-world]').forEach(b=>{b.classList.remove('is-active');b.setAttribute('aria-pressed','false');});
  try{orreryPromise||=import('./orrery.js').then(({Orrery})=>new Orrery());orrery=await orreryPromise;if(view==='orrery'){orrery.show();if(selected==='belt')orrery.showBelt();else if(selected)orrery.select(selected);else if(orrery.beltSelected){orrery.select('earth');orrery.fly('perspective');}}}catch(e){$('orreryStatus').textContent='The orbital scene could not start. Planet views remain available.';console.error(e);}}
+async function showBeltEntry(){
+ view='belt';window.scrollTo(0,0);root.classList.remove('cinema');orrery?.hide();moonSystem?.hide();
+ for(const id of ['main','fieldStories','orreryView','moonSystemView'])$(id).hidden=true;
+ $('beltView').hidden=false;root.dataset.view='belt';$('motionToggle').hidden=true;history.replaceState(null,'','#belt');
+ document.querySelector('button[data-view="orrery"]').setAttribute('aria-pressed','false');
+ document.querySelectorAll('button[data-world]').forEach(b=>{b.classList.remove('is-active');b.setAttribute('aria-pressed','false');});
+ try{beltPromise||=import('./belt.js').then(({BeltFlight})=>new BeltFlight());beltFlight=await beltPromise;if(view==='belt')beltFlight.show();}
+ catch(e){$('beltStatus').textContent='The flight could not start on this device. You can still explore the stories below.';$('beltPlay').disabled=true;$('beltSpeed').disabled=true;console.error(e);}
+}
+$('locateBelt').onclick=()=>showOrrery('belt');
+fetch('assets/research/moon-stories.json').then(r=>r.json()).then(data=>{
+ for(const story of data.belt.stories){const article=document.createElement('article');article.className='story';const title=document.createElement('h3'),body=document.createElement('p'),link=document.createElement('a');title.textContent=story.title;body.textContent=story.text;link.href=story.source;link.target='_blank';link.rel='noopener';link.textContent='Field source ↗';article.append(title,body,link);$('beltEntryStories').append(article);}
+}).catch(()=>{$('beltEntryStories').textContent='Discover more about these small worlds in the NASA sources linked in Field notes.';});
 const reduced=matchMedia('(prefers-reduced-motion: reduce)');
 const profiles=WORLDS;
 const cities={'abu-dhabi':{name:'Abu Dhabi',lon:54.37,lat:24.45},stockholm:{name:'Stockholm',lon:18.06,lat:59.33},tokyo:{name:'Tokyo',lon:139.69,lat:35.68},'new-york':{name:'New York',lon:-74.01,lat:40.71},quito:{name:'Quito',lon:-78.47,lat:-.18}};
@@ -69,9 +82,10 @@ function positionComparison(){
  $('compareLabel').style.top=(r.height/2-(ys+.39*state.zoom)*r.height/(2*half))+'px';
 }
 async function switchWorld(world){
- if(world==='orrery'||world==='belt'){await showOrrery(world==='belt'?'belt':undefined);return;}
+ if(world==='belt'){await showBeltEntry();return;}
+ if(world==='orrery'||world==='orrery-belt'){await showOrrery(world==='orrery-belt'?'belt':undefined);return;}
  if(world.endsWith('-moons')&&FAMILIES[world.replace('-moons','')]){await showMoonSystem(world.replace('-moons',''));return;}
- moonSystem?.hide();$('moonSystemView').hidden=true;
+ moonSystem?.hide();$('moonSystemView').hidden=true;beltFlight?.hide();$('beltView').hidden=true;
  view='planet';window.scrollTo(0,0);if(orrery)orrery.hide();$('main').hidden=false;$('fieldStories').hidden=false;$('orreryView').hidden=true;root.dataset.view='planet';$('motionToggle').hidden=false;document.querySelector('button[data-view="orrery"]').setAttribute('aria-pressed','false');
  if(!profiles[world])world='earth';state.world=world;state.running=false;state.storm=false;state.zoom=0;state.compare=false;state.otherSpin=world==='mars'?3.9:world==='mimas'?.9:0;state.moonTilt=0;state.lightPhase=.943;state.axisTilt=98;$('sunAngle').value=54;$('axisTilt').value=98;ready=false;
  const p=profiles[world];root.dataset.world=world;
@@ -116,7 +130,7 @@ $('aboutButton').onclick=()=>{$('aboutPanel').showModal();$('aboutButton').setAt
 $('closeAbout').onclick=()=>$('aboutPanel').close();$('aboutPanel').onclose=()=>{$('aboutButton').setAttribute('aria-expanded','false');$('aboutButton').focus();};
 $('aboutPanel').onclick=e=>{if(e.target===$('aboutPanel')){const r=$('aboutPanel').getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)$('aboutPanel').close();}};
 $('lowPower').onchange=e=>{if(renderer){renderer.quality=e.target.checked?.6:1;renderer.resize();}};
-window.addEventListener('keydown',e=>{if(e.key==='Escape'&&root.classList.contains('cinema'))$('cinemaButton').click();});
+window.addEventListener('keydown',e=>{if(e.key==='Escape'&&root.classList.contains('belt-cinema'))beltFlight?.toggleCinema();if(e.key==='Escape'&&root.classList.contains('cinema'))$('cinemaButton').click();});
 reduced.addEventListener('change',e=>{if(e.matches){state.motion=false;state.running=false;updateReadouts();}});
 function move(dx,dy){if(state.world==='earth')state.earthProgress=wrap(state.earthProgress-dx/900);else if(state.world==='jupiter'){state.jupiterSpin-=dx*.008;state.storm=false;state.compare=false;}else if(state.world==='saturn')state.angle=Math.round(Math.max(-70,Math.min(70,state.angle-dy*.25)));else{state.otherSpin-=dx*.008;if(profiles[state.world].parent)state.moonTilt=Math.max(-75,Math.min(75,state.moonTilt-dy*.25));}state.running=false;state.motion=false;updateReadouts();}
 canvas.onpointerdown=e=>{drag={x:e.clientX,y:e.clientY};canvas.setPointerCapture(e.pointerId);};canvas.onpointermove=e=>{if(drag){move(e.clientX-drag.x,e.clientY-drag.y);drag={x:e.clientX,y:e.clientY};}};canvas.onpointerup=canvas.onpointercancel=()=>drag=null;
@@ -124,6 +138,7 @@ canvas.onkeydown=e=>{if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].include
 window.addEventListener('hashchange',()=>switchWorld(location.hash.slice(1)));
 function frame(ts){
  const dt=Math.min((ts-last)/1000||.016,.05);last=ts;
+ if(!document.hidden&&view==='belt'&&beltFlight)beltFlight.frame(dt);
  if(!document.hidden&&view==='moons'&&moonSystem)moonSystem.frame(dt,ts);
  if(!document.hidden&&view==='orrery'&&orrery)orrery.frame(dt,ts);
  if(!document.hidden&&ready&&view==='planet'){
