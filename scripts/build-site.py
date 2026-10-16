@@ -14,6 +14,7 @@ import tempfile
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output', type=Path, required=True)
+    parser.add_argument('--description', default='Solsystemet static site')
     args = parser.parse_args()
     root = Path(__file__).resolve().parents[1]
     output = args.output.resolve()
@@ -37,7 +38,7 @@ def main():
         (stage / 'build-info.json').write_text(json.dumps({
             'source_commit': revision,
             'built_at': datetime.datetime.now(datetime.timezone.utc).isoformat(),
-            'description': 'Five-pass discovery, Venus, motion and accessibility refinement',
+            'description': args.description,
         }, indent=2) + '\n')
         stage.rename(output)
     print(f'Exported {revision[:12]} to {output}')

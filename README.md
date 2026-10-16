@@ -38,11 +38,14 @@ node tests/science-regression.cjs
 node tests/phone-exploration.cjs
 node tests/mission-readiness.cjs
 node tests/orbit-controls.cjs
+node tests/orbit-label-motion.cjs
 ~~~
 
 BASE_URL overrides the site address; BROWSER_BIN defaults to /usr/bin/chromium. TEST_ARTIFACTS chooses the screenshot directory, defaulting to /tmp/solsystemet-regression.
 
 Checks cover deliberate mission completion, badges and blocked storage, six phone/tablet layouts, keyboard navigation, default/reduced motion, all twenty worlds, Venus modes and rotation, paused/offscreen rendering, and recovery from delayed or failed imagery and lost graphics contexts. Software rendering verifies behavior and workload; physical iPad/phone tests are still needed for actual frame pacing.
+
+The label motion check samples complete solar and lunar cycles and camera transitions. It checks that labels stay attached to their projected bodies, crowding fades settle without flicker, and visible links remain usable. Accelerated samples skip GPU drawing and do not measure hardware frame rate.
 
 ## Runtime structure
 
@@ -51,6 +54,7 @@ Checks cover deliberate mission completion, badges and blocked storage, six phon
 - renderer.js: analytic WebGL2 planets and texture allocation.
 - worlds.js, moons.js: world profiles and orbital models.
 - orrery.js, moon-system.js, belt.js: Three.js scenes.
+- orbit-labels.js: shared planet-attached labels, collision fades and accessible hit targets.
 - navigation.js, sky.js, sky-scene.js: shared navigation and sky.
 - assets/ and vendor/: bundled imagery, provenance, fonts and licenses.
 - sources.html: image credits and scientific limitations.

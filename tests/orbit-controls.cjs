@@ -5,7 +5,10 @@ async function labelsClearToolbar(page, stage, label) {
     const controls = [...stage.querySelectorAll('.orbit-toolbar button, .orbit-toolbar select')]
       .filter(element => element.getClientRects().length).map(element => element.getBoundingClientRect());
     const bottom = Math.max(...controls.map(rect => rect.bottom));
-    const labels = [...stage.querySelectorAll('.orbit-label')].filter(element => !element.hidden && element.getClientRects().length)
+    const labels = [...stage.querySelectorAll('.orbit-label')].filter(element => {
+      const style = getComputedStyle(element);
+      return !element.hidden && element.getClientRects().length && style.visibility !== 'hidden' && Number(style.opacity) > .001;
+    })
       .map(element => ({ name: element.textContent.trim(), top: element.getBoundingClientRect().top,
         height: element.getBoundingClientRect().height }));
     return { bottom, labels };

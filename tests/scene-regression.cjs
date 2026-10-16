@@ -160,11 +160,18 @@ async function checkOrbitPause(page, route, name, file, exported, play, canvas, 
     assert.equal(await page.evaluate(() => window.__testTrail === window.__testScenes.orrery.trail.geometry.attributes.position), true);
     assert.equal(await page.evaluate(() => window.__testScore === document.querySelector('#orbitScoreboard svg')), true);
     console.log('PASS orbital geometry, trail buffer, and scoreboard stay allocated across spacing and motion');
+    await page.evaluate(() => {
+      const scene = window.__testScenes.orrery, advance = scene.advanceOffscreen;
+      window.__offscreenTicks = 0;
+      scene.advanceOffscreen = function (...args) { window.__offscreenTicks++; return advance.apply(this, args); };
+    });
     await page.setViewportSize({ width: 390, height: 844 });
     await page.locator('#oneYear').click();
     await page.locator('#orbitScoreboard').scrollIntoViewIfNeeded();
     await page.evaluate(() => window.scrollTo({ top: document.querySelector('#orbitScoreboard').getBoundingClientRect().top + scrollY, behavior: 'instant' }));
-    await page.waitForTimeout(250);
+    // IntersectionObserver is asynchronous; sample after the application has
+    // entered its offscreen branch instead of guessing with a fixed delay.
+    await page.waitForFunction(() => window.__offscreenTicks >= 2);
     assert.ok(await page.locator('#orreryCanvas').evaluate(element => element.getBoundingClientRect().bottom <= 0),
       'offscreen counter check must actually move the scene out of view');
     const clockBefore = await page.evaluate(() => window.__testScenes.orrery.days);

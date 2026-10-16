@@ -220,3 +220,5 @@ h1[tabindex="-1"]:focus,h2[tabindex="-1"]:focus{outline:none}
 @media(max-width:360px){.atlas:not(.mission-active):not(.cinema) .primary{padding-inline:14px}.atlas:not(.mission-active):not(.cinema) .narrative h1{font-size:46px}.atlas:not(.mission-active):not(.cinema) .narrative .lead{font-size:16px}}
 /* Planet labels keep a full touch target as their positions respond to toolbar size. */
 .orrery-stage .orbit-label,.moon-stage .orbit-label{min-height:44px;min-width:44px;padding-block:8px}
+.orbit-label.anchored-label{width:max-content;background:transparent;will-change:transform,opacity}
+.orbit-wire.anchored-wire{will-change:transform,opacity}
