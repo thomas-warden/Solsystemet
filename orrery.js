@@ -1,15 +1,16 @@
-import { addCelestialSky } from './sky-scene.js?v=f0f54c10a0bd';
+import { addCelestialSky } from './sky-scene.js?v=f8d8fc182f73';
+import { AnchoredLabels } from './orbit-labels.js?v=f8d8fc182f73';
 import * as THREE from './vendor/three.module.js';
 import { OrbitControls } from './vendor/OrbitControls.js';
-import { ORDER, WORLDS, orbitalPosition } from './worlds.js?v=f0f54c10a0bd';
+import { ORDER, WORLDS, orbitalPosition } from './worlds.js?v=f8d8fc182f73';
 const $=id=>document.getElementById(id),YEAR=WORLDS.earth.period,EPOCH=16550;
 const reduced=matchMedia('(prefers-reduced-motion: reduce)');
 const CAMERA_DURATION=.75;
-const LABEL_HEIGHT=44,LABEL_WIDTH=100,LABEL_GAP=4;
 const text=(el,value)=>{if(el.textContent!==value)el.textContent=value;};
 export class Orrery {
  constructor(){
-  this.active=false;this.days=0;this.playing=!reduced.matches;this.experiment=false;this.selected='earth';this.spacing=0;this.targetSpacing=0;this.speed=20;this.lastRead=0;this.dirty=true;this.modelDirty=true;this.labelPositions=new Map();this.scoreboard={};
+  this.active=false;this.days=0;this.playing=!reduced.matches;this.experiment=false;this.selected='earth';this.spacing=0;this.targetSpacing=0;this.speed=20;this.lastRead=0;this.dirty=true;this.modelDirty=true;this.scoreboard={};
+  this.labelLayout=new AnchoredLabels($('orbitLabels'),()=>{this.dirty=true;});
   const canvas=$('orreryCanvas');this.renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:false});this.renderer.setPixelRatio(Math.min(devicePixelRatio,2));this.renderer.setClearColor(0x030507);this.renderer.outputColorSpace=THREE.SRGBColorSpace;this.renderer.toneMapping=THREE.ACESFilmicToneMapping;this.renderer.toneMappingExposure=1.1;
   this.scene=new THREE.Scene();this.camera=new THREE.PerspectiveCamera(38,1,.03,1500);this.camera.position.set(0,30,42);
   this.controls=new OrbitControls(this.camera,canvas);this.controls.enableDamping=true;this.controls.dampingFactor=.065;this.controls.enablePan=false;this.controls.minDistance=3;this.controls.maxDistance=140;this.controls.minPolarAngle=.04;this.controls.maxPolarAngle=Math.PI*.88;this.controls.rotateSpeed=.6;this.controls.zoomSpeed=.8;
@@ -40,6 +41,7 @@ export class Orrery {
   for(let n=0;n<1050;n++){const a=2.1+random()*1.2;this.asteroids.push({a,e:.025+random()*.065,i:(random()-.5)*9,L:random()*360,peri:random()*360,node:random()*360,period:365.256*Math.pow(a,1.5)});}
   const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(new Float32Array(this.asteroids.length*3),3).setUsage(THREE.DynamicDrawUsage));g.boundingSphere=new THREE.Sphere(new THREE.Vector3(),12);this.belt=new THREE.Points(g,new THREE.PointsMaterial({color:0xa89d87,size:.044,transparent:true,opacity:.48,sizeAttenuation:true,depthWrite:false}));this.scene.add(this.belt);
   this.beltLabel=document.createElement('a');this.beltLabel.href='#belt';this.beltLabel.className='orbit-label belt-label';this.beltLabel.textContent='Asteroid belt';this.beltLabel.setAttribute('aria-label','Visit the asteroid belt');$('orbitLabels').append(this.beltLabel);
+  const wire=document.createElement('i');wire.className='orbit-wire';$('orbitLabels').prepend(wire);this.labelLayout.add('belt',this.beltLabel,wire);
  }
  showBelt(){this.select('mars');this.beltSelected=true;$('orbitMoons').hidden=true;ORDER.forEach(id=>{this.labels[id].removeAttribute('aria-current');this.orbits[id].material.opacity=.3;});document.querySelectorAll('[data-orbit]').forEach(b=>b.setAttribute('aria-pressed','false'));this.following=null;this.fly('belt');$('beltButton').setAttribute('aria-pressed','true');$('beltDiscovery').hidden=false;$('orbitKind').textContent='ROCKY LEFTOVERS FROM THE BEGINNING';$('orbitName').textContent='Asteroid belt';$('orbitFact').innerHTML='A wide band of small worlds <strong>between Mars and Jupiter.</strong><br><span>The points are a tiny, enlarged sample of the real belt.</span>';$('followOrbit').textContent='Return to whole system ↙';$('visitPlanet').hidden=false;$('visitPlanet').href='#belt';$('visitPlanet').innerHTML='Enter the asteroid belt <span>↗</span>';history.replaceState(null,'','#orrery/belt');}
  async buildPlanet(id){
@@ -60,7 +62,7 @@ export class Orrery {
   // The ellipse is fixed: spacing changes its scale, never its vertex buffer.
   const points=new Float32Array(257*3),geo=new THREE.BufferGeometry();for(let j=0;j<=256;j++)points.set(orbitalPosition(p,j/256*p.period,1),j*3);geo.setAttribute('position',new THREE.BufferAttribute(points,3));geo.computeBoundingSphere();const line=new THREE.Line(geo,new THREE.LineBasicMaterial({color:p.color,transparent:true,opacity:.22}));this.scene.add(line);this.orbits[id]=line;
   const start=new THREE.Mesh(new THREE.SphereGeometry(.035,12,8),new THREE.MeshBasicMaterial({color:p.color}));this.scene.add(start);this.starts[id]=start;start.userData.unitPosition=new THREE.Vector3(...orbitalPosition(p,EPOCH,1));
-  const label=document.createElement('a');label.href='#'+id;label.className='orbit-label';label.dataset.planet=id;label.innerHTML=`<i style="--planet:${p.color}"></i><span>${p.title}</span>`;label.setAttribute('aria-label','Visit '+p.title);$('orbitLabels').append(label);this.labels[id]=label;const wire=document.createElement('i');wire.className='orbit-wire';$('orbitLabels').prepend(wire);this.wires[id]=wire;
+  const label=document.createElement('a');label.href='#'+id;label.className='orbit-label';label.dataset.planet=id;label.innerHTML=`<i style="--planet:${p.color}"></i><span>${p.title}</span>`;label.setAttribute('aria-label','Visit '+p.title);$('orbitLabels').append(label);this.labels[id]=label;const wire=document.createElement('i');wire.className='orbit-wire';$('orbitLabels').prepend(wire);this.wires[id]=wire;this.labelLayout.add(id,label,wire);
   const tile=document.createElement('button');tile.dataset.orbit=id;tile.innerHTML=`<span><i style="background:${p.color}"></i>${p.title}</span><strong><svg class="trip-dial" viewBox="0 0 34 34" aria-hidden="true"><circle cx="17" cy="17" r="14"/><circle class="trip-progress" cx="17" cy="17" r="14"/></svg><span class="trip-count">0</span><small>whole<br><span class="trip-word">trips</span></small></strong><span class="trip-caption"></span>`;tile.onclick=()=>this.select(id);$('orbitScoreboard').append(tile);
   this.scoreboard[id]={tile,count:tile.querySelector('.trip-count'),word:tile.querySelector('.trip-word'),progress:tile.querySelector('.trip-progress'),caption:tile.querySelector('.trip-caption')};
   const texture=await this.textureLoader.loadAsync('assets/orbits/'+id+'.jpg');texture.colorSpace=THREE.SRGBColorSpace;texture.anisotropy=Math.min(8,this.renderer.capabilities.getMaxAnisotropy());material.map=texture;material.needsUpdate=true;this.dirty=true;
@@ -119,16 +121,14 @@ export class Orrery {
  resize(){
   this.dirty=true;const r=$('orreryStage').getBoundingClientRect();if(!r.width||!r.height)return;
   const oldFit=this.fitDistance(),previousAspect=this.camera.aspect;this.renderer.setSize(r.width,r.height,false);this.camera.aspect=r.width/r.height;this.camera.updateProjectionMatrix();
-  if(this.initialFit&&Math.abs(previousAspect-this.camera.aspect)>.12&&!this.following){this.camera.position.sub(this.controls.target).multiplyScalar(this.fitDistance()/oldFit).add(this.controls.target);this.flight=null;this.labelPositions.clear();}
+  if(this.initialFit&&Math.abs(previousAspect-this.camera.aspect)>.12&&!this.following){this.camera.position.sub(this.controls.target).multiplyScalar(this.fitDistance()/oldFit).add(this.controls.target);this.flight=null;}
   if(!this.initialFit){const d=this.fitDistance();this.camera.position.set(0,d*.58,d*.815);this.initialFit=true;}
   this.measureLabelBounds();
  }
  measureLabelBounds(){
   // Cache layout measurements; wrapping controls must never cover a touch target.
   const stage=$('orreryStage'),canvas=this.renderer.domElement.getBoundingClientRect(),toolbar=stage.querySelector('.orbit-toolbar').getBoundingClientRect(),key=stage.querySelector('.orbit-key').getBoundingClientRect();
-  const minY=Math.max(8,toolbar.height?toolbar.bottom-canvas.top+8:8),maxY=Math.min(canvas.height-8,key.height?key.top-canvas.top-8:canvas.height-8)-LABEL_HEIGHT;
-  const bounds={minY,maxY,maxX:canvas.width-LABEL_WIDTH-8,available:canvas.width>=LABEL_WIDTH+16&&maxY>=minY};
-  if(!this.labelBounds||Object.keys(bounds).some(k=>bounds[k]!==this.labelBounds[k])){this.labelBounds=bounds;this.labelPositions.clear();this.dirty=true;}
+  this.labelLayout.measure(canvas,toolbar,key);
  }
  updateUI(){
   // Home uses its own pause control; do not update the hidden full-model console.
@@ -147,7 +147,7 @@ export class Orrery {
  show({ambient=false}={}){this.ambient=ambient;this.active=true;this.dirty=true;this.modelDirty=true;if(this.days>=YEAR)this.days=0;this.playing=!reduced.matches;this.experiment=false;this.resize();this.updateUI();}
  hide(){this.active=false;this.playing=false;this.updateUI();}
  advanceTime(dt){
-  if(!this.playing)return false;const previousDays=this.days;
+  if(!this.playing||this.labelLayout.hasFocus())return false;const previousDays=this.days;
   this.days+=dt*this.speed;if(this.days>=YEAR&&!this.ambient){this.days=YEAR;this.playing=false;this.experiment=false;}
   return this.days!==previousDays;
  }
@@ -189,27 +189,21 @@ export class Orrery {
   const ba=this.belt.geometry.attributes.position;this.asteroids.forEach((p,i)=>{const a=THREE.MathUtils.lerp(8.9+(p.a-2.1)/1.2*.9,p.a*21/WORLDS.neptune.a,this.spacing);ba.setXYZ(i,...orbitalPosition(p,this.days+EPOCH,a));});ba.needsUpdate=true;this.belt.material.opacity=this.beltSelected?.82:.42;this.belt.material.size=THREE.MathUtils.lerp(.044,.009,this.spacing);
  }
  positionLabels(dt){
-  const width=this.renderer.domElement.clientWidth,height=this.renderer.domElement.clientHeight,placed=[],bounds=this.labelBounds;let moving=false;const blend=reduced.matches?1:1-Math.exp(-dt*14);
-  const br=THREE.MathUtils.lerp(9.4,2.7*21/WORLDS.neptune.a,this.spacing),bp=new THREE.Vector3(-br*.86,0,br*.51).project(this.camera),beltX=(bp.x*.5+.5)*width-50,beltY=(-bp.y*.5+.5)*height+12;
-  this.beltLabel.hidden=!bounds?.available||bp.z>1||Math.abs(bp.x)>.88||Math.abs(bp.y)>.8||beltX<8||beltX>bounds.maxX||beltY<bounds.minY||beltY>bounds.maxY;this.beltLabel.style.left=beltX+'px';this.beltLabel.style.top=beltY+'px';
-  const sp=this.sun.position.clone().project(this.camera),sr=this.sun.scale.x*height/(2*Math.tan(THREE.MathUtils.degToRad(this.camera.fov)/2)*this.camera.position.length()),sunY=(-sp.y*.5+.5)*height+sr+7;this.sunLabel.hidden=!bounds?.available||sp.z>1||Math.abs(sp.x)>1||Math.abs(sp.y)>.9||sunY<bounds.minY||sunY>bounds.maxY+LABEL_HEIGHT-18;this.sunLabel.style.left=(sp.x*.5+.5)*width+'px';this.sunLabel.style.top=sunY+'px';
-  for(const id of [this.selected,...ORDER.filter(id=>id!==this.selected)]){
-   const m=this.meshes[id];if(!m)continue;const point=m.group.position.clone().project(this.camera),label=this.labels[id];const visible=bounds?.available&&point.z<1&&Math.abs(point.x)<1.07&&Math.abs(point.y)<.91;label.hidden=!visible;this.wires[id].hidden=!visible;if(!visible)continue;
-   const x=(point.x*.5+.5)*width,y=(-point.y*.5+.5)*height,radius=m.group.scale.x*height/(2*Math.tan(THREE.MathUtils.degToRad(this.camera.fov)/2)*this.camera.position.distanceTo(m.group.position));
-   const tx=Math.max(8,Math.min(bounds.maxX,x+radius+9)),base=Math.max(bounds.minY,Math.min(bounds.maxY,y-LABEL_HEIGHT/2)),previous=this.labelPositions.get(id);
-   // Retain a free lane instead of flipping between adjacent slots every frame.
-   let ty,lane=0;for(const candidate of [...new Set([previous?.lane||0,0,1,-1,2,-2,3,-3,4,-4])]){
-    const candidateY=base+candidate*(LABEL_HEIGHT+LABEL_GAP);if(candidateY<bounds.minY||candidateY>bounds.maxY)continue;
-    if(placed.some(b=>Math.abs(b.x-tx)<LABEL_WIDTH&&Math.abs(b.y-candidateY)<LABEL_HEIGHT+LABEL_GAP))continue;
-    ty=candidateY;lane=candidate;break;
-   }
-   if(ty===undefined){label.hidden=this.wires[id].hidden=true;continue;}
-   const layout=previous||{x:tx,y:ty,lane};layout.lane=lane;layout.x+=(tx-layout.x)*blend;layout.y+=(ty-layout.y)*blend;
-   if(Math.abs(tx-layout.x)+Math.abs(ty-layout.y)<.2){layout.x=tx;layout.y=ty;}else moving=true;
-   this.labelPositions.set(id,layout);label.style.left='0px';label.style.top='0px';label.style.transform=`translate3d(${layout.x}px,${layout.y}px,0)`;
-   const dx=layout.x+2-x,dy=layout.y+LABEL_HEIGHT/2-y,d=Math.hypot(dx,dy)||1,wire=this.wires[id];wire.style.left=(x+dx/d*radius)+'px';wire.style.top=(y+dy/d*radius)+'px';wire.style.width=Math.max(0,d-radius-3)+'px';wire.style.transform='rotate('+Math.atan2(dy,dx)+'rad)';placed.push({x:tx,y:ty});
-  }
-  if(placed.some(b=>Math.abs(b.x-beltX)<LABEL_WIDTH&&Math.abs(b.y-beltY)<LABEL_HEIGHT+LABEL_GAP))this.beltLabel.hidden=true;
-  return moving;
+  const {width,height}=this.labelLayout.bounds,scale=height/(2*Math.tan(THREE.MathUtils.degToRad(this.camera.fov)/2));
+  if(!width||!height)return false;
+  const sunView=this.sun.position.clone().applyMatrix4(this.camera.matrixWorldInverse),sp=this.sun.position.clone().project(this.camera);
+  const sx=(sp.x*.5+.5)*width,sy=(-sp.y*.5+.5)*height,sr=this.sun.scale.x*scale/Math.max(.001,-sunView.z),sunY=sy+sr+7,bounds=this.labelLayout.bounds;
+  this.sunLabel.hidden=!bounds.available||sp.z< -1||sp.z>1||sx<bounds.left+16||sx>bounds.right-16||sunY<bounds.top||sunY+18>bounds.bottom;
+  this.sunLabel.style.left=sx+'px';this.sunLabel.style.top=sunY+'px';
+  const items=ORDER.filter(id=>this.meshes[id]).map(id=>{
+   const body=this.meshes[id].group,point=body.position.clone().project(this.camera),view=body.position.clone().applyMatrix4(this.camera.matrixWorldInverse);
+   const x=(point.x*.5+.5)*width,y=(-point.y*.5+.5)*height,radius=body.scale.x*(id==='saturn'?2.27:1)*scale/Math.max(.001,-view.z);
+   const behindSun=view.z<sunView.z&&Math.hypot(x-sx,y-sy)<Math.max(0,sr-radius*.5);
+   return {id,x,y,radius,visible:point.z>=-1&&point.z<1&&!behindSun};
+  });
+  const br=THREE.MathUtils.lerp(9.4,2.7*21/WORLDS.neptune.a,this.spacing),bp=new THREE.Vector3(-br*.86,0,br*.51).project(this.camera);
+  items.push({id:'belt',x:(bp.x*.5+.5)*width,y:(-bp.y*.5+.5)*height,radius:0,visible:bp.z>=-1&&bp.z<1});
+  return this.labelLayout.update(items,dt,{selected:this.beltSelected?'belt':this.selected,reducedMotion:reduced.matches});
  }
+
 }

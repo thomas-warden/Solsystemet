@@ -1,5 +1,5 @@
-import { SKY_URL, SKY_GLSL } from './sky.js?v=f0f54c10a0bd';
-import { WORLDS } from './worlds.js?v=f0f54c10a0bd';
+import { SKY_URL, SKY_GLSL } from './sky.js?v=f8d8fc182f73';
+import { WORLDS } from './worlds.js?v=f8d8fc182f73';
 // Solsystemet: analytic ellipsoids, a separately lit cloud shell and a depth-sorted ring plane.
 // Textures remain photographic maps; motion is an illustrative reconstruction.
 const vertex = `#version 300 es
