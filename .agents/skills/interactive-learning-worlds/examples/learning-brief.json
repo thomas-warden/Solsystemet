@@ -1,0 +1,21 @@
+{
+  "subject": "Dinosaurs and fossil evidence",
+  "workingTitle": "Dinosaur Discovery",
+  "ageRange": [8, 10],
+  "language": "English",
+  "devices": ["phone", "tablet", "desktop"],
+  "learningGoals": [
+    "Compare estimated body lengths using the same scale and explain why estimates can be ranges.",
+    "Connect a visible fossil feature to a supported inference while recognizing uncertainty.",
+    "Use a timeline to identify whether two selected animals could have lived at the same time."
+  ],
+  "representations": ["shared-scale silhouettes", "fossil reveal", "geological timeline"],
+  "missions": ["Compare the giants", "Read a fossil clue", "Could they have met?"],
+  "researchToComplete": [
+    "Select specimens or taxa with trustworthy museum or scientific sources.",
+    "Verify length estimates, time intervals, fossil provenance, and reconstruction limits.",
+    "Obtain suitable illustration or photograph rights and record attribution."
+  ],
+  "delivery": "Working project and local preview; publish when authorized",
+  "status": "planning example, not verified lesson content"
+}

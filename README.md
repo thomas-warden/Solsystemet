@@ -4,6 +4,12 @@ An interactive solar-system atlas for curious children and the adults exploring 
 
 Live site: https://thomas-warden.github.io/Solsystemet/
 
+## Create another learning app
+
+The [Interactive Learning Worlds skill](.agents/skills/interactive-learning-worlds/README.md) packages this project's learning-design, motion, review, and publication workflow for reuse. It includes a runnable starter, recipes for dinosaurs, the periodic table, cultures, machines, and the ocean, plus scaffolding and validation tools.
+
+Start a new Codex session in this repository and invoke `$interactive-learning-worlds`, or follow the skill's installation instructions to use it in another project.
+
 ## Run locally
 
 From the repository directory:

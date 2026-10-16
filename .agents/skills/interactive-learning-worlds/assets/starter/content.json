@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "title": "Shape explorers",
+  "topic": "Illustrated shape patterns",
+  "ageRange": [8, 10],
+  "status": "prototype",
+  "intro": "Try three little challenges. Move a shape, peek beneath a cover, and put a collection in order.",
+  "learningGoals": [
+    "Compare two sizes by changing one shape.",
+    "Reveal something hidden before choosing an answer.",
+    "Put three samples in order from small to large."
+  ],
+  "sourceIds": []
+}

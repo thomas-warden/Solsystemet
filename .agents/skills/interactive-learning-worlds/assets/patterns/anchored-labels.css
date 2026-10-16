@@ -1,0 +1,6 @@
+/* Optional companion to anchored-labels.js; put labels over a positioned scene. */
+.anchored-label-layer{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.anchored-label{position:absolute;display:inline-flex;align-items:center;gap:.4rem;box-sizing:border-box;min-width:44px;min-height:44px;width:max-content;padding:8px 7px 8px 0;white-space:nowrap;font:inherit;color:inherit;text-decoration:none;will-change:transform,opacity}
+.anchored-label:focus-visible{outline:2px solid currentColor;outline-offset:3px;border-radius:4px}
+.anchored-wire{position:absolute;display:block;height:1px;background:currentColor;transform-origin:left center;pointer-events:none;will-change:transform,opacity}
+.anchored-label[hidden],.anchored-wire[hidden]{display:none!important}

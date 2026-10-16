@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Shape explorers</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to activities</a>
+  <header class="site-header">
+    <div class="brand-mark" aria-hidden="true">◒</div>
+    <p class="eyebrow">A little place to explore</p>
+    <button id="motionButton" class="quiet-button" type="button" aria-pressed="false">Start motion</button>
+  </header>
+  <main id="main">
+    <section id="loadingPanel" class="message-panel" role="status">
+      <h1>Getting your activities ready…</h1>
+      <p>There are three things to try.</p>
+    </section>
+    <section id="errorPanel" class="message-panel" hidden>
+      <h1 tabindex="-1" id="errorTitle">The activities could not open.</h1>
+      <p>Try opening them again.</p>
+      <button id="loadRetry" class="primary-button" type="button">Try again</button>
+    </section>
+    <div id="app" hidden>
+      <section id="home" aria-labelledby="appTitle">
+        <div class="welcome">
+          <div class="welcome-copy">
+            <p class="demo-label">Illustrative demo · shapes made for practice</p>
+            <h1 id="appTitle">Shape explorers</h1>
+            <p id="intro" class="intro"></p>
+            <p id="topic" class="topic"></p>
+          </div>
+          <svg class="welcome-art" viewBox="0 0 280 230" aria-hidden="true">
+            <path d="M18 180 Q145 225 263 156" fill="none" stroke="#ccdace" stroke-width="2"/>
+            <circle class="ambient-shape float-one" cx="80" cy="90" r="55" fill="#edba68"/>
+            <rect class="ambient-shape float-two" x="133" y="77" width="95" height="95" rx="22" fill="#416c77" transform="rotate(12 180 125)"/>
+            <path class="ambient-shape float-three" d="M87 151 L114 202 L60 202 Z" fill="#dc8168"/>
+            <circle cx="231" cy="48" r="8" fill="#dc8168"/>
+          </svg>
+        </div>
+        <div class="section-heading">
+          <h2 id="homeTitle" tabindex="-1">Pick an activity.</h2>
+          <p id="badgeCount" aria-live="polite">0 of 3 badges collected</p>
+        </div>
+        <div class="mission-cards">
+          <article class="mission-card match-card">
+            <span class="card-number">01 · Compare</span>
+            <div class="card-art compare-art" aria-hidden="true"><i></i><b></b></div>
+            <h3>Find the fit</h3>
+            <p data-goal="0"></p>
+            <p class="badge-status" data-badge="compare"><span aria-hidden="true">◎</span><span>Size Finder · not collected yet</span></p>
+            <button type="button" class="primary-button" data-start="compare">Start matching <span class="corner-arrow" aria-hidden="true"></span></button>
+          </article>
+          <article class="mission-card reveal-card">
+            <span class="card-number">02 · Reveal</span>
+            <div class="card-art reveal-art" aria-hidden="true"><span>✦</span><i></i></div>
+            <h3>Look underneath</h3>
+            <p data-goal="1"></p>
+            <p class="badge-status" data-badge="reveal"><span aria-hidden="true">✦</span><span>Hidden Star · not collected yet</span></p>
+            <button type="button" class="primary-button" data-start="reveal">Start looking <span class="corner-arrow" aria-hidden="true"></span></button>
+          </article>
+          <article class="mission-card order-card">
+            <span class="card-number">03 · Order</span>
+            <div class="card-art order-art" aria-hidden="true"><i></i><i></i><i></i></div>
+            <h3>Small to large</h3>
+            <p data-goal="2"></p>
+            <p class="badge-status" data-badge="order"><span aria-hidden="true">▥</span><span>Order Builder · not collected yet</span></p>
+            <button type="button" class="primary-button" data-start="order">Start sorting <span class="corner-arrow" aria-hidden="true"></span></button>
+          </article>
+        </div>
+        <p id="saveNote" class="save-note">Your badges will be here next time.</p>
+      </section>
+
+      <section id="workbench" class="workbench" aria-labelledby="missionTitle" hidden>
+        <div class="activity-topline">
+          <p id="missionKind" class="eyebrow"></p>
+          <button id="leaveMission" class="quiet-button" type="button">Leave activity</button>
+        </div>
+        <div id="missionGuide" class="mission-guide">
+          <p id="missionStep" class="step-label"></p>
+          <h1 id="missionTitle" tabindex="-1"></h1>
+          <p id="missionInstruction"></p>
+        </div>
+
+        <div id="comparePanel" class="activity-panel" hidden>
+          <svg id="compareScene" class="activity-scene" viewBox="0 0 300 180" role="img" aria-label="A blue circle and an outline that is 64 units wide.">
+            <circle cx="150" cy="90" r="72" fill="#e4ece5"/>
+            <circle id="sizeCircle" cx="150" cy="90" r="25.6" fill="#416c77" fill-opacity=".85"/>
+            <circle cx="150" cy="90" r="51.2" fill="none" stroke="#223e3e" stroke-width="2.5" stroke-dasharray="5 5"/>
+          </svg>
+          <div class="control-card">
+            <div class="control-heading"><label for="sizeSlider">Blue circle size</label><output id="sizeValue" for="sizeSlider">32 units</output></div>
+            <input id="sizeSlider" type="range" min="24" max="96" step="1" value="32" aria-describedby="sizeHint">
+            <p id="sizeHint">The outline is 64 units wide. Match its edges with the blue circle.</p>
+            <button id="checkSize" class="primary-button" type="button">Check the match</button>
+          </div>
+        </div>
+
+        <div id="revealPanel" class="activity-panel" hidden>
+          <svg id="revealScene" class="activity-scene" viewBox="0 0 300 180" role="img" aria-label="A shape is hidden beneath a round cover.">
+            <circle cx="150" cy="95" r="72" fill="#f4e1c3"/>
+            <path d="M150 40 L164 78 L205 80 L173 105 L183 145 L150 121 L117 145 L127 105 L95 80 L136 78 Z" fill="#dc8168" stroke="#8e4537" stroke-width="2"/>
+            <g id="shapeCover"><circle cx="150" cy="95" r="66" fill="#416c77"/><path d="M128 95 Q150 74 172 95" fill="none" stroke="#eef5e9" stroke-width="6" stroke-linecap="round"/></g>
+          </svg>
+          <button id="liftCover" class="primary-button wide-button" type="button">Lift the cover</button>
+          <fieldset id="shapeAnswers" class="answer-group" hidden>
+            <legend>Which shape did you find?</legend>
+            <button type="button" class="answer-button" data-answer="triangle">A triangle</button>
+            <button type="button" class="answer-button" data-answer="star">A star</button>
+            <button type="button" class="answer-button" data-answer="circle">A circle</button>
+          </fieldset>
+        </div>
+
+        <div id="orderPanel" class="activity-panel" hidden>
+          <p class="order-hint">First is the smallest. Last is the largest.</p>
+          <ol id="sampleList" class="sample-list" aria-label="Samples from first to last"></ol>
+          <button id="checkOrder" class="primary-button wide-button" type="button">Check the order</button>
+        </div>
+
+        <p id="feedback" class="feedback" role="status" aria-live="polite" aria-atomic="true"></p>
+        <div id="completionPanel" class="completion-panel" hidden>
+          <div id="earnedSymbol" class="earned-symbol" aria-hidden="true"></div>
+          <h2 id="completionTitle" tabindex="-1"></h2>
+          <p id="completionCopy"></p>
+          <button id="chooseNext" class="primary-button" type="button">Choose another activity</button>
+        </div>
+        <button id="retryMission" class="quiet-button retry-button" type="button">Try this activity again</button>
+      </section>
+    </div>
+    <noscript><p class="message-panel">These activities cannot start with your current browser settings.</p></noscript>
+  </main>
+  <footer>Made for curious minds. Take your time.</footer>
+</body>
+</html>

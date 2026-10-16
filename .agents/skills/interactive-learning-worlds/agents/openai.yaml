@@ -1,0 +1,4 @@
+interface:
+  display_name: "Interactive Learning Worlds"
+  short_description: "Build polished interactive learning apps for children."
+  default_prompt: "Use $interactive-learning-worlds to build a sourced, accessible learning app for my chosen subject and age group, with three meaningful discovery missions and browser validation."
