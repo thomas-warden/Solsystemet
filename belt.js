@@ -1,4 +1,4 @@
-import { addCelestialSky } from './sky-scene.js?v=20261014d';
+import { addCelestialSky } from './sky-scene.js?v=f0f54c10a0bd';
 import * as THREE from './vendor/three.module.js';
 const $ = id => document.getElementById(id);
 const reduced = matchMedia('(prefers-reduced-motion: reduce)');
@@ -22,17 +22,20 @@ export function rockGeometry(seed, detail=96) {
  const planes=Array.from({length:7},()=>({n:direction(),cut:.73+random()*.35}));
  const faults=Array.from({length:3},()=>({n:direction(),offset:(random()-.5)*.8}));
  const craters=Array.from({length:34},(_,i)=>({n:direction(),radius:i<5?.22+random()*.25:.035+random()*.12}));
+ const n=new THREE.Vector3();
  for(let i=0;i<positions.count;i++){
-  const x=positions.getX(i),y=positions.getY(i),z=positions.getZ(i),n=new THREE.Vector3(x,y,z);
+  const x=positions.getX(i),y=positions.getY(i),z=positions.getZ(i);n.set(x,y,z);
   const broad=noise(x*2.2+seed,y*2.2,z*2.2),medium=noise(x*9+seed,y*9,z*9),fine=noise(x*33+seed,y*33,z*33);
+  const faultNoise=(noise(x*7+seed,y*7,z*7)-.5)*.11;
   let radius=.89+broad*.23+(medium-.5)*.06+(fine-.5)*.017,scar=0;
   for(const plane of planes){const dot=n.dot(plane.n);if(dot>0)radius=Math.min(radius,plane.cut/dot+(medium-.5)*.027);}
   for(const fault of faults){
-   const d=Math.abs(n.dot(fault.n)-fault.offset+(noise(x*7+seed,y*7,z*7)-.5)*.11);
+   const d=Math.abs(n.dot(fault.n)-fault.offset+faultNoise);
    const split=Math.exp(-d*d/.00023);radius-=split*.065;scar+=split*.12;
   }
   for(const c of craters){
-   const d=n.distanceTo(c.n)/c.radius;
+   const distanceSquared=n.distanceToSquared(c.n);if(distanceSquared>=1.44*c.radius*c.radius)continue;
+   const d=Math.sqrt(distanceSquared)/c.radius;
    if(d<1.2){const bowl=Math.max(0,1-d*d);radius+=c.radius*(.085*Math.exp(-Math.pow((d-.93)*13,2))-.34*bowl*bowl);scar+=bowl*.065;}
   }
   positions.setXYZ(i,x*radius*stretch[0],y*radius*stretch[1],z*radius*stretch[2]);
@@ -70,9 +73,12 @@ function support(geometry,quaternion,scale,side) {
 
 export class BeltFlight {
  constructor(){
-  this.active=false;this.playing=!reduced.matches;this.speed=1;this.elapsed=0;this.look={x:0,y:0};this.gaze={x:0,y:0,vx:0,vy:0};
+  this.active=false;this.playing=!reduced.matches;this.speed=1;this.elapsed=0;this.look={x:0,y:0};this.gaze={x:0,y:0,vx:0,vy:0};this.dirty=true;this.skyReady=0;
+  // Choose once, including tablets. Resizing never swaps a visible silhouette.
+  const compact=matchMedia('(max-width: 1024px), (pointer: coarse)').matches||(navigator.deviceMemory>0&&navigator.deviceMemory<=4);
+  this.quality=compact?{near:96,far:32,count:32,pixelRatio:1.5}:{near:128,far:48,count:48,pixelRatio:2};
   const canvas=$('beltCanvas');
-  this.renderer=new THREE.WebGLRenderer({canvas,antialias:true,powerPreference:'high-performance'});this.renderer.setPixelRatio(Math.min(devicePixelRatio,2));this.renderer.setClearColor(0x030507);
+  this.renderer=new THREE.WebGLRenderer({canvas,antialias:true,powerPreference:'high-performance'});this.renderer.setPixelRatio(Math.min(devicePixelRatio,this.quality.pixelRatio));this.renderer.setClearColor(0x030507);
   this.renderer.outputColorSpace=THREE.SRGBColorSpace;this.renderer.toneMapping=THREE.ACESFilmicToneMapping;this.renderer.toneMappingExposure=1.1;
   this.scene=new THREE.Scene();this.scene.fog=new THREE.Fog(0x030507,180,260);
   this.camera=new THREE.PerspectiveCamera(58,1,.1,600);
@@ -82,7 +88,7 @@ export class BeltFlight {
   this.buildStars();this.buildRocks();this.buildCollisions();this.bind();this.reset();
   this.observer=new ResizeObserver(()=>this.resize());this.observer.observe($('beltStage'));
   canvas.addEventListener('webglcontextlost',e=>{e.preventDefault();this.playing=false;this.active=false;this.updateUI();$('beltStatus').textContent='Graphics interrupted. Reload to resume the journey.';});
-  reduced.addEventListener('change',e=>{if(e.matches){this.playing=false;this.look={x:0,y:0};this.updateUI();}});
+  reduced.addEventListener('change',e=>{if(e.matches){this.playing=false;this.look={x:0,y:0};this.dirty=true;this.updateUI();}});
   $('beltStatus').textContent='';
  }
  buildStars(){this.sky=addCelestialSky(this.scene);}
@@ -129,13 +135,12 @@ export class BeltFlight {
    texture.wrapS=texture.wrapT=THREE.RepeatWrapping;
    texture.minFilter=THREE.LinearMipmapLinearFilter;texture.magFilter=THREE.LinearFilter;
    texture.anisotropy=Math.min(8,this.renderer.capabilities.getMaxAnisotropy());
-   this.renderer.initTexture(texture);this.rockMap.value=texture;empty.dispose();
+   this.renderer.initTexture(texture);this.rockMap.value=texture;empty.dispose();this.dirty=true;
   },undefined,()=>console.warn('Rock detail unavailable; retaining sculpted terrain.'));
   this.material=material;
-  this.shapes=Array.from({length:7},(_,i)=>({near:rockGeometry(51+i*17,160),far:rockGeometry(51+i*17,64)}));
+  this.shapes=Array.from({length:7},(_,i)=>({near:rockGeometry(51+i*17,this.quality.near),far:rockGeometry(51+i*17,this.quality.far)}));
   this.rocks=[];
-  const count=matchMedia('(max-width: 650px)').matches?32:48;
-  for(let i=0;i<count;i++){
+  for(let i=0;i<this.quality.count;i++){
    const shape=this.shapes[i%this.shapes.length],mesh=new THREE.Mesh(i<10?shape.near:shape.far,material);this.scene.add(mesh);
    this.rocks.push({mesh,shape,large:i<10});
   }
@@ -149,7 +154,7 @@ export class BeltFlight {
   foreground.forEach(([x,y,z,size],i)=>Object.assign(this.rocks[i],{x,y,z,size}));
   for(const event of this.collisions){event.active=false;event.group.visible=false;}
   this.startCollision(this.collisions[0]);this.nextCollision=48;
-  this.drawRocks(0);this.drawCollisions(0);this.updateUI();
+  this.drawRocks(0);this.drawCollisions(0);this.dirty=true;this.updateUI();
  }
  place(rock,z=-FAR){
   const r=this.random,angle=r()*Math.PI*2;
@@ -246,16 +251,17 @@ export class BeltFlight {
   $('beltRestart').onclick=()=>{this.speed=1;$('beltSpeed').value='1';this.reset();};
   $('beltCinema').onclick=()=>this.toggleCinema();
   const canvas=$('beltCanvas');
-  const look=e=>{if(reduced.matches)return;const r=canvas.getBoundingClientRect();this.look.x=THREE.MathUtils.clamp(((e.clientX-r.left)/r.width-.5)*2,-1,1);this.look.y=THREE.MathUtils.clamp(((e.clientY-r.top)/r.height-.5)*2,-1,1);};
+  const look=e=>{if(reduced.matches)return;const r=canvas.getBoundingClientRect();this.look.x=THREE.MathUtils.clamp(((e.clientX-r.left)/r.width-.5)*2,-1,1);this.look.y=THREE.MathUtils.clamp(((e.clientY-r.top)/r.height-.5)*2,-1,1);this.dirty=true;};
   canvas.addEventListener('pointerdown',e=>{if(e.isPrimary){this.dragging=true;canvas.setPointerCapture(e.pointerId);look(e);}});
   canvas.addEventListener('pointermove',e=>{if(e.pointerType==='mouse'||this.dragging)look(e);});
-  canvas.addEventListener('pointerup',()=>{this.dragging=false;});canvas.addEventListener('pointercancel',()=>{this.dragging=false;this.look={x:0,y:0};});
-  canvas.addEventListener('pointerleave',()=>{if(!this.dragging)this.look={x:0,y:0};});
+  canvas.addEventListener('pointerup',()=>{this.dragging=false;});canvas.addEventListener('pointercancel',()=>{this.dragging=false;this.look={x:0,y:0};this.dirty=true;});
+  canvas.addEventListener('pointerleave',()=>{if(!this.dragging){this.look={x:0,y:0};this.dirty=true;}});
   canvas.addEventListener('keydown',e=>{
    if(e.code==='Space'){e.preventDefault();$('beltPlay').click();return;}
    if(!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home'].includes(e.key))return;e.preventDefault();
    if(e.key==='Home')this.look={x:0,y:0};
    else{this.look.x=THREE.MathUtils.clamp(this.look.x+(e.key==='ArrowLeft'?-.2:e.key==='ArrowRight'?.2:0),-1,1);this.look.y=THREE.MathUtils.clamp(this.look.y+(e.key==='ArrowUp'?-.2:e.key==='ArrowDown'?.2:0),-1,1);}
+   this.dirty=true;
   });
  }
  toggleCinema(){const active=$('atlas').classList.toggle('belt-cinema');$('beltCinema').textContent=active?'Return to exploration ↙':'View only ⤢';$('beltCinema').setAttribute('aria-pressed',String(active));}
@@ -265,15 +271,21 @@ export class BeltFlight {
   $('beltSpeedLabel').textContent=this.speed<.7?'Drift':this.speed>1.6?'Fly':'Cruise';
   $('beltSpeed').setAttribute('aria-valuetext',this.speed.toFixed(2)+' times cruise speed');
  }
- resize(){const r=$('beltStage').getBoundingClientRect();if(!r.width||!r.height)return;this.renderer.setSize(r.width,r.height,false);this.camera.aspect=r.width/r.height;this.camera.updateProjectionMatrix();for(const event of this.collisions)event.dust.material.uniforms.pixelScale.value=r.height*this.renderer.getPixelRatio();}
+ resize(){const r=$('beltStage').getBoundingClientRect();if(!r.width||!r.height)return;this.renderer.setSize(r.width,r.height,false);this.camera.aspect=r.width/r.height;this.camera.updateProjectionMatrix();for(const event of this.collisions)event.dust.material.uniforms.pixelScale.value=r.height*this.renderer.getPixelRatio();this.dirty=true;}
  show(){this.active=true;this.playing=!reduced.matches;this.resize();this.updateUI();}
  hide(){this.active=false;this.playing=false;this.updateUI();if($('atlas').classList.contains('belt-cinema'))this.toggleCinema();}
+ gazeMoving(){return Math.abs(this.look.x-this.gaze.x)>1e-4||Math.abs(this.look.y-this.gaze.y)>1e-4||Math.abs(this.gaze.vx)>1e-4||Math.abs(this.gaze.vy)>1e-4;}
  frame(dt){
   if(!this.active)return;
-  const step=this.playing?Math.min(dt,.05):0;this.elapsed+=step;this.drawRocks(step);this.drawCollisions(step);
+  // The shared sky texture can finish after a paused first frame.
+  const skyReady=this.sky.material.uniforms.skyReady.value;
+  if(skyReady!==this.skyReady){this.skyReady=skyReady;this.dirty=true;}
+  if(!this.playing&&!this.dirty&&!this.gazeMoving())return;
+  const step=this.playing?Math.min(dt,.05):0;
+  if(step){this.elapsed+=step;this.drawRocks(step);this.drawCollisions(step);}
   if(reduced.matches)Object.assign(this.gaze,{x:this.look.x,y:this.look.y,vx:0,vy:0});
-  else advanceLook(this.gaze,this.look,Math.min(dt,.05));
+  else{advanceLook(this.gaze,this.look,Math.min(dt,.05));if(!this.gazeMoving())Object.assign(this.gaze,{x:this.look.x,y:this.look.y,vx:0,vy:0});}
   this.camera.position.x=this.gaze.x*1.5;this.camera.position.y=-this.gaze.y*.75;
-  this.camera.lookAt(this.gaze.x*9,-this.gaze.y*5,-100);this.renderer.render(this.scene,this.camera);
+  this.camera.lookAt(this.gaze.x*9,-this.gaze.y*5,-100);this.renderer.render(this.scene,this.camera);this.dirty=false;
  }
 }

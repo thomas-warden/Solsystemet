@@ -1,5 +1,5 @@
 {
-  "source_commit": "8a48d9454e8bf41c1f7afbf0762d3b17b110add6",
-  "built_at": "2026-10-14T18:37:09.584433+00:00",
-  "description": "Guided exploration with three missions and consistent motion defaults"
+  "source_commit": "f0f54c10a0bdeca1e30e359e93866459fc36b69f",
+  "built_at": "2026-10-16T07:18:57.177928+00:00",
+  "description": "Five-pass discovery, Venus, motion and accessibility refinement"
 }
