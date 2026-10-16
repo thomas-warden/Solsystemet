@@ -1,0 +1,33 @@
+{
+  "accessed_at": "2026-10-16",
+  "asset": {
+    "file": "venus-radar.jpg",
+    "title": "Cylindrical Map of Venus",
+    "credit": "NASA / Jet Propulsion Laboratory; Magellan mission",
+    "provider": "Wikimedia Commons, reproduced from SolarViews",
+    "source_page": "https://solarviews.com/cap/venus/venmap.htm",
+    "commons_page": "https://commons.wikimedia.org/wiki/File:Cylindrical_Map_of_Venus.jpg",
+    "download_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/19/Cylindrical_Map_of_Venus.jpg/3840px-Cylindrical_Map_of_Venus.jpg",
+    "original_url": "https://solarviews.com/raw/venus/venmap.gif",
+    "original_dimensions": [5120, 2560],
+    "dimensions": [3840, 1920],
+    "format": "JPEG RGB",
+    "bytes": 2360054,
+    "sha256": "63cf6f216d74da56aff598d18d152209deb22f8d7fd44b4db7e047afcc7094be",
+    "license": "Public domain NASA/JPL image; both source pages explicitly identify the image as public domain",
+    "image_use_policy": "https://www.jpl.nasa.gov/jpl-image-use-policy/",
+    "license_note": "Credit NASA/JPL. No NASA or JPL endorsement is implied. The SolarViews website's separate copyright notice is not the image license; its image caption explicitly says this image is public domain and copyright free.",
+    "projection": "Simple cylindrical (equirectangular), complete 360-degree longitude by 180-degree latitude map",
+    "extent": {
+      "left_and_right_edges_degrees_east": 240,
+      "top_latitude_degrees": 90,
+      "bottom_latitude_degrees": -90
+    },
+    "observations": "Composite of the Magellan synthetic-aperture radar image collection, acquired during the 1990–1994 mission at Venus.",
+    "colour_interpretation": "Simulated orange hues enhance radar structure and are informed by Venera 13 and 14 surface photographs. This is a false-colour radar reconstruction, not an unobstructed visible-light image of Venus or a calibrated surface-colour map.",
+    "coverage_limits": "Magellan mapped about 98 percent of Venus. Source mosaic data gaps are filled with Pioneer-Venus Orbiter altimetric data or a constant mid-range value. Visible mosaic seams and constant-colour patches are retained; no new terrain is invented by this application.",
+    "processing": "Downloaded the provider's 3840 × 1920 JPEG thumbnail unchanged. No local cropping, recolouring, resampling, gap filling or generated detail. Commons' source JPEG is a 5120 × 2560 reproduction of the source map.",
+    "rendering_guidance": "Wrap as an equirectangular map, with north at the top. Keep the radar/false-colour label visible while selected. Lighting, viewing angle and animation rate are illustrative. The rotation marker is an artificial teaching overlay and is not a real surface feature or calibrated longitude marker.",
+    "visual_validation": "Inspected the downloaded JPEG: full rectangular 2:1 global surface map, stretched polar rows, Maxwell Montes and Aphrodite Terra consistent with source description; no perspective globe, legend or text baked into the map."
+  }
+}

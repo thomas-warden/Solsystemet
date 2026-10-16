@@ -9,7 +9,7 @@ const fragment = `#version 300 es
 precision highp float;
 out vec4 color;
 uniform vec2 resolution;
-uniform float world, spin, time, cameraAngle, cloudsOn, lightsOn, storm, compareEarth, particles, speed, lightPhase, axisTilt;
+uniform float world, spin, time, cameraAngle, cloudsOn, lightsOn, storm, compareEarth, particles, speed, lightPhase, axisTilt, venusEnhanced, venusSurface;
 uniform sampler2D surfaceMap, cloudMap, nightMap, ringMap, earthMap;
 ${SKY_GLSL.replaceAll("texture2D(", "texture(")}
 const float PI=3.141592653589793;
@@ -28,7 +28,14 @@ vec3 renderSurface(vec3 p,vec3 normal,vec3 rd,vec3 light){
  if(world==2.)st=uvAt(normal,spin); // Saturn's map is planetographic.
  if(world==1.){float lat=st.y;st.x=fract(st.x+sin(time*.018*speed)*.0025*sin(lat*39.)+sin(time*.012*speed)*.0012*sin(lat*88.));}
  vec3 tex=texture(surfaceMap,st).rgb;
- if(world==4.)tex=mix(vec3(.89,.87,.80),tex,.15); // Visible Venus has near-featureless ivory cloud tops.
+ if(world==4.&&venusSurface<.5){
+  // Ordinary visible light is nearly featureless. The separately labelled enhanced
+  // illustration makes the source's cloud patterns readable without orange tinting.
+  vec3 ordinary=mix(vec3(.89,.87,.80),tex,.15);
+  float cloudDetail=(dot(tex,vec3(.2126,.7152,.0722))-.75)*1.8;
+  vec3 enhanced=clamp(vec3(.83,.80,.73)+cloudDetail,vec3(.38),vec3(.96));
+  tex=mix(ordinary,enhanced,venusEnhanced);
+ }
  if(world==5.)tex=mix(tex,vec3(dot(tex,vec3(.2126,.7152,.0722))),.16);
  if(world==10.)tex=mix(vec3(dot(tex,vec3(.2126,.7152,.0722))),tex,.25);
  vec3 base=linearize(tex),result;
@@ -53,7 +60,19 @@ vec3 renderSurface(vec3 p,vec3 normal,vec3 rd,vec3 light){
   float limb=.6+.4*pow(nv,.35);
   result=base*(.006+diffuse*1.24)*limb;
   if(world==2.)result*=ringShadow(p,light);
-  if(world==3.||world==5.||world==8.||world==10.)result=base*(.006+max(nl,0.)*1.24);
+  if(world==3.||world==5.||world==8.||world==10.||(world==4.&&venusSurface>.5))result=base*(.006+max(nl,0.)*1.24);
+ }
+ if(world==4.&&venusSurface>.5){
+  // This drawn equator and gold reference dot reveal retrograde rotation.
+  // They mark the solid planet, never the much faster moving cloud deck.
+  vec3 surfaceNormal=normalize(p),marker=vec3(sin(-spin),0.,cos(-spin));
+  float equator=1.-smoothstep(.002,.006,abs(surfaceNormal.y));
+  result=mix(result,vec3(.45,.32,.14),equator*.22);
+  float distance=length(surfaceNormal-marker);
+  float halo=1.-smoothstep(.032,.043,distance);
+  float dotGuide=1.-smoothstep(.016,.024,distance);
+  result=mix(result,vec3(.012,.018,.025),halo);
+  result=mix(result,vec3(1.5,1.1,.38),dotGuide);
  }
  if(world==6.){
   // A deliberately drawn meridian and equator reveal spin without inventing weather.
@@ -95,6 +114,25 @@ void main(){
   vec3 sky=skyColor(normalize(vec3(skyPlane*.5424,-1.8)));
   result=-log(max(vec3(.001),1.-linearize(sky)))/1.18;
  }
+ if(world==4.){
+  float radial=length(xy),pixel=2.*halfHeight/resolution.y;
+  // Analytic pixel coverage smooths this sphere's silhouette at low resolution.
+  // Keep the approved Earth cloud shell and Saturn ring compositing unchanged.
+  if(abs(radial-1.)<pixel){
+   vec2 edgeXY=xy/max(radial,1e-5)*min(radial,.99999);
+   vec3 edgePoint=vec3(edgeXY,sqrt(max(0.,1.-dot(edgeXY,edgeXY))));
+   edgePoint=rotateX(rotateZ(edgePoint,-roll),-angle);
+   vec3 sky=skyColor(normalize(vec3((gl_FragCoord.xy/resolution-.5)*vec2(aspect,1.)*1.0848,-1.8)));
+   vec3 background=-log(max(vec3(.001),1.-linearize(sky)))/1.18;
+   result=mix(background,renderSurface(edgePoint,edgePoint,rd,light),1.-smoothstep(1.-pixel*.5,1.+pixel*.5,radial));
+  }
+  if(venusSurface<.5){
+   vec3 edge=rotateX(rotateZ(normalize(vec3(xy,.045)),-roll),-angle);
+   float sun=smoothstep(-.08,.6,dot(edge,light));
+   float rim=exp(-abs(radial-1.001)*170.)*.07*sun;
+   result+=vec3(.65,.55,.34)*rim;
+  }
+ }
  if(world==0.){
   // Clouds sit above the globe. Their brightness comes from direct sunlight,
   // opacity from the cloud map, with a small self-shadow along texture gradients.
@@ -127,7 +165,8 @@ void main(){
     float illumination=.08+1.12*pow(abs(light.y),.32)*sunSide*shadow;
     vec3 rc=linearize(ring.rgb)*illumination;
     if(particles>.5){
-     float pa=atan(p.z,p.x),a1=time*.24,a2=time*.24*pow(1.5/2.10,1.5)+PI;
+     // Ring particles orbit prograde around +Y, like Saturn's equatorial rotation.
+     float a1=-time*.24,a2=-time*.24*pow(1.5/2.10,1.5)+PI;
      float d1=length(p.xz-1.5*vec2(cos(a1),sin(a1)));
      float d2=length(p.xz-2.10*vec2(cos(a2),sin(a2)));
      float dot1=1.-smoothstep(.009,.025,d1),dot2=1.-smoothstep(.009,.025,d2);
@@ -157,27 +196,59 @@ void main(){
 
 export class PlanetRenderer {
  constructor(canvas,onReady,onError){
-  this.canvas=canvas;this.onReady=onReady;this.onError=onError;this.current='';this.quality=1;this.ready=false;this.maps={};this.loading=new Map();
+  this.canvas=canvas;this.onReady=onReady;this.onError=onError;this.current='';this.quality=1;this.ready=false;this.maps={};this.loading=new Map();this.revision=0;this.contextLost=false;
   this.gl=canvas.getContext('webgl2',{alpha:false,antialias:false,powerPreference:'high-performance',preserveDrawingBuffer:true});
   if(!this.gl)throw Error('WebGL2 unavailable');
   const gl=this.gl;
   const shader=(type,source)=>{const s=gl.createShader(type);gl.shaderSource(s,source);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw Error(gl.getShaderInfoLog(s));return s;};
   this.program=gl.createProgram();gl.attachShader(this.program,shader(gl.VERTEX_SHADER,vertex));gl.attachShader(this.program,shader(gl.FRAGMENT_SHADER,fragment));gl.linkProgram(this.program);if(!gl.getProgramParameter(this.program,gl.LINK_STATUS))throw Error(gl.getProgramInfoLog(this.program));gl.useProgram(this.program);
   const buffer=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);let position=gl.getAttribLocation(this.program,'position');gl.enableVertexAttribArray(position);gl.vertexAttribPointer(position,2,gl.FLOAT,false,0,0);
-  this.locations={};for(const name of ['resolution','world','spin','time','cameraAngle','cloudsOn','lightsOn','storm','compareEarth','particles','speed','lightPhase','axisTilt','surfaceMap','cloudMap','nightMap','ringMap','earthMap','skyMap','skyReady'])this.locations[name]=gl.getUniformLocation(this.program,name);
+  this.locations={};for(const name of ['resolution','world','spin','time','cameraAngle','cloudsOn','lightsOn','storm','compareEarth','particles','speed','lightPhase','axisTilt','venusEnhanced','venusSurface','surfaceMap','cloudMap','nightMap','ringMap','earthMap','skyMap','skyReady'])this.locations[name]=gl.getUniformLocation(this.program,name);
   this.placeholder=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,this.placeholder);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,1,1,0,gl.RGBA,gl.UNSIGNED_BYTE,new Uint8Array([0,0,0,255]));gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
   this.anisotropy=gl.getExtension('EXT_texture_filter_anisotropic');
   this.load('sky',SKY_URL).catch(()=>console.warn('Celestial map unavailable; showing a simple star field.'));
-  this.highDetail=gl.getParameter(gl.MAX_TEXTURE_SIZE)>=8192&&innerWidth>700;
+  this.maxTextureSize=gl.getParameter(gl.MAX_TEXTURE_SIZE);
+  this.textureSizes=new Map();this.textureBudget=(navigator.deviceMemory>=8?256:192)*1024*1024;
+  this.highDetail=false;
   this.observer=new ResizeObserver(()=>this.resize());this.observer.observe(canvas);
-  canvas.addEventListener('webglcontextlost',e=>{e.preventDefault();this.ready=false;onError('Graphics connection interrupted. Reload to restore the scene.');});
+  canvas.addEventListener('webglcontextlost',e=>{e.preventDefault();this.contextLost=true;this.ready=false;onError('Graphics connection interrupted. Reload to restore the scene.');});
  }
  async load(name,url){
+  if(this.contextLost||this.gl.isContextLost())throw Error('Graphics connection interrupted. Reload to restore the scene.');
   if(this.maps[name])return this.maps[name];if(this.loading.has(name))return this.loading.get(name);
-  const promise=new Promise((resolve,reject)=>{const im=new Image();im.onload=()=>{const gl=this.gl,t=gl.createTexture();gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,t);gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,true);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,im);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,name==='ring'?gl.CLAMP_TO_EDGE:gl.REPEAT);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR_MIPMAP_LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.generateMipmap(gl.TEXTURE_2D);if(this.anisotropy)gl.texParameterf(gl.TEXTURE_2D,this.anisotropy.TEXTURE_MAX_ANISOTROPY_EXT,Math.min(8,gl.getParameter(this.anisotropy.MAX_TEXTURE_MAX_ANISOTROPY_EXT)));this.maps[name]=t;resolve(t);};im.onerror=()=>reject(Error('Could not load '+url));im.src=url;});this.loading.set(name,promise);return promise;
+  const promise=new Promise((resolve,reject)=>{const im=new Image();im.onload=()=>{
+   try{
+    if(this.contextLost||this.gl.isContextLost())throw Error('Graphics connection interrupted. Reload to restore the scene.');
+    const gl=this.gl,t=gl.createTexture();
+    // Cap decoded GPU allocation as well as network size. Thin ring lookup maps
+    // stay full width; high-resolution maps otherwise need a useful pixel budget.
+    const limit=Math.min(this.maxTextureSize,name==='ring'||(name==='jupiter'&&this.highDetail)?8192:4096);
+    const scale=Math.min(1,limit/Math.max(im.width,im.height));let source=im;
+    if(scale<1){source=document.createElement('canvas');source.width=Math.max(1,Math.round(im.width*scale));source.height=Math.max(1,Math.round(im.height*scale));source.getContext('2d').drawImage(im,0,0,source.width,source.height);}
+    gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,t);gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,true);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,source);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,name==='ring'?gl.CLAMP_TO_EDGE:gl.REPEAT);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR_MIPMAP_LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.generateMipmap(gl.TEXTURE_2D);if(this.anisotropy)gl.texParameterf(gl.TEXTURE_2D,this.anisotropy.TEXTURE_MAX_ANISOTROPY_EXT,Math.min(8,gl.getParameter(this.anisotropy.MAX_TEXTURE_MAX_ANISOTROPY_EXT)));this.maps[name]=t;this.textureSizes.set(name,Math.ceil(source.width*source.height*4*4/3));this.revision++;this.releaseInactiveTextures();resolve(t);
+   }catch(error){reject(error);}
+  };im.onerror=()=>reject(Error('Could not load '+url));im.src=url;});this.loading.set(name,promise);
+  try{return await promise;}finally{this.loading.delete(name);}
+ }
+ releaseInactiveTextures(){
+  const keep=new Set(['sky',this.current]);
+  if(this.current==='earth'){keep.add('cloud');keep.add('night');}
+  if(this.current==='saturn')keep.add('ring');
+  if(this.current==='titan')keep.add('titan-surface');
+  if(this.current==='venus')keep.add('venus-surface');
+  let allocated=[...this.textureSizes.values()].reduce((sum,size)=>sum+size,0);
+  for(const [name,size] of this.textureSizes){if(allocated<=this.textureBudget)break;if(keep.has(name))continue;this.gl.deleteTexture(this.maps[name]);delete this.maps[name];this.textureSizes.delete(name);this.revision++;allocated-=size;}
+ }
+ async prepareVenusSurface(){
+  const map=await this.load('venus-surface','assets/research/venus-radar.jpg');
+  this.releaseInactiveTextures();return map;
  }
  async setWorld(world){
   this.current=world;this.ready=false;
+  const box=this.canvas.getBoundingClientRect(),pixels=Math.min(box.width,box.height)*Math.min(devicePixelRatio||1,2);
+  // Jupiter needs one surface map. Earth needs day, cloud and night maps, so
+  // keep those at 4K to fit its active textures and sky inside the 192 MiB budget.
+  this.highDetail=world==='jupiter'&&this.quality===1&&this.maxTextureSize>=8192&&navigator.deviceMemory>=8&&pixels>1600&&!navigator.connection?.saveData&&!matchMedia('(pointer: coarse)').matches;
   const suffix=this.highDetail?'8k':'4k';
   try{
    const jobs=[this.load(world,'assets/research/'+(world==='jupiter'?'jupiter-cassini-juno-'+suffix+'.jpg':WORLDS[world].map))];
@@ -185,16 +256,17 @@ export class PlanetRenderer {
    if(world==='titan')jobs.push(this.load('titan-surface','assets/research/moons/titan-surface.jpg'));
    if(world==='saturn')jobs.push(this.load('ring','assets/research/saturn-rings-radial-8k.png'));
    await Promise.all(jobs);
-   if(this.current===world){this.ready=true;this.onReady();}
+   if(this.current===world){this.releaseInactiveTextures();this.ready=true;this.onReady();}
   }catch(e){if(this.current===world)this.onError(e.message);}
  }
  resize(){const box=this.canvas.getBoundingClientRect(),dpr=Math.min(devicePixelRatio||1,this.quality===1?2:1);this.canvas.width=Math.max(1,Math.round(box.width*dpr));this.canvas.height=Math.max(1,Math.round(box.height*dpr));this.gl.viewport(0,0,this.canvas.width,this.canvas.height);}
  render(s){
   if(!this.ready)return;
   const gl=this.gl;gl.useProgram(this.program);
-  for(const [i,key,name] of [[0,'surfaceMap',s.world==='titan'&&s.titanSurface?'titan-surface':s.world],[1,'cloudMap','cloud'],[2,'nightMap','night'],[3,'ringMap','ring'],[4,'earthMap','earth'],[5,'skyMap','sky']]){gl.activeTexture(gl.TEXTURE0+i);gl.bindTexture(gl.TEXTURE_2D,this.maps[name]||this.placeholder);gl.uniform1i(this.locations[key],i);}
+  const venusSurface=!!(s.world==='venus'&&s.venusSurface&&this.maps['venus-surface']);
+  for(const [i,key,name] of [[0,'surfaceMap',venusSurface?'venus-surface':s.world==='titan'&&s.titanSurface?'titan-surface':s.world],[1,'cloudMap','cloud'],[2,'nightMap','night'],[3,'ringMap','ring'],[4,'earthMap','earth'],[5,'skyMap','sky']]){gl.activeTexture(gl.TEXTURE0+i);gl.bindTexture(gl.TEXTURE_2D,this.maps[name]||this.placeholder);gl.uniform1i(this.locations[key],i);}
   gl.uniform2f(this.locations.resolution,this.canvas.width,this.canvas.height);
-  const values={skyReady:this.maps.sky?1:0,world:s.world==='titan'&&!s.titanSurface?9:(WORLDS[s.world].parent==='saturn'&&s.world!=='titan'?10:WORLDS[s.world].parent?8:['earth','jupiter','saturn','mercury','venus','mars','uranus','neptune'].indexOf(s.world)),spin:s.spin,time:s.time,cameraAngle:s.angle,cloudsOn:+s.clouds,lightsOn:+s.lights,storm:s.zoom,compareEarth:+s.compare,particles:+s.particles,speed:s.speed,lightPhase:s.lightPhase,axisTilt:s.axisTilt};
+  const values={skyReady:this.maps.sky?1:0,world:s.world==='titan'&&!s.titanSurface?9:(WORLDS[s.world].parent==='saturn'&&s.world!=='titan'?10:WORLDS[s.world].parent?8:['earth','jupiter','saturn','mercury','venus','mars','uranus','neptune'].indexOf(s.world)),spin:s.spin,time:s.time,cameraAngle:s.angle,cloudsOn:+s.clouds,lightsOn:+s.lights,storm:s.zoom,compareEarth:+s.compare,particles:+s.particles,speed:s.speed,lightPhase:s.lightPhase,axisTilt:s.axisTilt,venusEnhanced:s.venusEnhanced===false?0:1,venusSurface:+venusSurface};
   for(const [k,v] of Object.entries(values))gl.uniform1f(this.locations[k],v);
   gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
  }

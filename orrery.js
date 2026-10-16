@@ -4,22 +4,27 @@ import { OrbitControls } from './vendor/OrbitControls.js';
 import { ORDER, WORLDS, orbitalPosition } from './worlds.js?v=20261014d';
 const $=id=>document.getElementById(id),YEAR=WORLDS.earth.period,EPOCH=16550;
 const reduced=matchMedia('(prefers-reduced-motion: reduce)');
+const CAMERA_DURATION=.75;
+const LABEL_HEIGHT=44,LABEL_WIDTH=100,LABEL_GAP=4;
+const text=(el,value)=>{if(el.textContent!==value)el.textContent=value;};
 export class Orrery {
  constructor(){
-  this.active=false;this.days=0;this.playing=!reduced.matches;this.experiment=false;this.selected='earth';this.spacing=0;this.targetSpacing=0;this.speed=20;this.lastRead=0;
+  this.active=false;this.days=0;this.playing=!reduced.matches;this.experiment=false;this.selected='earth';this.spacing=0;this.targetSpacing=0;this.speed=20;this.lastRead=0;this.dirty=true;this.modelDirty=true;this.labelPositions=new Map();this.scoreboard={};
   const canvas=$('orreryCanvas');this.renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:false});this.renderer.setPixelRatio(Math.min(devicePixelRatio,2));this.renderer.setClearColor(0x030507);this.renderer.outputColorSpace=THREE.SRGBColorSpace;this.renderer.toneMapping=THREE.ACESFilmicToneMapping;this.renderer.toneMappingExposure=1.1;
   this.scene=new THREE.Scene();this.camera=new THREE.PerspectiveCamera(38,1,.03,1500);this.camera.position.set(0,30,42);
   this.controls=new OrbitControls(this.camera,canvas);this.controls.enableDamping=true;this.controls.dampingFactor=.065;this.controls.enablePan=false;this.controls.minDistance=3;this.controls.maxDistance=140;this.controls.minPolarAngle=.04;this.controls.maxPolarAngle=Math.PI*.88;this.controls.rotateSpeed=.6;this.controls.zoomSpeed=.8;
   this.controls.addEventListener('start',()=>{this.flight=null;});
+  this.controls.addEventListener('change',()=>{this.dirty=true;});
   this.scene.add(new THREE.AmbientLight(0x7b8b9e,.38));this.sunlight=new THREE.PointLight(0xffead5,2.7,0,0);this.scene.add(this.sunlight);
-  this.textureLoader=new THREE.TextureLoader();this.sphere=new THREE.SphereGeometry(1,64,40);this.meshes={};this.orbits={};this.labels={};this.starts={};this.wires={};
+  this.loadingManager=new THREE.LoadingManager();this.loadingManager.onLoad=()=>{this.dirty=true;};this.textureLoader=new THREE.TextureLoader(this.loadingManager);this.sphere=new THREE.SphereGeometry(1,64,40);this.meshes={};this.orbits={};this.labels={};this.starts={};this.wires={};
   this.buildSun();this.buildStars();this.buildBelt();this.sunLabel=document.createElement('span');this.sunLabel.className='sun-label';this.sunLabel.textContent='SUN';$('orbitLabels').append(this.sunLabel);
   const loads=ORDER.map(id=>this.buildPlanet(id));
   Promise.allSettled(loads).then(results=>{$('orreryStatus').textContent=results.some(r=>r.status==='rejected')?'Some surface maps unavailable — the orbital model is still active.':'';});
   this.observer=new ResizeObserver(()=>this.resize());this.observer.observe($('orreryStage'));
+  this.labelObserver=new ResizeObserver(()=>this.measureLabelBounds());for(const el of $('orreryStage').querySelectorAll('.orbit-toolbar,.orbit-key'))this.labelObserver.observe(el);
   $('orbitFocus').innerHTML=ORDER.map(id=>`<option value="${id}">${WORLDS[id].title}</option>`).join('');
-  reduced.addEventListener('change',e=>{if(e.matches){this.playing=false;this.experiment=false;this.updateUI();}});
-  this.bind();this.select('earth');this.trail=new THREE.Line(new THREE.BufferGeometry(),new THREE.LineBasicMaterial({color:0xd5c198,transparent:true,opacity:.88}));this.scene.add(this.trail);this.resize();this.updateUI();
+  reduced.addEventListener('change',e=>{if(e.matches){this.playing=false;this.experiment=false;this.dirty=true;this.updateUI();}});
+  this.bind();this.select('earth');const trailGeometry=new THREE.BufferGeometry();trailGeometry.setAttribute('position',new THREE.BufferAttribute(new Float32Array(129*3),3).setUsage(THREE.DynamicDrawUsage));trailGeometry.boundingSphere=new THREE.Sphere(new THREE.Vector3(),1.3);this.trail=new THREE.Line(trailGeometry,new THREE.LineBasicMaterial({color:0xd5c198,transparent:true,opacity:.88}));this.scene.add(this.trail);this.resize();this.updateUI();
  }
  buildSun(){
   const mat=new THREE.ShaderMaterial({uniforms:{time:{value:0}},vertexShader:'varying vec3 vP; varying vec3 vN; void main(){vP=position;vN=normalize(normalMatrix*normal);gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',fragmentShader:`varying vec3 vP; varying vec3 vN; uniform float time;
@@ -33,7 +38,7 @@ export class Orrery {
  buildBelt(){
   let seed=921;const random=()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296;};this.asteroids=[];
   for(let n=0;n<1050;n++){const a=2.1+random()*1.2;this.asteroids.push({a,e:.025+random()*.065,i:(random()-.5)*9,L:random()*360,peri:random()*360,node:random()*360,period:365.256*Math.pow(a,1.5)});}
-  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(new Float32Array(this.asteroids.length*3),3));this.belt=new THREE.Points(g,new THREE.PointsMaterial({color:0xa89d87,size:.044,transparent:true,opacity:.48,sizeAttenuation:true,depthWrite:false}));this.scene.add(this.belt);
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(new Float32Array(this.asteroids.length*3),3).setUsage(THREE.DynamicDrawUsage));g.boundingSphere=new THREE.Sphere(new THREE.Vector3(),12);this.belt=new THREE.Points(g,new THREE.PointsMaterial({color:0xa89d87,size:.044,transparent:true,opacity:.48,sizeAttenuation:true,depthWrite:false}));this.scene.add(this.belt);
   this.beltLabel=document.createElement('a');this.beltLabel.href='#belt';this.beltLabel.className='orbit-label belt-label';this.beltLabel.textContent='Asteroid belt';this.beltLabel.setAttribute('aria-label','Visit the asteroid belt');$('orbitLabels').append(this.beltLabel);
  }
  showBelt(){this.select('mars');this.beltSelected=true;$('orbitMoons').hidden=true;ORDER.forEach(id=>{this.labels[id].removeAttribute('aria-current');this.orbits[id].material.opacity=.3;});document.querySelectorAll('[data-orbit]').forEach(b=>b.setAttribute('aria-pressed','false'));this.following=null;this.fly('belt');$('beltButton').setAttribute('aria-pressed','true');$('beltDiscovery').hidden=false;$('orbitKind').textContent='ROCKY LEFTOVERS FROM THE BEGINNING';$('orbitName').textContent='Asteroid belt';$('orbitFact').innerHTML='A wide band of small worlds <strong>between Mars and Jupiter.</strong><br><span>The points are a tiny, enlarged sample of the real belt.</span>';$('followOrbit').textContent='Return to whole system ↙';$('visitPlanet').hidden=false;$('visitPlanet').href='#belt';$('visitPlanet').innerHTML='Enter the asteroid belt <span>↗</span>';history.replaceState(null,'','#orrery/belt');}
@@ -52,17 +57,19 @@ export class Orrery {
    const ringMat=new THREE.MeshStandardMaterial({map:this.texture('assets/research/saturn-rings-radial-8k.png'),transparent:true,side:THREE.DoubleSide,depthWrite:false,roughness:1});
    const ring=new THREE.Mesh(geom,ringMat);ring.rotation.x=-Math.PI/2;ring.rotation.y=.466;group.add(ring);
   }
-  const points=new Float32Array(257*3),geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.BufferAttribute(points,3));const line=new THREE.Line(geo,new THREE.LineBasicMaterial({color:p.color,transparent:true,opacity:.22}));this.scene.add(line);this.orbits[id]=line;
-  const start=new THREE.Mesh(new THREE.SphereGeometry(.035,12,8),new THREE.MeshBasicMaterial({color:p.color}));this.scene.add(start);this.starts[id]=start;
+  // The ellipse is fixed: spacing changes its scale, never its vertex buffer.
+  const points=new Float32Array(257*3),geo=new THREE.BufferGeometry();for(let j=0;j<=256;j++)points.set(orbitalPosition(p,j/256*p.period,1),j*3);geo.setAttribute('position',new THREE.BufferAttribute(points,3));geo.computeBoundingSphere();const line=new THREE.Line(geo,new THREE.LineBasicMaterial({color:p.color,transparent:true,opacity:.22}));this.scene.add(line);this.orbits[id]=line;
+  const start=new THREE.Mesh(new THREE.SphereGeometry(.035,12,8),new THREE.MeshBasicMaterial({color:p.color}));this.scene.add(start);this.starts[id]=start;start.userData.unitPosition=new THREE.Vector3(...orbitalPosition(p,EPOCH,1));
   const label=document.createElement('a');label.href='#'+id;label.className='orbit-label';label.dataset.planet=id;label.innerHTML=`<i style="--planet:${p.color}"></i><span>${p.title}</span>`;label.setAttribute('aria-label','Visit '+p.title);$('orbitLabels').append(label);this.labels[id]=label;const wire=document.createElement('i');wire.className='orbit-wire';$('orbitLabels').prepend(wire);this.wires[id]=wire;
-  const tile=document.createElement('button');tile.dataset.orbit=id;tile.innerHTML=`<span><i style="background:${p.color}"></i>${p.title}</span><strong>0.00<small> laps</small></strong><div><b></b></div>`;tile.onclick=()=>this.select(id);$('orbitScoreboard').append(tile);
-  const texture=await this.textureLoader.loadAsync('assets/orbits/'+id+'.jpg');texture.colorSpace=THREE.SRGBColorSpace;texture.anisotropy=Math.min(8,this.renderer.capabilities.getMaxAnisotropy());material.map=texture;material.needsUpdate=true;
+  const tile=document.createElement('button');tile.dataset.orbit=id;tile.innerHTML=`<span><i style="background:${p.color}"></i>${p.title}</span><strong><svg class="trip-dial" viewBox="0 0 34 34" aria-hidden="true"><circle cx="17" cy="17" r="14"/><circle class="trip-progress" cx="17" cy="17" r="14"/></svg><span class="trip-count">0</span><small>whole<br><span class="trip-word">trips</span></small></strong><span class="trip-caption"></span>`;tile.onclick=()=>this.select(id);$('orbitScoreboard').append(tile);
+  this.scoreboard[id]={tile,count:tile.querySelector('.trip-count'),word:tile.querySelector('.trip-word'),progress:tile.querySelector('.trip-progress'),caption:tile.querySelector('.trip-caption')};
+  const texture=await this.textureLoader.loadAsync('assets/orbits/'+id+'.jpg');texture.colorSpace=THREE.SRGBColorSpace;texture.anisotropy=Math.min(8,this.renderer.capabilities.getMaxAnisotropy());material.map=texture;material.needsUpdate=true;this.dirty=true;
  }
  texture(path){const t=this.textureLoader.load(path);t.colorSpace=THREE.SRGBColorSpace;return t;}
  bind(){
   $('orbitPlay').onclick=()=>{this.playing=!this.playing;if(this.playing&&this.days>=YEAR)this.days=0;this.experiment=false;this.updateUI();};
   $('oneYear').onclick=()=>{this.days=0;this.speed=20;$('orbitSpeed').value='20';this.playing=true;this.experiment=true;this.updateUI();};
-  $('orbitDay').oninput=e=>{this.days=Number(e.target.value)/1000*YEAR;this.playing=false;this.experiment=false;this.updateUI();};
+  $('orbitDay').oninput=e=>{this.days=Number(e.target.value)/1000*YEAR;this.playing=false;this.experiment=false;this.modelDirty=true;this.updateUI();};
   $('orbitFocus').onchange=e=>this.select(e.target.value);
   $('orbitSpeed').onchange=e=>{this.speed=Number(e.target.value);};
   $('composedSpace').onclick=()=>this.setSpacing(0);$('trueSpace').onclick=()=>this.setSpacing(1);
@@ -91,9 +98,10 @@ export class Orrery {
    if(!p||p.id!==e.pointerId||p.moved||Math.hypot(e.clientX-p.x,e.clientY-p.y)>6)return;
    const id=hitWorld(e);if(id)location.hash=id;
   });
-  canvas.onkeydown=e=>{const keys=['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','+','=','-'];if(!keys.includes(e.key))return;e.preventDefault();this.flight=null;const s=new THREE.Spherical().setFromVector3(this.camera.position);if(e.key==='ArrowLeft')s.theta-=.12;if(e.key==='ArrowRight')s.theta+=.12;if(e.key==='ArrowUp')s.phi=Math.max(.05,s.phi-.1);if(e.key==='ArrowDown')s.phi=Math.min(Math.PI*.88,s.phi+.1);if(['+','='].includes(e.key))s.radius=Math.max(3,s.radius*.85);if(e.key==='-')s.radius=Math.min(140,s.radius/ .85);this.camera.position.setFromSpherical(s);this.controls.update();};
+  canvas.onkeydown=e=>{const keys=['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','+','=','-'];if(!keys.includes(e.key))return;e.preventDefault();this.flight=null;const s=new THREE.Spherical().setFromVector3(this.camera.position.clone().sub(this.controls.target));if(e.key==='ArrowLeft')s.theta-=.12;if(e.key==='ArrowRight')s.theta+=.12;if(e.key==='ArrowUp')s.phi=Math.max(.05,s.phi-.1);if(e.key==='ArrowDown')s.phi=Math.min(Math.PI*.88,s.phi+.1);if(['+','='].includes(e.key))s.radius=Math.max(3,s.radius*.85);if(e.key==='-')s.radius=Math.min(140,s.radius/ .85);this.camera.position.setFromSpherical(s).add(this.controls.target);this.controls.update();};
  }
  select(id){
+  this.dirty=true;this.modelDirty=true;
   this.beltSelected=false;$('beltDiscovery').hidden=true;$('beltButton').setAttribute('aria-pressed','false');$('visitPlanet').hidden=false;
   const changed=this.selected!==id;this.selected=id;if(location.hash.startsWith('#orrery'))history.replaceState(null,'','#orrery/'+id);$('orbitFocus').value=id;if(changed&&this.following)this.follow(id);const p=WORLDS[id];$('orbitKind').textContent=['FIRST','SECOND','THIRD','FOURTH','FIFTH','SIXTH','SEVENTH','EIGHTH'][ORDER.indexOf(id)]+' WORLD FROM THE SUN';$('orbitName').textContent=p.title;
   const year=p.period<730?Math.round(p.period)+' Earth days':(p.period/YEAR).toFixed(p.period>30000?0:1)+' Earth years';
@@ -108,38 +116,100 @@ export class Orrery {
  follow(id){this.following=id;const item=this.meshes[id],dist=Math.max(2.1,item.group.scale.x*4.5);this.flight={start:this.camera.position.clone(),end:item.group.position.clone().add(new THREE.Vector3(dist*.7,dist*.55,dist)),targetStart:this.controls.target.clone(),targetEnd:item.group.position.clone(),t:0};this.lastFollowPosition=item.group.position.clone();}
  fly(view){this.cameraMode=view;this.following=null;$('followOrbit').textContent=this.beltSelected?'Return to whole system ↙':'Follow '+WORLDS[this.selected].title+' ⊙';let distance=view==='belt'?(this.targetSpacing?8:32):view==='inner'?(this.targetSpacing?4:22):this.fitDistance();const end=view==='top'?new THREE.Vector3(0,distance,.01):new THREE.Vector3(0,distance*.58,distance*.815);this.flight={start:this.camera.position.clone(),end,targetStart:this.controls.target.clone(),targetEnd:new THREE.Vector3(),t:0};$('obliqueView').setAttribute('aria-pressed',String(view==='perspective'));$('overheadView').setAttribute('aria-pressed',String(view==='top'));$('innerSystem').setAttribute('aria-pressed',String(view==='inner'));}
  fitDistance(){const base=this.cameraMode==='top'?74:49;return Math.max(base,base/Math.max(.45,this.camera.aspect)*1.25);}
- resize(){const r=$('orreryStage').getBoundingClientRect();if(!r.width||!r.height)return;this.renderer.setSize(r.width,r.height,false);const previousAspect=this.camera.aspect;this.camera.aspect=r.width/r.height;this.camera.updateProjectionMatrix();if(this.initialFit&&Math.abs(previousAspect-this.camera.aspect)>.12&&!this.following){this.camera.position.setLength(this.fitDistance());this.controls.target.set(0,0,0);this.flight=null;}if(!this.initialFit){const d=this.fitDistance();this.camera.position.set(0,d*.58,d*.815);this.initialFit=true;}}
- updateUI(){
-  const complete=this.days>=YEAR-.001;if(complete!==this.insightComplete){this.insightComplete=complete;$('yearInsight').innerHTML=complete?'<span class="eyebrow">ONE YEAR LATER</span><p>Mercury finished <strong>4 whole trips.</strong> Earth finished <strong>1 whole trip.</strong> Neptune is still near the start of its first. Each circle below shows the trip still underway.</p>':'<span class="eyebrow">TRY THIS</span><p>One circle means one trip around the Sun. Watch one Earth year and count the whole trips.</p>';}
-  $('orbitPlay').innerHTML=this.playing?'Ⅱ Pause time':'▶ Play time';$('orbitPlay').setAttribute('aria-pressed',String(this.playing));$('oneYear').classList.toggle('is-running',this.experiment);$('oneYear').textContent=this.experiment?'One year unfolding…':'Watch one Earth year ↗';
-  $('orbitDay').value=Math.min(1000,Math.round(this.days/YEAR*1000));$('orbitDay').setAttribute('aria-valuetext',Math.round(this.days)+' Earth days');$('orbitTime').textContent='Day '+Math.floor(this.days).toLocaleString();
-  document.querySelectorAll('[data-orbit]').forEach(el=>{const laps=this.days/WORLDS[el.dataset.orbit].period;const whole=Math.floor(laps+1e-8),part=Math.max(0,laps-whole),circ=87.96;el.querySelector('strong').innerHTML=`<svg class="trip-dial" viewBox="0 0 34 34" aria-hidden="true"><circle cx="17" cy="17" r="14"/><circle class="trip-progress" cx="17" cy="17" r="14" stroke-dasharray="${part*circ} ${circ}"/></svg>${whole}<small>whole<br>${whole===1?'trip':'trips'}</small>`;let caption=el.querySelector('.trip-caption');if(!caption){caption=document.createElement('span');caption.className='trip-caption';el.append(caption);}caption.textContent=part<.001?'Ready for trip '+(whole+1):'Trip '+(whole+1)+' underway';el.setAttribute('aria-label',WORLDS[el.dataset.orbit].title+': '+whole+' whole '+(whole===1?'trip; ':'trips; ')+Math.round(part*100)+' percent of the next trip');});
+ resize(){
+  this.dirty=true;const r=$('orreryStage').getBoundingClientRect();if(!r.width||!r.height)return;
+  const oldFit=this.fitDistance(),previousAspect=this.camera.aspect;this.renderer.setSize(r.width,r.height,false);this.camera.aspect=r.width/r.height;this.camera.updateProjectionMatrix();
+  if(this.initialFit&&Math.abs(previousAspect-this.camera.aspect)>.12&&!this.following){this.camera.position.sub(this.controls.target).multiplyScalar(this.fitDistance()/oldFit).add(this.controls.target);this.flight=null;this.labelPositions.clear();}
+  if(!this.initialFit){const d=this.fitDistance();this.camera.position.set(0,d*.58,d*.815);this.initialFit=true;}
+  this.measureLabelBounds();
  }
- show({ambient=false}={}){this.ambient=ambient;this.active=true;if(this.days>=YEAR)this.days=0;this.playing=!reduced.matches;this.experiment=false;this.resize();this.updateUI();}
+ measureLabelBounds(){
+  // Cache layout measurements; wrapping controls must never cover a touch target.
+  const stage=$('orreryStage'),canvas=this.renderer.domElement.getBoundingClientRect(),toolbar=stage.querySelector('.orbit-toolbar').getBoundingClientRect(),key=stage.querySelector('.orbit-key').getBoundingClientRect();
+  const minY=Math.max(8,toolbar.height?toolbar.bottom-canvas.top+8:8),maxY=Math.min(canvas.height-8,key.height?key.top-canvas.top-8:canvas.height-8)-LABEL_HEIGHT;
+  const bounds={minY,maxY,maxX:canvas.width-LABEL_WIDTH-8,available:canvas.width>=LABEL_WIDTH+16&&maxY>=minY};
+  if(!this.labelBounds||Object.keys(bounds).some(k=>bounds[k]!==this.labelBounds[k])){this.labelBounds=bounds;this.labelPositions.clear();this.dirty=true;}
+ }
+ updateUI(){
+  // Home uses its own pause control; do not update the hidden full-model console.
+  if(this.ambient)return;
+  const complete=this.days>=YEAR-.001;if(complete!==this.insightComplete){this.insightComplete=complete;$('yearInsight').innerHTML=complete?'<span class="eyebrow">ONE YEAR LATER</span><p>Mercury finished <strong>4 whole trips.</strong> Earth finished <strong>1 whole trip.</strong> Neptune is still near the start of its first. Each circle below shows the trip still underway.</p>':'<span class="eyebrow">TRY THIS</span><p>One circle means one trip around the Sun. Watch one Earth year and count the whole trips.</p>';}
+  text($('orbitPlay'),this.playing?'Ⅱ Pause time':'▶ Play time');$('orbitPlay').setAttribute('aria-pressed',String(this.playing));$('oneYear').classList.toggle('is-running',this.experiment);text($('oneYear'),this.experiment?'One year unfolding…':'Watch one Earth year ↗');
+  $('orbitDay').value=Math.min(1000,Math.round(this.days/YEAR*1000));$('orbitDay').setAttribute('aria-valuetext',Math.round(this.days)+' Earth days');text($('orbitTime'),'Day '+Math.floor(this.days).toLocaleString());
+  for(const [id,item] of Object.entries(this.scoreboard)){
+   const laps=this.days/WORLDS[id].period,whole=Math.floor(laps+1e-8),part=Math.max(0,laps-whole),circ=87.96;
+   text(item.count,String(whole));text(item.word,whole===1?'trip':'trips');
+   const dash=(part*circ).toFixed(2)+' '+circ;if(item.progress.getAttribute('stroke-dasharray')!==dash)item.progress.setAttribute('stroke-dasharray',dash);
+   text(item.caption,part<.001?'Ready for trip '+(whole+1):'Trip '+(whole+1)+' underway');
+   const label=WORLDS[id].title+': '+whole+' whole '+(whole===1?'trip; ':'trips; ')+Math.round(part*100)+' percent of the next trip';if(item.tile.getAttribute('aria-label')!==label)item.tile.setAttribute('aria-label',label);
+  }
+ }
+ show({ambient=false}={}){this.ambient=ambient;this.active=true;this.dirty=true;this.modelDirty=true;if(this.days>=YEAR)this.days=0;this.playing=!reduced.matches;this.experiment=false;this.resize();this.updateUI();}
  hide(){this.active=false;this.playing=false;this.updateUI();}
+ advanceTime(dt){
+  if(!this.playing)return false;const previousDays=this.days;
+  this.days+=dt*this.speed;if(this.days>=YEAR&&!this.ambient){this.days=YEAR;this.playing=false;this.experiment=false;}
+  return this.days!==previousDays;
+ }
+ advanceOffscreen(dt,now){
+  if(!this.active||!this.playing)return;
+  if(this.advanceTime(dt))this.modelDirty=true;
+  if(!this.ambient&&(!this.playing||now-this.lastRead>100)){this.updateUI();this.lastRead=now;}
+ }
  frame(dt,now){
   if(!this.active)return;
-  if(this.playing){this.days+=dt*this.speed;if(this.days>=YEAR&&!this.ambient){this.days=YEAR;this.playing=false;this.experiment=false;$('yearInsight').innerHTML='<span class="eyebrow">ONE YEAR LATER</span><p>Mercury finished <strong>4 whole trips.</strong> Earth finished <strong>1 whole trip.</strong> Neptune is still near the start of its first. Each circle below shows the trip still underway.</p>';this.updateUI();}}
-  this.spacing+=(this.targetSpacing-this.spacing)*(1-Math.exp(-dt*5));if(Math.abs(this.spacing-this.targetSpacing)<.0001)this.spacing=this.targetSpacing;
-  if(this.flight){this.flight.t+=dt;const t=Math.min(1,this.flight.t/(reduced.matches?.01:1.25)),e=t*t*(3-2*t);this.camera.position.lerpVectors(this.flight.start,this.flight.end,e);this.controls.target.lerpVectors(this.flight.targetStart,this.flight.targetEnd,e);if(t===1)this.flight=null;}
-  this.sun.scale.setScalar(THREE.MathUtils.lerp(1.7,.08,this.spacing));this.glow.scale.setScalar(THREE.MathUtils.lerp(11,.65,this.spacing));this.sun.material.uniforms.time.value=this.days*.02;
-  for(const id of ORDER){const p=WORLDS[id],a=THREE.MathUtils.lerp(p.display,p.a*21/WORLDS.neptune.a,this.spacing);const item=this.meshes[id];if(!item)continue;item.group.position.fromArray(orbitalPosition(p,this.days+EPOCH,a));item.group.scale.setScalar(p.size*THREE.MathUtils.lerp(1.75,.13,this.spacing));if(this.playing)item.mesh.rotation.y+=dt*(id==='venus'?-.04:.06);
-   const attr=this.orbits[id].geometry.attributes.position;for(let j=0;j<=256;j++){const pos=orbitalPosition(p,j/256*p.period,a);attr.setXYZ(j,...pos);}attr.needsUpdate=true;this.orbits[id].geometry.computeBoundingSphere();this.starts[id].position.fromArray(orbitalPosition(p,EPOCH,a));this.starts[id].visible=this.selected===id;this.starts[id].scale.setScalar(this.spacing>.5?.6:1.6);
-  }
-  const p=WORLDS[this.selected],a=THREE.MathUtils.lerp(p.display,p.a*21/WORLDS.neptune.a,this.spacing),duration=Math.min(this.days,p.period);const trail=[];for(let j=0;j<=128;j++)trail.push(new THREE.Vector3(...orbitalPosition(p,EPOCH+duration*j/128,a)));this.trail.geometry.setFromPoints(trail);this.trail.visible=this.days>0&&!this.beltSelected;
-  if(this.following){const position=this.meshes[this.following].group.position,delta=position.clone().sub(this.lastFollowPosition);if(this.flight){this.flight.end.add(delta);this.flight.targetEnd.copy(position);}else{this.camera.position.add(delta);this.controls.target.copy(position);}this.lastFollowPosition.copy(position);}
-  const ba=this.belt.geometry.attributes.position;this.asteroids.forEach((p,i)=>{const a=THREE.MathUtils.lerp(8.9+(p.a-2.1)/1.2*.9,p.a*21/WORLDS.neptune.a,this.spacing);ba.setXYZ(i,...orbitalPosition(p,this.days+EPOCH,a));});ba.needsUpdate=true;this.belt.geometry.computeBoundingSphere();this.belt.material.opacity=this.beltSelected?.82:.42;this.belt.material.size=THREE.MathUtils.lerp(.044,.009,this.spacing);
-  this.controls.update();this.renderer.render(this.scene,this.camera);this.positionLabels();if(now-this.lastRead>100){this.updateUI();this.lastRead=now;}
+  const wasPlaying=this.playing,previousSpacing=this.spacing,timeChanged=this.advanceTime(dt);
+  if(wasPlaying&&!this.playing){this.updateUI();this.lastRead=now;}
+  this.spacing=reduced.matches?this.targetSpacing:this.spacing+(this.targetSpacing-this.spacing)*(1-Math.exp(-dt*5));
+  if(Math.abs(this.spacing-this.targetSpacing)<.0001)this.spacing=this.targetSpacing;
+  const positionsChanged=this.modelDirty||timeChanged||this.spacing!==previousSpacing;
+  if(positionsChanged){this.updatePositions(wasPlaying?dt:0);this.modelDirty=false;}
+  if(this.following&&positionsChanged){const position=this.meshes[this.following].group.position,delta=position.clone().sub(this.lastFollowPosition);if(this.flight){this.flight.end.add(delta);this.flight.targetEnd.copy(position);}else{this.camera.position.add(delta);this.controls.target.copy(position);}this.lastFollowPosition.copy(position);}
+  if(this.flight){this.flight.t+=dt;const t=reduced.matches?1:Math.min(1,this.flight.t/CAMERA_DURATION),e=t*t*(3-2*t);this.camera.position.lerpVectors(this.flight.start,this.flight.end,e);this.controls.target.lerpVectors(this.flight.targetStart,this.flight.targetEnd,e);this.dirty=true;if(t===1)this.flight=null;}
+  this.controls.dampingFactor=reduced.matches?1:1-Math.pow(1-.065,dt*60);
+  this.controls.update();
+  const skyReady=this.sky.material.uniforms.skyReady.value;if(skyReady!==this.skyReady){this.skyReady=skyReady;this.dirty=true;}
+  const redraw=this.dirty||positionsChanged;
+  if(redraw){this.renderer.render(this.scene,this.camera);this.dirty=false;}
+  if(redraw||this.labelsMoving)this.labelsMoving=this.positionLabels(dt);
+  if(!this.ambient&&(redraw||wasPlaying)&&now-this.lastRead>100){this.updateUI();this.lastRead=now;}
  }
- positionLabels(){
-  const width=this.renderer.domElement.clientWidth,height=this.renderer.domElement.clientHeight,placed=[];
-  const br=THREE.MathUtils.lerp(9.4,2.7*21/WORLDS.neptune.a,this.spacing),bp=new THREE.Vector3(-br*.86,0,br*.51).project(this.camera);this.beltLabel.hidden=bp.z>1||Math.abs(bp.x)>.88||Math.abs(bp.y)>.8;this.beltLabel.style.left=((bp.x*.5+.5)*width-50)+'px';this.beltLabel.style.top=((-bp.y*.5+.5)*height+12)+'px';
-  const sp=this.sun.position.clone().project(this.camera),sr=this.sun.scale.x*height/(2*Math.tan(THREE.MathUtils.degToRad(this.camera.fov)/2)*this.camera.position.length());this.sunLabel.hidden=sp.z>1||Math.abs(sp.x)>1||Math.abs(sp.y)>.9;this.sunLabel.style.left=(sp.x*.5+.5)*width+'px';this.sunLabel.style.top=((-sp.y*.5+.5)*height+sr+7)+'px';
-  for(const id of [this.selected,...ORDER.filter(id=>id!==this.selected)]){
-   const m=this.meshes[id];if(!m)continue;const point=m.group.position.clone().project(this.camera),label=this.labels[id];const visible=point.z<1&&Math.abs(point.x)<1.07&&Math.abs(point.y)<.91;label.hidden=!visible;this.wires[id].hidden=!visible;if(!visible)continue;
-   const x=(point.x*.5+.5)*width,y=(-point.y*.5+.5)*height;const radius=m.group.scale.x*height/(2*Math.tan(THREE.MathUtils.degToRad(this.camera.fov)/2)*this.camera.position.distanceTo(m.group.position));let tx=Math.max(8,Math.min(width-90,x+radius+9)),ty=Math.max(63,Math.min(height-70,y-11));
-   for(let k=0;k<10;k++){if(!placed.some(b=>Math.abs(b.x-tx)<86&&Math.abs(b.y-ty)<25))break;ty+=25;if(ty>height-75)ty=y-35-k*25;}
-   label.style.left=tx+'px';label.style.top=ty+'px';label.style.setProperty('--stem',Math.min(55,Math.abs(ty-y)+8)+'px');const dx=tx+2-x,dy=ty+10-y,d=Math.hypot(dx,dy),wire=this.wires[id];wire.style.left=(x+dx/d*radius)+'px';wire.style.top=(y+dy/d*radius)+'px';wire.style.width=Math.max(0,d-radius-3)+'px';wire.style.transform='rotate('+Math.atan2(dy,dx)+'rad)';placed.push({x:tx,y:ty});
+ updatePositions(dt){
+  this.sun.scale.setScalar(THREE.MathUtils.lerp(1.7,.08,this.spacing));this.glow.scale.setScalar(THREE.MathUtils.lerp(11,.65,this.spacing));this.sun.material.uniforms.time.value=this.days*.02;
+  for(const id of ORDER){
+   const p=WORLDS[id],a=THREE.MathUtils.lerp(p.display,p.a*21/WORLDS.neptune.a,this.spacing),item=this.meshes[id];if(!item)continue;
+   item.group.position.fromArray(orbitalPosition(p,this.days+EPOCH,a));item.group.scale.setScalar(p.size*THREE.MathUtils.lerp(1.75,.13,this.spacing));if(dt)item.mesh.rotation.y+=dt*(id==='venus'?-.04:.06);
+   this.orbits[id].scale.setScalar(a);this.starts[id].position.copy(this.starts[id].userData.unitPosition).multiplyScalar(a);this.starts[id].visible=this.selected===id;this.starts[id].scale.setScalar(this.spacing>.5?.6:1.6);
   }
+  const p=WORLDS[this.selected],a=THREE.MathUtils.lerp(p.display,p.a*21/WORLDS.neptune.a,this.spacing),duration=Math.min(this.days,p.period);
+  if(this.trailPlanet!==this.selected||this.trailDuration!==duration){
+   const positions=this.trail.geometry.attributes.position;for(let j=0;j<=128;j++)positions.setXYZ(j,...orbitalPosition(p,EPOCH+duration*j/128,1));positions.needsUpdate=true;this.trailPlanet=this.selected;this.trailDuration=duration;
+  }
+  this.trail.scale.setScalar(a);this.trail.visible=this.days>0&&!this.beltSelected;
+  const ba=this.belt.geometry.attributes.position;this.asteroids.forEach((p,i)=>{const a=THREE.MathUtils.lerp(8.9+(p.a-2.1)/1.2*.9,p.a*21/WORLDS.neptune.a,this.spacing);ba.setXYZ(i,...orbitalPosition(p,this.days+EPOCH,a));});ba.needsUpdate=true;this.belt.material.opacity=this.beltSelected?.82:.42;this.belt.material.size=THREE.MathUtils.lerp(.044,.009,this.spacing);
+ }
+ positionLabels(dt){
+  const width=this.renderer.domElement.clientWidth,height=this.renderer.domElement.clientHeight,placed=[],bounds=this.labelBounds;let moving=false;const blend=reduced.matches?1:1-Math.exp(-dt*14);
+  const br=THREE.MathUtils.lerp(9.4,2.7*21/WORLDS.neptune.a,this.spacing),bp=new THREE.Vector3(-br*.86,0,br*.51).project(this.camera),beltX=(bp.x*.5+.5)*width-50,beltY=(-bp.y*.5+.5)*height+12;
+  this.beltLabel.hidden=!bounds?.available||bp.z>1||Math.abs(bp.x)>.88||Math.abs(bp.y)>.8||beltX<8||beltX>bounds.maxX||beltY<bounds.minY||beltY>bounds.maxY;this.beltLabel.style.left=beltX+'px';this.beltLabel.style.top=beltY+'px';
+  const sp=this.sun.position.clone().project(this.camera),sr=this.sun.scale.x*height/(2*Math.tan(THREE.MathUtils.degToRad(this.camera.fov)/2)*this.camera.position.length()),sunY=(-sp.y*.5+.5)*height+sr+7;this.sunLabel.hidden=!bounds?.available||sp.z>1||Math.abs(sp.x)>1||Math.abs(sp.y)>.9||sunY<bounds.minY||sunY>bounds.maxY+LABEL_HEIGHT-18;this.sunLabel.style.left=(sp.x*.5+.5)*width+'px';this.sunLabel.style.top=sunY+'px';
+  for(const id of [this.selected,...ORDER.filter(id=>id!==this.selected)]){
+   const m=this.meshes[id];if(!m)continue;const point=m.group.position.clone().project(this.camera),label=this.labels[id];const visible=bounds?.available&&point.z<1&&Math.abs(point.x)<1.07&&Math.abs(point.y)<.91;label.hidden=!visible;this.wires[id].hidden=!visible;if(!visible)continue;
+   const x=(point.x*.5+.5)*width,y=(-point.y*.5+.5)*height,radius=m.group.scale.x*height/(2*Math.tan(THREE.MathUtils.degToRad(this.camera.fov)/2)*this.camera.position.distanceTo(m.group.position));
+   const tx=Math.max(8,Math.min(bounds.maxX,x+radius+9)),base=Math.max(bounds.minY,Math.min(bounds.maxY,y-LABEL_HEIGHT/2)),previous=this.labelPositions.get(id);
+   // Retain a free lane instead of flipping between adjacent slots every frame.
+   let ty,lane=0;for(const candidate of [...new Set([previous?.lane||0,0,1,-1,2,-2,3,-3,4,-4])]){
+    const candidateY=base+candidate*(LABEL_HEIGHT+LABEL_GAP);if(candidateY<bounds.minY||candidateY>bounds.maxY)continue;
+    if(placed.some(b=>Math.abs(b.x-tx)<LABEL_WIDTH&&Math.abs(b.y-candidateY)<LABEL_HEIGHT+LABEL_GAP))continue;
+    ty=candidateY;lane=candidate;break;
+   }
+   if(ty===undefined){label.hidden=this.wires[id].hidden=true;continue;}
+   const layout=previous||{x:tx,y:ty,lane};layout.lane=lane;layout.x+=(tx-layout.x)*blend;layout.y+=(ty-layout.y)*blend;
+   if(Math.abs(tx-layout.x)+Math.abs(ty-layout.y)<.2){layout.x=tx;layout.y=ty;}else moving=true;
+   this.labelPositions.set(id,layout);label.style.left='0px';label.style.top='0px';label.style.transform=`translate3d(${layout.x}px,${layout.y}px,0)`;
+   const dx=layout.x+2-x,dy=layout.y+LABEL_HEIGHT/2-y,d=Math.hypot(dx,dy)||1,wire=this.wires[id];wire.style.left=(x+dx/d*radius)+'px';wire.style.top=(y+dy/d*radius)+'px';wire.style.width=Math.max(0,d-radius-3)+'px';wire.style.transform='rotate('+Math.atan2(dy,dx)+'rad)';placed.push({x:tx,y:ty});
+  }
+  if(placed.some(b=>Math.abs(b.x-beltX)<LABEL_WIDTH&&Math.abs(b.y-beltY)<LABEL_HEIGHT+LABEL_GAP))this.beltLabel.hidden=true;
+  return moving;
  }
 }

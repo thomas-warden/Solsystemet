@@ -1,116 +1,75 @@
 # Solsystemet
 
-Eight interactive planets, twelve moons, the asteroid belt, sourced stories for ages 8-9, and an explorable 3D orrery. Built on the approved Earth, Jupiter and Saturn rendering.
+An interactive solar-system atlas for curious children and the adults exploring with them: eight planets, twelve moons, an asteroid flight, orbital models, and three guided discoveries.
 
-## Preview
+Live site: https://thomas-warden.github.io/Solsystemet/
 
-Run `python3 -m http.server 8087 --bind 127.0.0.1` in this directory and open http://127.0.0.1:8087/.
-No packages or build step are required. Uses WebGL2. The repository contains the complete static site and its production assets. Serve it over HTTP; opening index.html directly as a file will not load the JavaScript modules. Publishing these files to GitHub does not by itself configure public hosting.
+## Run locally
 
-## Revision
+From the repository directory:
 
-- Solsystemet naming throughout the user interface; voice narration removed.
-- New high-resolution NASA and spacecraft-derived maps with attribution in sources.html.
-- Correct geographic orientation, separate cloud opacity and night-light maps, cloud shadows, thin atmospheric limb, directional sunlight and linear-light shading.
-- Jupiter uses a Cassini/Juno mosaic, with real map detail replacing painted procedural storm shapes.
-- Oblate Saturn, depth-sorted transparent rings and two-way cast shadows.
-- Controls below the scene. View-only mode removes the surrounding UI.
-- Latitude/longitude marker and solar clock use the same planet orientation and light direction as the renderer.
-- Motion toggle, reduced-motion support, keyboard controls and explicit graphics fallback.
+~~~sh
+python3 -m http.server 8087 --bind 127.0.0.1
+~~~
 
-## Eight-world revision
+Open http://127.0.0.1:8087/. No package install or compilation is required. Serve the app over HTTP; opening the source index.html directly as a file will not load its JavaScript modules. WebGL2 provides the interactive scenes, with still-image fallbacks on planet pages. Fonts, textures and Three.js are bundled locally.
 
-- Five additional worlds with inspected maps and full attribution.
-- Three sourced anecdotes per world; sunlight controls and Uranus tilt demonstration.
-- Earth-width outline anchored over the historical Great Red Spot at 1:11.2 scale.
-- 3D orrery: inclined elliptical orbits, relative periods, orbit/zoom, following camera, inner-world and overhead views.
-- Composed spacing and true orbital spacing, with enlarged bodies explicitly disclosed.
-- Play/pause, speed, timeline, one-year experiment and eight whole-trip counters.
-- Locally bundled Three.js r180 loads when opening the orrery or a moon-system view.
+## Explore
 
-## Files
+- Start with **Catch a sunrise**, directly on the welcome page.
+- Drag or use keyboard controls to inspect planets and moons. Every scene starts moving on arrival/reset unless reduced motion is requested. Pause remains available.
+- Venus offers ordinary clouds, enhanced cloud patterns and a labelled Magellan radar reconstruction. A drawn surface marker helps show its backward rotation.
+- The solar-system model compares orbital periods, with readable or true orbital spacing, camera presets and a one-Earth-year experiment.
+- Earth, Jupiter and Saturn have interactive moon systems. The asteroid belt offers an explicitly illustrated close-up flight.
+- **Catch a sunrise** requires turning a chosen city from night into daylight. **An ocean in hiding** explores Europa's ice and reveals an illustrated possible ocean. **Race around the Sun** compares Mercury's whole trips with Earth's year.
+- Distinct discovery badges stay on the device. Activities also work when browser storage is unavailable.
 
-- index.html / style.css: interface
-- app.js: interaction, camera, motion and geographic readouts
-- renderer.js: WebGL2 planet renderer
-- worlds.js: planet profiles and fixed-element Kepler model
-- orrery.js: interactive Three.js orbital scene
-- moons.js / moon-system.js: twelve moon profiles and three orbital systems
-- vendor/: Three.js r180 and MIT license
-- sources.html: full image attribution and limitations
-- assets/research/PLANET_ASSET_SOURCES.json: planetary source/license evidence and hashes
+## Browser regression checks
 
-## Important limits
+Development checks require Node.js, Playwright and Chromium. These are available in the prepared cloud environment and are not production dependencies. On another machine, install Playwright locally and set BROWSER_BIN to its Chromium executable if needed.
 
-Historical image composites are not a live feed. Cloud movement is illustrative. Atmospheric scattering, ring opacity and cloud shadows are real-time approximations. Desktop browser checks cannot establish iPad hardware performance. Unused original research downloads are excluded from the repository; their source URLs and processing notes remain in the asset manifests. All maps requested by the renderer are included.
+With the local server running:
 
-## Moons and small worlds revision
+~~~sh
+node tests/mission-flow.cjs
+node tests/scene-regression.cjs
+node tests/asset-races.cjs
+node tests/science-regression.cjs
+node tests/phone-exploration.cjs
+node tests/mission-readiness.cjs
+node tests/orbit-controls.cjs
+~~~
 
-- Twelve moon close-ups: Moon; Io, Europa, Ganymede, Callisto; Mimas, Enceladus, Tethys, Dione, Rhea, Titan, Iapetus.
-- Three interactive moon-system views with sourced periods, orbit playback, a scrubber, selection, overhead/perspective views and keyboard camera control.
-- Titan haze/reconstructed-surface toggle, explicitly labelled.
-- Sparse illustrative asteroid belt in the orrery, with NASA stories about empty space, Ceres and Vesta.
-- Twenty-four moon stories and eight more planet stories; sources linked beside the copy.
-- Whole-trip counters and progress circles replace mixed decimal/percentage comparisons.
-- Uranus has a drawn rotating guide dot/meridian, tilt and one-turn slider.
-- `moons.js` contains profiles and family ordering; `moon-system.js` renders local moon orbits.
-- Credits and reconstruction limits are recorded in `sources.html` and `assets/research/moons/MOON_ASSET_SOURCES.json`.
+BASE_URL overrides the site address; BROWSER_BIN defaults to /usr/bin/chromium. TEST_ARTIFACTS chooses the screenshot directory, defaulting to /tmp/solsystemet-regression.
 
-## Direct navigation and asteroid flight
+Checks cover deliberate mission completion, badges and blocked storage, six phone/tablet layouts, keyboard navigation, default/reduced motion, all twenty worlds, Venus modes and rotation, paused/offscreen rendering, and recovery from delayed or failed imagery and lost graphics contexts. Software rendering verifies behavior and workload; physical iPad/phone tests are still needed for actual frame pacing.
 
-- Click any planet or its name in the orrery to open that world's entry. Dragging still controls the camera; the trip chart still selects an orbit to follow.
-- The asteroid belt now has a dedicated entry at #belt, with three sourced stories and an imagined flight among generated rocky bodies.
-- Rocks approach, tumble, pass beside the camera and disappear behind it. Pause/resume, speed, reset, pointer/keyboard look-around and view-only controls work in this scene.
-- Reduced-motion preferences start the flight paused. Spacing is explicitly compressed for exploration; these are illustrative shapes, not tracked asteroids.
-- belt.js contains the lazily loaded Three.js flight. #orrery-belt locates the band in the orbital model.
+## Runtime structure
 
+- index.html, style.css, app.js: interface, routing, input and animation coordination.
+- missions.js: activities, illustrated discoveries and badges.
+- renderer.js: analytic WebGL2 planets and texture allocation.
+- worlds.js, moons.js: world profiles and orbital models.
+- orrery.js, moon-system.js, belt.js: Three.js scenes.
+- navigation.js, sky.js, sky-scene.js: shared navigation and sky.
+- assets/ and vendor/: bundled imagery, provenance, fonts and licenses.
+- sources.html: image credits and scientific limitations.
+- QUALITY_REVIEW.md: the five implementation/review passes.
 
-## Motion and close-pass revision
+## Static publication
 
-- Earth and all moons in the neighbourhood orreries open their entries from either the body or its name; dragging remains camera control.
-- Every planet and moon close-up starts rotating on arrival, unless reduced motion is requested. Pause stops rotation and cloud drift; arriving at a new world starts it again.
-- The belt's cruise speed is about a quarter of the previous speed. Fewer, much larger bodies have crater relief, broken planes, fissures and layered surface detail. Each body keeps the same mesh throughout its pass, avoiding visible detail changes.
-- Bodies turn about independently chosen axes at different rates and directions. Small, occasional staged contacts release chips and a brief dust veil.
-- Collision objects are pooled and recycled behind the viewer; subsequent pairs enter through the distant fog. The real belt's sparse spacing and illustrative collisions are explained in Field notes.
+After committing source changes:
 
-## Celestial background
+~~~sh
+python3 scripts/build-site.py --output /tmp/solsystemet-site
+~~~
 
-- One locally bundled NASA/SVS catalogue-based sky map supplies varied star colours, brightness, the Milky Way and dark dust lanes. The 4096 × 2048 WebP is about 154 KiB.
-- Shared sky shading appears in every planet and moon close-up, all orbital models and the asteroid flight. It is rendered behind solid bodies and transparent rings.
-- The distant sky is fixed during globe rotation and close-up zoom. Three.js scenes respond to camera direction while ignoring translation, keeping stars at infinity.
-- No additional animated layers or atmospheric twinkling. A sparse static fallback remains available if the map fails to load. Existing pause and reduced-motion behavior is unchanged.
-- sky.js holds common exposure and sampling; sky-scene.js adds the Three.js background. Sources and artistic-exposure limits are in sources.html#sky and the sky asset manifest.
+The output contains the runtime site, .nojekyll and build-info.json with its source revision. Module/style version parameters use that revision so a deployment loads a coherent set of files. The script refuses to overwrite an existing directory or label uncommitted source as a committed build. Publish the output at the configured GitHub Pages branch root.
 
-## Moon discovery and navigation
+## Scientific limits
 
-- Earth has a direct View the Moon link, with the Earth–Moon orrery as a separate destination. Jupiter and Saturn show direct moon-page links beside their descriptions and a curated set of moon cards below.
-- Moon-system labels and cards open entries directly. A separately labelled orbit selector highlights a path, and parent-planet links make the way back explicit. The solar orrery has the same selection control and contextual moon-system links.
-- Hash routes retain browser Back/Forward history. Optional routes such as #orrery/jupiter and #jupiter-moons/europa keep the requested world selected. Legacy #orrery-belt still resolves.
-- Five expanded moon pages add sourced stories about tidal heat, lava fountains, orbital rhythm, hot springs and ice behaving as rock. The other existing moon entries remain available.
+Imagery comes from historical observations, composites and labelled reconstructions. Cloud drift, camera travel and animation rates are illustrative. Venus's cloud movement differs from the solid planet's 243-Earth-day turn; its radar colours are simulated and its marker is drawn. Europa's cutaway depicts an inferred ocean without claiming measured layer thickness or a live view.
 
-## Asteroid flight clarity and camera motion
+The solar-system model uses fixed NASA/JPL orbital elements and relative periods; starting positions are illustrative rather than today's sky. Body sizes and readable orbital spacing are exaggerated. Moon paths are simplified circular models with stated inclinations and tidal locking. Earth local solar time is not civil clock time, and its model has no seasons.
 
-- Pointer and keyboard input drive a single critically damped gaze. Camera position and direction follow it together, including when the pointer enters or leaves the field. Captured drags stay within the viewing limits.
-- The packed 1024px rock material stores surface slopes, mineral reflectance and crevice shading. Triplanar mapping, mipmaps and anisotropic filtering keep the relief stable during motion and at oblique angles. Surface slopes are filtered before lighting, avoiding screen-space derivative artifacts at triangle edges.
-- Large bodies use 160-segment terrain meshes; small bodies use 64. Meshes remain fixed for a whole pass, and rendering uses up to 2× display resolution with antialiasing. Slow travel, independent spins and staged contacts remain intact.
-- The material is generated illustration, not spacecraft photography. The deterministic generator is in scripts/build-rock-material.py (Python, NumPy and Pillow).
-
-## Guided exploration
-
-The default route, `#explore`, is a welcome page with a live solar-system view. `#missions` goes directly to three guided adventures:
-
-- **Catch a sunrise:** choose a city, find nighttime, then turn Earth into daylight.
-- **An ocean in hiding:** change Europa’s sunlight, visit Jupiter’s moon system, and compare Io’s and Europa’s periods.
-- **Race around the Sun:** run the one-Earth-year experiment and read Mercury’s whole-trip counter.
-
-Missions reuse the existing controls. Completion badges are stored locally on the device; exploration still works when storage is unavailable. A mission can be left at any time, and visiting another page offers a return link. `missions.js` owns the guide and discovery collection.
-
-All planet and moon close-ups, orbital systems, and asteroid flight start moving on arrival and reset. The device’s reduced-motion preference keeps automatic motion paused; explicit Play remains available. The welcome model moves continuously, while the full orbital model retains its one-year endpoint.
-
-The interface now uses one planet Play/Pause control, which stays available in View only mode. The asteroid scene’s second pause control appears only in View only mode. Moon pages keep one link to their orbital system, and full asteroid stories live on the belt page.
-
-### Browser regression check
-
-With the Python server running, use `node tests/mission-flow.cjs`. The check requires Playwright and Chromium; both are available in the prepared cloud environment. For another development machine, install Playwright locally with `npm install --no-save --package-lock=false playwright` and set `BROWSER_BIN` to its Chromium executable. `BASE_URL` optionally overrides the default local server address. These tools are not needed to run or publish the site.
-
-The check completes all three missions, exercises incorrect-answer feedback, confirms badges survive a reload, checks keyboard entry, and verifies mobile layouts. Headless WebGL uses software rendering; real tablet graphics performance still needs device testing.
+The asteroid flight compresses distances and illustrates shapes and occasional collisions; the real belt is mostly empty space. The catalogue-based sky is brightened for visibility. Atmospheres, rings and shadows are real-time approximations. Source manifests and font/Three.js licenses are bundled with the site.

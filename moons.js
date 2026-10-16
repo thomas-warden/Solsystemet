@@ -432,8 +432,9 @@ export const MOONS={
 };
 
 // Circular teaching model: measured periods, illustrative phases and composed radii.
+// +Y is the orbital north direction; negative Z keeps increasing phase prograde.
 export function moonPosition(id,days,r,index=0){
  const angle=1.1+index*2.399963+days/MOONS[id].period*Math.PI*2;
  const inclination=id==='iapetus'?.27:id==='moon'?.09:0;
- return [Math.cos(angle)*r,Math.sin(angle)*r*Math.sin(inclination),Math.sin(angle)*r*Math.cos(inclination)];
+ return [Math.cos(angle)*r,Math.sin(angle)*r*Math.sin(inclination),-Math.sin(angle)*r*Math.cos(inclination)];
 }
