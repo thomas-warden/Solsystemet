@@ -25,6 +25,7 @@ Open http://127.0.0.1:8087/. No package install or compilation is required. Serv
 - Start with **Catch a sunrise**, directly on the welcome page.
 - Drag or use keyboard controls to inspect planets and moons. Every scene starts moving on arrival/reset unless reduced motion is requested. Pause remains available.
 - Venus offers ordinary clouds, enhanced cloud patterns and a labelled Magellan radar reconstruction. A drawn surface marker helps show its backward rotation.
+- Titan offers orange haze and a labelled surface reconstruction, with a northern-lakes viewpoint. The optional surface image can retry without interrupting the haze view.
 - The solar-system model compares orbital periods, with readable or true orbital spacing, camera presets and a one-Earth-year experiment.
 - Earth, Jupiter and Saturn have interactive moon systems. The asteroid belt offers an explicitly illustrated close-up flight.
 - **Catch a sunrise** requires turning a chosen city from night into daylight. **An ocean in hiding** explores Europa's ice and reveals an illustrated possible ocean. **Race around the Sun** compares Mercury's whole trips with Earth's year.
@@ -45,6 +46,7 @@ node tests/phone-exploration.cjs
 node tests/mission-readiness.cjs
 node tests/orbit-controls.cjs
 node tests/orbit-label-motion.cjs
+node tests/titan-exploration.cjs
 ~~~
 
 BASE_URL overrides the site address; BROWSER_BIN defaults to /usr/bin/chromium. TEST_ARTIFACTS chooses the screenshot directory, defaulting to /tmp/solsystemet-regression.
@@ -52,6 +54,8 @@ BASE_URL overrides the site address; BROWSER_BIN defaults to /usr/bin/chromium. 
 Checks cover deliberate mission completion, badges and blocked storage, six phone/tablet layouts, keyboard navigation, default/reduced motion, all twenty worlds, Venus modes and rotation, paused/offscreen rendering, and recovery from delayed or failed imagery and lost graphics contexts. Software rendering verifies behavior and workload; physical iPad/phone tests are still needed for actual frame pacing.
 
 The label motion check samples complete solar and lunar cycles and camera transitions. It checks that labels stay attached to their projected bodies, crowding fades settle without flicker, and visible links remain usable. Accelerated samples skip GPU drawing and do not measure hardware frame rate.
+
+The Titan check covers distinct rendered views, the northern-lakes viewpoint, phone and keyboard exploration, motion preferences, Saturn-system navigation, optional-image retry, canceled requests and lost graphics contexts.
 
 ## Runtime structure
 

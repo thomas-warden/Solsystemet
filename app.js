@@ -45,7 +45,7 @@ const reduced=matchMedia('(prefers-reduced-motion: reduce)');
 const profiles=WORLDS;
 const cities={'abu-dhabi':{name:'Abu Dhabi',lon:54.37,lat:24.45},stockholm:{name:'Stockholm',lon:18.06,lat:59.33},tokyo:{name:'Tokyo',lon:139.69,lat:35.68},'new-york':{name:'New York',lon:-74.01,lat:40.71},quito:{name:'Quito',lon:-78.47,lat:-.18}};
 const state={world:'earth',otherSpin:0,moonTilt:0,lightPhase:.943,axisTilt:98,titanSurface:false,venusEnhanced:true,venusSurface:false,earthProgress:.3,jupiterSpin:2.224,saturnSpin:.4,angle:24,renderAngle:24,spin:0,time:0,clouds:true,lights:true,zoom:0,storm:false,compare:false,particles:false,speed:1,running:!reduced.matches,city:'abu-dhabi'};
-let renderer,ready=false,last=0,lastReadout=0,drag=null,venusRequest=0,lastPlanetFrame='',rendererFailure='';
+let renderer,ready=false,last=0,lastReadout=0,drag=null,venusRequest=0,titanRequest=0,lastPlanetFrame='',rendererFailure='';
 const releaseMotion={x:0,y:0};
 const sceneVisibility=new WeakMap();
 const sceneObserver=new IntersectionObserver(entries=>{for(const entry of entries)sceneVisibility.set(entry.target,entry.isIntersecting);},{threshold:0});
@@ -104,14 +104,14 @@ async function applyRoute(path){
  const world=route.world;
  moonSystem?.hide();$('moonSystemView').hidden=true;beltFlight?.hide();$('beltView').hidden=true;
  view='planet';root.classList.remove('cinema');$('cinemaButton').setAttribute('aria-pressed','false');$('cinemaButton').textContent='View only ⤢';window.scrollTo(0,0);if(orrery)orrery.hide();$('main').hidden=false;$('fieldStories').hidden=false;$('orreryView').hidden=true;root.dataset.view='planet';document.querySelector('button[data-view="orrery"]').setAttribute('aria-pressed','false');
- state.world=world;state.running=!reduced.matches;state.particles=false;state.storm=false;state.zoom=0;state.compare=false;state.venusEnhanced=true;state.venusSurface=false;state.otherSpin=world==='mars'?3.9:world==='mimas'?.9:0;state.moonTilt=0;state.lightPhase=.943;state.axisTilt=98;releaseMotion.x=releaseMotion.y=0;venusRequest++;lastPlanetFrame='';$('sunAngle').value=54;$('axisTilt').value=98;ready=false;$('scene').classList.add('is-loading');$('scene').setAttribute('aria-busy','true');
+ state.world=world;state.running=!reduced.matches;state.particles=false;state.storm=false;state.zoom=0;state.compare=false;state.venusEnhanced=true;state.venusSurface=false;state.otherSpin=world==='mars'?3.9:world==='mimas'?.9:0;state.moonTilt=0;state.lightPhase=.943;state.axisTilt=98;releaseMotion.x=releaseMotion.y=0;venusRequest++;titanRequest++;$('titanViewStatus').textContent='';lastPlanetFrame='';$('sunAngle').value=54;$('axisTilt').value=98;ready=false;$('scene').classList.add('is-loading');$('scene').setAttribute('aria-busy','true');
  document.querySelectorAll('.instrument input,.instrument select,.instrument button,#playButton').forEach(el=>el.disabled=true);
  const p=profiles[world];root.dataset.world=world;
  for(const [id,value] of Object.entries({chapterNumber:p.number,chapterKind:p.chapter,worldLead:p.lead,worldText:p.text,experimentQuestion:p.question,experimentHint:p.hint,gestureText:p.gesture,sceneCaption:p.caption,modelNote:p.note,factValue:p.fact,factUnit:p.unit}))$(id).textContent=value;
  $('worldTitle').innerHTML=p.title.replace(/^The /,'')+'<span>.</span>';root.classList.toggle('moon-detail',!!p.parent);
  canvas.setAttribute('aria-label','Interactive '+p.title+'. '+(world==='saturn'?'Drag vertically to change the viewpoint.':p.parent?'Drag or use arrow keys to turn and tilt the moon.':'Drag to turn the world.'));
  for(const w of ['earth','jupiter','saturn'])$(w+'Instrument').hidden=w!==world;
- $('otherInstrument').hidden=['earth','jupiter','saturn'].includes(world);$('tiltControl').hidden=world!=='uranus';$('phaseControl').hidden=world==='uranus';$('findOrbit').hidden=!!p.parent;$('findOrbit').textContent=p.parent?'See '+WORLDS[p.parent].title+' and its moons ↗':'Find '+p.title+' in the solar system ↗';$('titanSurface').hidden=world!=='titan';state.titanSurface=false;$('titanSurface').setAttribute('aria-pressed','false');$('titanSurface').textContent='Look beneath the haze ↗';$('spinControl').hidden=world!=='uranus';$('spinGuideNote').hidden=world!=='uranus';renderFamilyNavigation(world);renderMoonShelf(world);document.title=p.title+' — Solsystemet';showStories();updateVenusView();
+ $('otherInstrument').hidden=['earth','jupiter','saturn'].includes(world);$('tiltControl').hidden=world!=='uranus';$('phaseControl').hidden=world==='uranus';$('findOrbit').hidden=!!p.parent;$('findOrbit').textContent=p.parent?'See '+WORLDS[p.parent].title+' and its moons ↗':'Find '+p.title+' in the solar system ↗';state.titanSurface=false;$('spinControl').hidden=world!=='uranus';$('spinGuideNote').hidden=world!=='uranus';renderFamilyNavigation(world);renderMoonShelf(world);document.title=p.title+' — Solsystemet';showStories();updateVenusView();updateTitanView();
  document.querySelectorAll('button[data-world]').forEach(b=>{const active=b.dataset.world===world;b.classList.toggle('is-active',active);b.classList.toggle('is-current',active);b.setAttribute('aria-pressed',String(active));});
  $('fallbackPlanet').src=p.parent?'assets/research/'+p.map:'assets/'+world+'-still.jpg';$('fallbackPlanet').classList.toggle('map-fallback',!!p.parent);$('fallbackPlanet').alt=p.title+' preview while the interactive world loads.';$('fallbackPlanet').hidden=false;
  $('assetStatus').textContent='Loading surface maps';updateReadouts();
@@ -122,7 +122,7 @@ function unavailable(message){
  document.querySelectorAll('.instrument input,.instrument select,.instrument button,#playButton').forEach(el=>el.disabled=true);
  console.error('Solsystemet:',message);toast(message);
 }
-try{renderer=new PlanetRenderer(canvas,()=>{ready=true;lastPlanetFrame='';$('scene').classList.remove('is-loading');$('scene').setAttribute('aria-busy','false');root.classList.remove('no-webgl');$('fallbackPlanet').hidden=true;$('assetStatus').textContent='';document.querySelectorAll('.instrument input,.instrument select,.instrument button,#playButton').forEach(el=>el.disabled=false);updateReadouts();updateVenusView();},unavailable);}catch(e){unavailable(e.message);}
+try{renderer=new PlanetRenderer(canvas,()=>{ready=true;lastPlanetFrame='';$('scene').classList.remove('is-loading');$('scene').setAttribute('aria-busy','false');root.classList.remove('no-webgl');$('fallbackPlanet').hidden=true;$('assetStatus').textContent='';document.querySelectorAll('.instrument input,.instrument select,.instrument button,#playButton').forEach(el=>el.disabled=false);updateReadouts();updateVenusView();updateTitanView();},unavailable);}catch(e){unavailable(e.message);}
 
 function updateVenusView(){
  const group=$('venusControls');if(!group)return;group.hidden=state.world!=='venus';if(group.hidden)return;
@@ -154,7 +154,33 @@ document.querySelector('.brand').onclick=e=>{e.preventDefault();navigate('explor
 document.querySelector('button[data-view="orrery"]').onclick=()=>navigate('orrery');
 $('findOrbit').onclick=()=>navigate(profiles[state.world].parent?profiles[state.world].parent+'-moons/'+state.world:'orrery/'+state.world);
 $('uranusSpin').oninput=e=>{state.otherSpin=Number(e.target.value)*Math.PI/180;setRunning(false);};
-$('titanSurface').onclick=()=>{state.titanSurface=!state.titanSurface;$('titanSurface').setAttribute('aria-pressed',String(state.titanSurface));$('titanSurface').textContent=state.titanSurface?'Return to the orange haze ↙':'Look beneath the haze ↗';$('sceneCaption').textContent=state.titanSurface?'TITAN / RECONSTRUCTED SURFACE · INFRARED & RADAR':profiles.titan.caption;$('modelNote').textContent=state.titanSurface?'RECONSTRUCTED MAP · NOT A VISIBLE-LIGHT VIEW · SEE FIELD NOTES':profiles.titan.note;};
+function updateTitanView(){
+ const group=$('titanControls');group.hidden=state.world!=='titan';if(group.hidden)return;
+ const surface=state.titanSurface;
+ $('titanHaze').setAttribute('aria-pressed',String(!surface));$('titanSurface').setAttribute('aria-pressed',String(surface));
+ $('titanNorth').hidden=!surface;
+ $('titanViewDescription').textContent=surface?'Infrared and radar help reveal the hidden ground. This reconstructed map includes dark lakes around the north pole; its colours are not a visible-light photograph.':'Titan’s thick haze hides the ground, so this view looks almost smooth. Switch views to discover the landscape beneath it.';
+ $('sceneCaption').textContent=surface?'TITAN / RECONSTRUCTED SURFACE':profiles.titan.caption;
+ $('modelNote').textContent=surface?'INFRARED & RADAR RECONSTRUCTION · POLAR LAKES DRAWN FROM RADAR MAPS':profiles.titan.note;
+}
+$('titanHaze').onclick=()=>{
+ if(!ready||state.world!=='titan'||view!=='planet')return;
+ titanRequest++;state.titanSurface=false;$('titanSurface').disabled=false;$('titanViewStatus').textContent='';updateTitanView();
+};
+$('titanSurface').onclick=async()=>{
+ if(!ready||state.world!=='titan'||view!=='planet'||state.titanSurface)return;
+ const request=++titanRequest,current=()=>request===titanRequest&&state.world==='titan'&&view==='planet';
+ $('titanSurface').disabled=true;$('titanViewStatus').textContent='Preparing the surface. You can keep exploring the haze.';
+ try{await renderer.prepareTitanSurface();if(!current()||!ready)return;state.titanSurface=true;lastPlanetFrame='';$('titanViewStatus').textContent='';updateTitanView();}
+ catch{if(current())$('titanViewStatus').textContent=ready?'The surface could not load. Choose Surface reconstruction to try again, or keep exploring the haze.':'The interactive view is unavailable. Reload to restore it, or explore the still image and sources.';}
+ finally{if(current())$('titanSurface').disabled=!ready;}
+};
+$('titanNorth').onclick=()=>{
+ if(!ready||state.world!=='titan'||!state.titanSurface||view!=='planet')return;
+ state.moonTilt=55;state.otherSpin=0;state.lightPhase=.3;$('sunAngle').value=Math.round(.3*180/Math.PI);setRunning(false);
+ $('titanViewStatus').textContent='North-pole view. Look for the dark lakes drawn from radar maps. Drag to explore.';
+ $('scene').scrollIntoView({block:'center',behavior:'instant'});canvas.focus({preventScroll:true});
+};
 $('sunAngle').oninput=e=>{state.lightPhase=Number(e.target.value)*Math.PI/180;updateReadouts();};
 $('axisTilt').oninput=e=>{state.axisTilt=Number(e.target.value);updateReadouts();};
 $('citySelect').onchange=e=>{state.city=e.target.value;updateReadouts();};
@@ -167,7 +193,7 @@ $('stormButton').onclick=()=>{state.storm=!state.storm;if(state.storm)state.jupi
 $('earthCompare').onclick=()=>{state.compare=!state.compare;if(state.compare){state.storm=true;state.jupiterSpin=2.224;state.running=false;}updateReadouts();};
 $('particleButton').onclick=()=>{state.particles=!state.particles;if(state.particles){state.running=true;}updateReadouts();};
 $('playButton').onclick=()=>setRunning(!state.running);
-$('resetButton').onclick=()=>{venusRequest++;releaseMotion.x=releaseMotion.y=0;Object.assign(state,{earthProgress:.3,jupiterSpin:2.224,saturnSpin:.4,otherSpin:state.world==='mars'?3.9:state.world==='mimas'?.9:0,moonTilt:0,lightPhase:.943,axisTilt:98,titanSurface:false,venusEnhanced:true,venusSurface:false,angle:24,storm:false,zoom:0,compare:false,particles:false,speed:1,running:!reduced.matches,time:0,clouds:true,lights:true});$('cloudToggle').checked=true;$('lightsToggle').checked=true;$('jupiterTime').value=0;$('sunAngle').value=54;$('axisTilt').value=98;$('titanSurface').setAttribute('aria-pressed','false');$('titanSurface').textContent='Look beneath the haze ↗';$('sceneCaption').textContent=profiles[state.world].caption;$('modelNote').textContent=profiles[state.world].note;if($('venusSurface'))$('venusSurface').disabled=!ready;updateReadouts();updateVenusView();};
+$('resetButton').onclick=()=>{venusRequest++;titanRequest++;$('titanViewStatus').textContent='';releaseMotion.x=releaseMotion.y=0;Object.assign(state,{earthProgress:.3,jupiterSpin:2.224,saturnSpin:.4,otherSpin:state.world==='mars'?3.9:state.world==='mimas'?.9:0,moonTilt:0,lightPhase:.943,axisTilt:98,titanSurface:false,venusEnhanced:true,venusSurface:false,angle:24,storm:false,zoom:0,compare:false,particles:false,speed:1,running:!reduced.matches,time:0,clouds:true,lights:true});$('cloudToggle').checked=true;$('lightsToggle').checked=true;$('jupiterTime').value=0;$('sunAngle').value=54;$('axisTilt').value=98;$('titanSurface').disabled=!ready;$('sceneCaption').textContent=profiles[state.world].caption;$('modelNote').textContent=profiles[state.world].note;if($('venusSurface'))$('venusSurface').disabled=!ready;updateReadouts();updateVenusView();updateTitanView();};
 $('cinemaButton').onclick=()=>setCinema(!root.classList.contains('cinema'));
 $('aboutButton').onclick=()=>{$('aboutPanel').showModal();$('aboutButton').setAttribute('aria-expanded','true');};
 $('closeAbout').onclick=()=>$('aboutPanel').close();$('aboutPanel').onclose=()=>{$('aboutButton').setAttribute('aria-expanded','false');$('aboutButton').focus();};

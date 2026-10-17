@@ -9,7 +9,7 @@ const fragment = `#version 300 es
 precision highp float;
 out vec4 color;
 uniform vec2 resolution;
-uniform float world, spin, time, cameraAngle, cloudsOn, lightsOn, storm, compareEarth, particles, speed, lightPhase, axisTilt, venusEnhanced, venusSurface;
+uniform float world, spin, time, cameraAngle, cloudsOn, lightsOn, storm, compareEarth, particles, speed, lightPhase, axisTilt, venusEnhanced, venusSurface, titanSurface;
 uniform sampler2D surfaceMap, cloudMap, nightMap, ringMap, earthMap;
 ${SKY_GLSL.replaceAll("texture2D(", "texture(")}
 const float PI=3.141592653589793;
@@ -114,7 +114,7 @@ void main(){
   vec3 sky=skyColor(normalize(vec3(skyPlane*.5424,-1.8)));
   result=-log(max(vec3(.001),1.-linearize(sky)))/1.18;
  }
- if(world==4.){
+ if(world==4.||world==9.||titanSurface>.5){
   float radial=length(xy),pixel=2.*halfHeight/resolution.y;
   // Analytic pixel coverage smooths this sphere's silhouette at low resolution.
   // Keep the approved Earth cloud shell and Saturn ring compositing unchanged.
@@ -126,11 +126,13 @@ void main(){
    vec3 background=-log(max(vec3(.001),1.-linearize(sky)))/1.18;
    result=mix(background,renderSurface(edgePoint,edgePoint,rd,light),1.-smoothstep(1.-pixel*.5,1.+pixel*.5,radial));
   }
-  if(venusSurface<.5){
+  if(world==9.||(world==4.&&venusSurface<.5)){
    vec3 edge=rotateX(rotateZ(normalize(vec3(xy,.045)),-roll),-angle);
    float sun=smoothstep(-.08,.6,dot(edge,light));
-   float rim=exp(-abs(radial-1.001)*170.)*.07*sun;
-   result+=vec3(.65,.55,.34)*rim;
+   // Titan's opaque haze map is representative. The thin amber edge is
+   // illustrative sunlight scattering, not a measured atmospheric layer.
+   float rim=world==9.?exp(-abs(radial-1.004)*95.)*.10*sun:exp(-abs(radial-1.001)*170.)*.07*sun;
+   result+=(world==9.?vec3(.70,.39,.15):vec3(.65,.55,.34))*rim;
   }
  }
  if(world==0.){
@@ -203,7 +205,7 @@ export class PlanetRenderer {
   const shader=(type,source)=>{const s=gl.createShader(type);gl.shaderSource(s,source);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw Error(gl.getShaderInfoLog(s));return s;};
   this.program=gl.createProgram();gl.attachShader(this.program,shader(gl.VERTEX_SHADER,vertex));gl.attachShader(this.program,shader(gl.FRAGMENT_SHADER,fragment));gl.linkProgram(this.program);if(!gl.getProgramParameter(this.program,gl.LINK_STATUS))throw Error(gl.getProgramInfoLog(this.program));gl.useProgram(this.program);
   const buffer=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);let position=gl.getAttribLocation(this.program,'position');gl.enableVertexAttribArray(position);gl.vertexAttribPointer(position,2,gl.FLOAT,false,0,0);
-  this.locations={};for(const name of ['resolution','world','spin','time','cameraAngle','cloudsOn','lightsOn','storm','compareEarth','particles','speed','lightPhase','axisTilt','venusEnhanced','venusSurface','surfaceMap','cloudMap','nightMap','ringMap','earthMap','skyMap','skyReady'])this.locations[name]=gl.getUniformLocation(this.program,name);
+  this.locations={};for(const name of ['resolution','world','spin','time','cameraAngle','cloudsOn','lightsOn','storm','compareEarth','particles','speed','lightPhase','axisTilt','venusEnhanced','venusSurface','titanSurface','surfaceMap','cloudMap','nightMap','ringMap','earthMap','skyMap','skyReady'])this.locations[name]=gl.getUniformLocation(this.program,name);
   this.placeholder=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,this.placeholder);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,1,1,0,gl.RGBA,gl.UNSIGNED_BYTE,new Uint8Array([0,0,0,255]));gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
   this.anisotropy=gl.getExtension('EXT_texture_filter_anisotropic');
   this.load('sky',SKY_URL).catch(()=>console.warn('Celestial map unavailable; showing a simple star field.'));
@@ -243,6 +245,10 @@ export class PlanetRenderer {
   const map=await this.load('venus-surface','assets/research/venus-radar.jpg');
   this.releaseInactiveTextures();return map;
  }
+ async prepareTitanSurface(){
+  const map=await this.load('titan-surface','assets/research/moons/titan-surface.jpg');
+  this.releaseInactiveTextures();return map;
+ }
  async setWorld(world){
   this.current=world;this.ready=false;
   const box=this.canvas.getBoundingClientRect(),pixels=Math.min(box.width,box.height)*Math.min(devicePixelRatio||1,2);
@@ -253,7 +259,6 @@ export class PlanetRenderer {
   try{
    const jobs=[this.load(world,'assets/research/'+(world==='jupiter'?'jupiter-cassini-juno-'+suffix+'.jpg':WORLDS[world].map))];
    if(world==='earth')jobs.push(this.load('cloud','assets/research/earth-clouds-'+suffix+'.jpg'),this.load('night','assets/research/earth-night-4k.jpg'));
-   if(world==='titan')jobs.push(this.load('titan-surface','assets/research/moons/titan-surface.jpg'));
    if(world==='saturn')jobs.push(this.load('ring','assets/research/saturn-rings-radial-8k.png'));
    await Promise.all(jobs);
    if(this.current===world){this.releaseInactiveTextures();this.ready=true;this.onReady();}
@@ -264,9 +269,10 @@ export class PlanetRenderer {
   if(!this.ready)return;
   const gl=this.gl;gl.useProgram(this.program);
   const venusSurface=!!(s.world==='venus'&&s.venusSurface&&this.maps['venus-surface']);
-  for(const [i,key,name] of [[0,'surfaceMap',venusSurface?'venus-surface':s.world==='titan'&&s.titanSurface?'titan-surface':s.world],[1,'cloudMap','cloud'],[2,'nightMap','night'],[3,'ringMap','ring'],[4,'earthMap','earth'],[5,'skyMap','sky']]){gl.activeTexture(gl.TEXTURE0+i);gl.bindTexture(gl.TEXTURE_2D,this.maps[name]||this.placeholder);gl.uniform1i(this.locations[key],i);}
+  const titanSurface=!!(s.world==='titan'&&s.titanSurface&&this.maps['titan-surface']);
+  for(const [i,key,name] of [[0,'surfaceMap',venusSurface?'venus-surface':titanSurface?'titan-surface':s.world],[1,'cloudMap','cloud'],[2,'nightMap','night'],[3,'ringMap','ring'],[4,'earthMap','earth'],[5,'skyMap','sky']]){gl.activeTexture(gl.TEXTURE0+i);gl.bindTexture(gl.TEXTURE_2D,this.maps[name]||this.placeholder);gl.uniform1i(this.locations[key],i);}
   gl.uniform2f(this.locations.resolution,this.canvas.width,this.canvas.height);
-  const values={skyReady:this.maps.sky?1:0,world:s.world==='titan'&&!s.titanSurface?9:(WORLDS[s.world].parent==='saturn'&&s.world!=='titan'?10:WORLDS[s.world].parent?8:['earth','jupiter','saturn','mercury','venus','mars','uranus','neptune'].indexOf(s.world)),spin:s.spin,time:s.time,cameraAngle:s.angle,cloudsOn:+s.clouds,lightsOn:+s.lights,storm:s.zoom,compareEarth:+s.compare,particles:+s.particles,speed:s.speed,lightPhase:s.lightPhase,axisTilt:s.axisTilt,venusEnhanced:s.venusEnhanced===false?0:1,venusSurface:+venusSurface};
+  const values={skyReady:this.maps.sky?1:0,world:s.world==='titan'&&!titanSurface?9:(WORLDS[s.world].parent==='saturn'&&s.world!=='titan'?10:WORLDS[s.world].parent?8:['earth','jupiter','saturn','mercury','venus','mars','uranus','neptune'].indexOf(s.world)),spin:s.spin,time:s.time,cameraAngle:s.angle,cloudsOn:+s.clouds,lightsOn:+s.lights,storm:s.zoom,compareEarth:+s.compare,particles:+s.particles,speed:s.speed,lightPhase:s.lightPhase,axisTilt:s.axisTilt,venusEnhanced:s.venusEnhanced===false?0:1,venusSurface:+venusSurface,titanSurface:+titanSurface};
   for(const [k,v] of Object.entries(values))gl.uniform1f(this.locations[k],v);
   gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
  }
