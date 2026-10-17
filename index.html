@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#030507"><meta name="description" content="Solsystemet — Eight planets, twelve moons and the asteroid belt. An atlas to explore together.">
-<title>Solsystemet — Living worlds</title><link rel="stylesheet" href="style.css?v=f8d8fc182f73">
+<title>Solsystemet — Living worlds</title><link rel="stylesheet" href="style.css?v=b267d2ab8fbf">
 </head>
 <body>
 <div id="atlas" class="atlas" data-world="earth">
@@ -70,10 +70,10 @@
 </div>
 <div id="otherInstrument" class="instrument-body other-controls" hidden>
 <div id="venusControls" class="venus-controls" role="group" aria-label="Choose a view of Venus" hidden><span class="control-heading">LOOK AT VENUS</span><div class="venus-view-options"><button id="venusOrdinary" type="button" aria-pressed="true">Ordinary clouds</button><button id="venusClouds" type="button" aria-pressed="false">Cloud patterns</button><button id="venusSurface" type="button" aria-pressed="false">Radar surface</button></div><p id="venusViewDescription">Venus’s thick clouds hide its surface in ordinary light.</p><a id="venusRadarCredit" href="sources.html#venus-radar" target="_blank" rel="noopener" hidden>NASA/JPL radar image · source & reconstruction notes ↗</a></div>
+<div id="titanControls" class="titan-controls" role="group" aria-label="Choose a view of Titan" hidden><span class="control-heading">LOOK AT TITAN</span><div class="titan-view-options"><button id="titanHaze" type="button" aria-pressed="true">Orange haze</button><button id="titanSurface" type="button" aria-pressed="false">Surface reconstruction</button></div><p id="titanViewDescription">Titan’s thick haze hides the ground. Switch views to discover the landscape beneath it.</p><button id="titanNorth" class="outline-action" type="button" hidden>Find the northern lakes ↗</button><p id="titanViewStatus" role="status"></p><a id="titanSourceCredit" href="sources.html#titan" target="_blank" rel="noopener">Image sources & reconstruction notes ↗</a></div>
 <div class="control-group" id="phaseControl"><label for="sunAngle">MOVE THE LIGHT <span id="phaseReading">Gibbous</span></label><input id="sunAngle" type="range" min="0" max="160" value="54" aria-label="Change the direction of sunlight"><div class="range-caption"><span>FULL LIGHT</span><span>CRESCENT</span></div></div>
 <div id="tiltControl" class="control-group" hidden><label for="axisTilt">TIP THE SPIN AXIS <span id="tiltReading">98°</span></label><input id="axisTilt" type="range" min="0" max="98" value="98" aria-label="Uranus axis tilt"><div class="range-caption"><span>UPRIGHT</span><span>URANUS · 98°</span></div></div>
 <div id="spinControl" class="control-group" hidden><label for="uranusSpin">TURN ONCE <span id="spinReading">0°</span></label><input id="uranusSpin" type="range" min="0" max="360" value="0" aria-label="Turn Uranus through one rotation"><div class="range-caption"><span>START</span><span>ONE FULL TURN</span></div></div>
-<button id="titanSurface" class="outline-action" aria-pressed="false" hidden>Look beneath the haze ↗</button>
 <button id="findOrbit" class="outline-action">Find its orbit ↗</button>
 </div>
 <p id="modelNote" class="model-note">NASA BLUE MARBLE · CLOUD MOVEMENT IS ILLUSTRATIVE</p>
@@ -136,5 +136,5 @@
 <div id="routeAnnouncement" class="sr-only" role="status"></div>
 <div id="missionAnnouncement" class="sr-only" role="status"></div>
 <div id="toast" class="toast" role="status"></div>
-</div><script type="module" src="app.js?v=f8d8fc182f73"></script>
+</div><script type="module" src="app.js?v=b267d2ab8fbf"></script>
 </body></html>
