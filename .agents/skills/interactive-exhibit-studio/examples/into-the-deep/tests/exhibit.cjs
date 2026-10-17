@@ -1,0 +1,58 @@
+const {chromium}=require('playwright');
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const path=require('node:path');
+const root=path.resolve(__dirname,'..'),out=path.join(root,'evidence'),url=process.env.BASE_URL||'http://127.0.0.1:8113/';
+async function run(){
+ fs.mkdirSync(out,{recursive:true});
+ const browser=await chromium.launch({executablePath:process.env.BROWSER_BIN||'/usr/bin/chromium',headless:true,args:['--no-sandbox']});
+ const page=await browser.newPage({viewport:{width:1440,height:1000}}), errors=[], failed=[];
+ page.on('pageerror',e=>errors.push(e.message));page.on('response',r=>{if(r.status()>=400)failed.push(r.url())});
+ await page.goto(url,{waitUntil:'networkidle'});await page.evaluate(()=>document.fonts.ready);
+ const state=()=>page.evaluate(()=>window.expeditionState());
+ const shot=async name=>{await page.evaluate(()=>scrollTo(0,0));return page.screenshot({path:path.join(out,name+'.png'),fullPage:!(await page.locator('#detail').evaluate(el=>el.open))});};
+ assert.deepEqual((await state()).images,['ready','ready','ready']);assert.equal((await state()).depth,20);
+ await shot('final-desktop-sunlight');
+ await page.locator('#descend').click();
+ const depths=[];
+ for(let i=0;i<5;i++){await page.waitForTimeout(650);depths.push((await state()).depth);await shot('descent-frame-'+i);}
+ await page.waitForFunction(()=>!window.expeditionState().flight);assert.equal(Math.round((await state()).depth),700);
+ assert.ok(depths.every((d,i)=>!i||d>=depths[i-1]) && depths.at(-1)>depths[0],'descent increases continuously');
+ await shot('final-desktop-twilight');
+ await page.locator('#inspect').click();assert.equal(await page.locator('#detailTitle').textContent(),'Vampire squid');
+ assert.equal((await state()).inspected,1);await shot('final-vampire-inspection');
+ const frozen=(await state()).drawCount;await page.waitForTimeout(150);assert.equal((await state()).drawCount,frozen,'modal suspends ambient rendering');
+ await page.keyboard.press('Escape');assert.equal(await page.evaluate(()=>document.activeElement.id),'inspect');
+ await page.locator('#descend').click();await page.waitForTimeout(550);const interrupted=(await state()).depth;
+ await page.locator('button[data-depth="20"]').click();const reversed=(await state()).depth;assert.ok(Math.abs(reversed-interrupted)<80,'reverse starts from displayed depth');
+ await page.waitForFunction(()=>!window.expeditionState().flight);assert.equal(Math.round((await state()).depth),20);
+ await page.locator('#motion').click();const paused=(await state()).drawCount;await page.waitForTimeout(200);assert.equal((await state()).drawCount,paused,'pause stops drawing');
+ await page.locator('button[data-depth="3000"]').click();assert.equal((await state()).depth,3000,'paused travel is immediate');await shot('final-desktop-midnight');
+ await page.locator('#inspect').click();await shot('final-dumbo-inspection');await page.keyboard.press('Escape');
+ await page.locator('#guide').click();assert.equal((await state()).solved,false,'ambient and inspection do not complete discovery');
+ await page.locator('[data-answer="0"]').click();assert.equal((await state()).solved,false);assert.match(await page.locator('.feedback').textContent(),/rounded fins/);
+ await page.locator('[data-answer="2"]').click();assert.equal((await state()).solved,true);await shot('final-field-notes');
+ await page.keyboard.press('Escape');await page.locator('#guide').click();assert.match(await page.locator('.feedback').textContent(),/spotted/);await page.keyboard.press('Escape');
+ await page.locator('#depth').focus();await page.keyboard.press('Home');assert.equal((await state()).depth,0);await page.keyboard.press('End');assert.equal((await state()).depth,4000);await page.keyboard.press('ArrowLeft');assert.ok((await state()).depth<4000);
+ await page.locator('button[data-depth="20"]').click();
+ await page.setViewportSize({width:390,height:844});await shot('final-phone-sunlight');
+ assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'phone has no horizontal overflow');
+ for(const selector of ['#motion','#guide','#descend','#inspect','#depth']){assert.ok(await page.locator(selector).isVisible(),selector+' visible');}
+ await page.locator('button[data-depth="700"]').click();await page.evaluate(()=>scrollTo(0,0));await shot('final-phone-twilight');
+ await page.locator('#inspect').click();await shot('final-phone-inspection');assert.equal(await page.evaluate(()=>document.activeElement.id),'closeDetail');await page.keyboard.press('Escape');
+ await page.setViewportSize({width:844,height:390});await page.evaluate(()=>scrollTo(0,0));await shot('final-phone-landscape');assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+ await page.setViewportSize({width:720,height:500});await shot('desktop-200-percent-equivalent-layout');await page.setViewportSize({width:390,height:844});
+ await page.emulateMedia({reducedMotion:'reduce'});assert.equal((await state()).playing,false);await page.locator('#motion').click();assert.equal((await state()).playing,true,'explicit play remains available');await page.locator('#motion').click();
+ await page.goto(url,{waitUntil:'networkidle'});assert.equal((await state()).playing,false,'reduced motion honored on startup');
+ await page.locator('#motion').click();await page.waitForTimeout(100);const beforeHide=(await state()).drawCount;await page.evaluate(()=>{Object.defineProperty(document,'hidden',{configurable:true,value:true});document.dispatchEvent(new Event('visibilitychange'))});await page.waitForTimeout(200);assert.equal((await state()).drawCount,beforeHide,'hidden document stops drawing');
+ assert.deepEqual(errors,[]);assert.deepEqual(failed,[]);
+ const failurePage=await browser.newPage({viewport:{width:390,height:844},reducedMotion:'reduce'});
+ await failurePage.route('**/assets/turtle.webp*',route=>route.abort());await failurePage.goto(url,{waitUntil:'networkidle'});await failurePage.waitForFunction(()=>window.expeditionState().images[0]==='error');assert.ok(await failurePage.locator('#retry').isVisible());await failurePage.screenshot({path:path.join(out,'failed-image-fallback.png'),fullPage:true});
+ await failurePage.locator('#inspect').click();assert.match(await failurePage.locator('#detailContent').textContent(),/must swim back up/);await failurePage.keyboard.press('Escape');
+ await failurePage.unroute('**/assets/turtle.webp*');await failurePage.locator('#retry').click();await failurePage.waitForFunction(()=>window.expeditionState().images[0]==='ready');
+ await failurePage.route('**/assets/vampire.webp',async route=>{await new Promise(r=>setTimeout(r,1400));await route.continue();});
+ await failurePage.reload({waitUntil:'domcontentloaded'});await failurePage.locator('button[data-depth="700"]').click();assert.equal(await failurePage.locator('#expedition').getAttribute('data-asset-state'),'loading');await failurePage.waitForFunction(()=>window.expeditionState().images[1]==='ready');
+ const report={passed:true,errors,failed,descentDepths:depths,checks:['desktop, phone portrait and landscape','continuous descent and mid-flight reversal','inspection and focus return','pause and modal render suspension','depth keyboard Home/End/Arrow','deliberate discovery wrong/correct/revisit','initial and changed reduced motion with explicit Play','simulated hidden-document suspension','failed essential image, useful field note, successful retry','delayed deep asset loading'],limits:['No physical-device frame-rate measurement','No child session','Browser screenshots and frame sequence inspected separately']};
+ fs.writeFileSync(path.join(out,'test-results.json'),JSON.stringify(report,null,2)+'\n');console.log(JSON.stringify(report,null,2));await browser.close();
+}
+run().catch(e=>{console.error(e);process.exit(1)});

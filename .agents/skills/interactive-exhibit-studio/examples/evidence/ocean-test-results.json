@@ -1,0 +1,29 @@
+{
+  "passed": true,
+  "errors": [],
+  "failed": [],
+  "descentDepths": [
+    88.16629549148789,
+    303.2077105778895,
+    550.5422927200002,
+    692.9768071507266,
+    700
+  ],
+  "checks": [
+    "desktop, phone portrait and landscape",
+    "continuous descent and mid-flight reversal",
+    "inspection and focus return",
+    "pause and modal render suspension",
+    "depth keyboard Home/End/Arrow",
+    "deliberate discovery wrong/correct/revisit",
+    "initial and changed reduced motion with explicit Play",
+    "simulated hidden-document suspension",
+    "failed essential image, useful field note, successful retry",
+    "delayed deep asset loading"
+  ],
+  "limits": [
+    "No physical-device frame-rate measurement",
+    "No child session",
+    "Browser screenshots and frame sequence inspected separately"
+  ]
+}

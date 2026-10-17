@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Exhibit patterns — browser tests</title>
+<link rel="stylesheet" href="../anchored-labels.css">
+<style>
+  body { margin: 24px; font: 15px/1.5 system-ui, sans-serif; color: #e8eef5; background: #17212c; }
+  pre { white-space: pre-wrap; }
+  button { color: inherit; background: #283748; border: 0; }
+</style>
+<h1>Exhibit patterns browser tests</h1>
+<p>These tests check behavior and DOM geometry. They do not measure device frame rate.</p>
+<pre id="results" role="status">Running…</pre>
+<script type="module">
+  import { runSceneHostTests } from './scene-host.test.js';
+  import { runCameraTransitionTests } from './camera-transition.test.js';
+  import { runAnchoredLabelsTests } from './anchored-labels.test.js';
+  const results = window.patternTestResults = { passed: [], errors: [], done: false };
+  const output = document.querySelector('#results');
+  for (const suite of [runSceneHostTests, runCameraTransitionTests, runAnchoredLabelsTests]) {
+    try { results.passed.push(...await suite()); }
+    catch (error) { results.errors.push(error.stack || String(error)); console.error(error); }
+  }
+  results.done = true;
+  output.textContent = `${results.passed.length} passed; ${results.errors.length} failed\n\n` +
+    results.passed.map(name => `PASS ${name}`).concat(results.errors.map(error => `FAIL ${error}`)).join('\n');
+  document.title = results.errors.length ? 'FAIL — exhibit pattern tests' : 'PASS — exhibit pattern tests';
+</script>
+</html>

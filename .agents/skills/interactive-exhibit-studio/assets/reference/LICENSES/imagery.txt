@@ -1,0 +1,26 @@
+EARTH IMAGERY — ATTRIBUTION AND USE
+
+assets/earth-day.jpg
+NASA Blue Marble Next Generation, July 2004, with topography.
+Credit: NASA Earth Observatory; Reto Stöckli / NASA Goddard Space Flight Center.
+Based on MODIS observations. This is a historical composite, not a single photograph.
+Source: https://science.nasa.gov/earth/earth-observatory/blue-marble-next-generation/base-topography/
+NASA image-use guidance: https://www.nasa.gov/nasa-brand-center/images-and-media/
+NASA-produced imagery is generally not subject to US copyright. Attribution is retained;
+no NASA endorsement is implied. The existing 5400×2700 JPEG is copied unchanged.
+
+assets/earth-clouds.jpg and assets/earth-night.jpg
+Credit: Solar System Scope / INOVE, based on NASA imagery.
+License: Creative Commons Attribution 4.0 International (CC BY 4.0).
+License and terms: https://creativecommons.org/licenses/by/4.0/
+Source collection: https://www.solarsystemscope.com/textures/
+The cloud file is an existing 2048×1024 Lanczos JPEG derivative; the night map is
+an existing 4096×2048 derivative. These files are copied unchanged from Solsystemet.
+Those earlier resizing changes and attribution must remain with redistributed copies.
+
+This exhibit adds directional lighting, color-derived ocean reflectance, an illustrated
+atmospheric rim, a cloud shell and approximate cloud shadows. Cloud motion, lighting,
+Earth orientation and animation speeds are illustrative. Images describe different
+historical composites and do not represent current weather or a synchronized observation.
+
+Exact local files and SHA-256 hashes appear in sources.json.

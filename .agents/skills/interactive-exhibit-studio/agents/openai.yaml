@@ -1,0 +1,4 @@
+interface:
+  display_name: "Interactive Exhibit Studio"
+  short_description: "Create ambitious interactive exhibits with visual review."
+  default_prompt: "Use $interactive-exhibit-studio to create a visually ambitious exhibit for my subject, with detailed assets, a memorable interaction, and desktop and phone browser review."

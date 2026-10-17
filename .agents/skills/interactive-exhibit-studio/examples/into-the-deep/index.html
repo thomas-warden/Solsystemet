@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#05242e">
+  <meta name="description" content="Pilot a journey into the deep ocean. Meet three extraordinary animals and discover how their world changes with depth.">
+  <title>Into the Deep · An ocean expedition</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='20' fill='%2305212c'/%3E%3Cpath d='M9 18q6-7 12 0t12 0M9 25q6-7 12 0t12 0' fill='none' stroke='%23a2e5d1' stroke-width='2'/%3E%3C/svg%3E">
+  <link rel="preload" as="image" href="assets/turtle.webp">
+  <link rel="stylesheet" href="style.css">
+  <script type="module" src="app.js"></script>
+</head>
+<body>
+<a class="skip" href="#depth">Skip to depth control</a>
+<main id="expedition" data-zone="0">
+  <div id="water" aria-hidden="true">
+    <div class="image-layer" id="layer0"><img src="assets/turtle.webp" alt="" fetchpriority="high"></div>
+    <div class="image-layer" id="layer1"><img src="assets/vampire.webp" alt="" decoding="async"></div>
+    <div class="image-layer" id="layer2"><img src="assets/dumbo.webp" alt="" decoding="async"></div>
+    <div class="vignette"></div><canvas id="snow"></canvas>
+  </div>
+  <header>
+    <a class="identity" href="./" aria-label="Into the Deep, return to sunlight"><span class="emblem" aria-hidden="true">≋</span><span>INTO THE DEEP<small>AN OCEAN EXPEDITION</small></span></a>
+    <nav aria-label="Expedition controls"><button id="motion" class="quiet"><span aria-hidden="true" class="motion-mark pause-mark"></span> Pause motion</button><button id="guide" class="quiet">Field notes <span id="count">0 / 3</span></button></nav>
+  </header>
+  <section class="scene" aria-label="Ocean depth explorer">
+    <div class="intro">
+      <p class="eyebrow"><span class="live-dot"></span><span id="zoneLabel">01 — THE SUNLIT OCEAN</span></p>
+      <h1 id="headline">A little deeper.<br>A lot stranger.</h1>
+      <p class="invitation" id="invitation">There’s a whole other world below the waves.<br> Ready to meet the neighbours?</p>
+      <button class="primary" id="descend"><span id="descendText">Descend to twilight</span><span class="arrow" aria-hidden="true">↓</span></button>
+      <p id="destination" class="next-note">Next stop · 700 metres below</p>
+    </div>
+    <div class="side-measure" aria-hidden="true"><span>SURFACE</span><i></i><span>DEEP OCEAN</span></div>
+    <button id="inspect" class="specimen" aria-label="Inspect green sea turtle"><span class="specimen-cross" aria-hidden="true">+</span><span><small>YOUR NEIGHBOUR AT THIS DEPTH</small><strong id="creatureName">Green sea turtle</strong><em>Look closer <span aria-hidden="true">→</span></em></span></button>
+    <div class="asset-message" id="assetMessage" role="status"><span id="assetText">Finding our ocean view…</span><button id="retry" hidden>Try image again</button></div>
+    <p class="image-caption">Illustrated expedition <span>·</span> Animals & distances not to scale</p>
+  </section>
+  <section class="instrument" aria-label="Depth controls">
+    <div class="reading"><span class="instrument-label">DEPTH BELOW THE SURFACE</span><div><output id="depthNumber" for="depth">20</output><span class="unit">m</span></div></div>
+    <div class="depth-control">
+      <div class="range-heading"><label for="depth">Drag to explore</label><span id="light"><i></i> Plenty of sunlight</span></div>
+      <input id="depth" type="range" min="0" max="1000" step="1" value="25" aria-valuetext="20 metres, sunlit ocean">
+      <div class="ticks" aria-hidden="true"><span>0 m</span><span>200 m</span><span>1,000 m</span><span>4,000 m</span></div>
+      <div class="zone-shortcuts"><button data-depth="20" class="active">Sunlit</button><button data-depth="700">Twilight</button><button data-depth="3000">Midnight</button></div>
+    </div>
+    <p class="condition" id="condition">Sunlight feeds tiny ocean plants.<br>Life here is full of colour.</p>
+  </section>
+  <footer><span>THREE ENCOUNTERS. ONE BIG BLUE PLANET.</span><button id="sources">The science & the pictures <span aria-hidden="true">→</span></button></footer>
+</main>
+<div class="sr-only" id="announcement" role="status" aria-live="polite"></div>
+<dialog id="detail" aria-labelledby="detailTitle"><button class="close" id="closeDetail" aria-label="Close field note">✕</button><div id="detailContent"></div></dialog>
+<noscript><div class="noscript"><h2>Meet three ocean neighbours</h2><p>Green sea turtles breathe air. Vampire squid collect sinking scraps called marine snow. Dumbo octopuses swim with ear-like fins.</p><p>Enable JavaScript to pilot the illustrated descent. <a href="SOURCES.md">Read the sources.</a></p></div></noscript>
+</body>
+</html>

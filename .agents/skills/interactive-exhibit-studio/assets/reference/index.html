@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>Earth — A world in the light</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="style.css">
+  <script type="module" src="app.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#lightControl">Skip to sunlight control</a>
+  <header class="masthead">
+    <a href="./" class="wordmark" aria-label="Earth exhibit home"><span class="mark" aria-hidden="true"></span>FIELD NOTES<span class="wordmark-detail">A CLOSER LOOK AT OUR WORLD</span></a>
+    <a href="#about" class="quiet-link">About this view <span aria-hidden="true">↗</span></a>
+  </header>
+  <main>
+    <section class="exhibit" aria-labelledby="earthTitle">
+      <div class="editorial">
+        <p class="eyebrow"><span></span> THE EARTH COLLECTION / 01</p>
+        <h1 id="earthTitle">A world <br>in the <em>light.</em></h1>
+        <p class="lead">Ocean blue. Cloud white. <br>A thin edge of atmosphere. <br>Our home, turning in sunlight.</p>
+        <p class="invitation">Find the place where day becomes night.</p>
+        <div class="specimen-index"><span>EARTH</span><span>LOOK CLOSER ↓</span></div>
+      </div>
+
+      <figure class="specimen" aria-labelledby="sceneCaption">
+        <div id="earthStage" class="earth-stage" aria-busy="true">
+          <canvas id="earthCanvas" tabindex="0" aria-label="Interactive Earth. Drag to orbit, pinch or scroll to zoom. Arrow keys turn the view; plus and minus zoom."></canvas>
+          <div class="stage-topline"><span>EARTH</span><span>AN EXPLORABLE PORTRAIT</span></div>
+          <div id="loading" class="loading" role="status"><i aria-hidden="true"></i><p>Gathering the world’s details…</p></div>
+          <div id="fallback" class="fallback" hidden>
+            <img src="assets/earth-day.jpg" alt="NASA’s flat map of Earth, showing land, ocean and ice." loading="lazy">
+            <p id="fallbackMessage">The interactive Earth could not open. This surface map is still yours to explore.</p>
+            <button id="retry" type="button">Try the interactive view again</button>
+          </div>
+          <div id="stageTools" class="stage-tools" hidden>
+            <span class="gesture-hint">DRAG TO EXPLORE <span aria-hidden="true">·</span> PINCH TO ZOOM</span>
+            <div class="zoom-controls"><button id="zoomOut" type="button" aria-label="Zoom out">−</button><button id="zoomIn" type="button" aria-label="Zoom in">+</button></div>
+          </div>
+        </div>
+        <figcaption id="sceneCaption"><span class="caption-dot" aria-hidden="true"></span>Satellite imagery. A world you can turn.</figcaption>
+      </figure>
+
+      <section class="observation" aria-labelledby="lightLabel">
+        <div class="control-intro"><span class="control-number">01</span><div><h2 id="lightLabel">Follow the sunlight</h2><p>Move the light. Watch the boundary travel.</p></div></div>
+        <div class="light-control">
+          <label for="lightControl"><span>SUNLIGHT</span><output id="lightReadout" for="lightControl">Day meets night</output></label>
+          <input id="lightControl" type="range" min="-180" max="180" step="1" value="-48" aria-describedby="lightNote" disabled>
+          <div class="range-key"><span>NIGHT SIDE</span><span>DAYLIGHT</span><span>NIGHT SIDE</span></div>
+        </div>
+        <div class="view-controls">
+          <button id="motion" type="button" aria-pressed="false" disabled><span class="motion-icon" aria-hidden="true"></span><span id="motionText">Start Earth’s turn</span></button>
+          <button id="clouds" type="button" aria-pressed="true" disabled>Cloud layer <span class="toggle-dot" aria-hidden="true"></span></button>
+          <button id="reset" type="button" disabled>Reset view</button>
+        </div>
+        <p id="lightNote" class="model-note">Here, moving the light helps you explore. In space, Earth’s own turn carries places into day and night.</p>
+      </section>
+    </section>
+
+    <section id="about" class="field-notes" aria-labelledby="notesTitle">
+      <div><p class="eyebrow">THREE THINGS TO NOTICE</p><h2 id="notesTitle">There is more <br>at the <em>edge.</em></h2></div>
+      <article><span class="note-index">I.</span><h3>The line that moves</h3><p>The boundary between day and night is called the terminator. Change the light to trace it across continents and oceans.</p></article>
+      <article><span class="note-index">II.</span><h3>A very thin blue</h3><p>Look at the sunlit rim. The blue glow suggests light scattered by the atmosphere. Its appearance here is an illustration.</p></article>
+      <article><span class="note-index">III.</span><h3>Light after dark</h3><p>Turn to the night side to find patterns of city lights. These historical maps show a composite world, not a live view.</p></article>
+    </section>
+    <details class="source-note">
+      <summary>Imagery, sources & how this view was made</summary>
+      <div class="source-copy"><p>Surface: NASA Blue Marble Next Generation, July 2004, with topography. Credit: NASA Earth Observatory; Reto Stöckli / NASA Goddard Space Flight Center. Clouds and night lights: Solar System Scope / INOVE, based on NASA imagery, CC BY 4.0.</p><p>Lighting, rotation speed, cloud drift and atmospheric scattering are illustrative. The cloud shell is exaggerated for visibility. This exhibit does not model changing weather, seasons, or the current position of Earth. The sunlight control changes illumination for comparison; it is not a time-of-day forecast.</p><p>Local files include <a href="sources.json">the complete source record</a>, <a href="LICENSES/imagery.txt">image credits</a>, <a href="LICENSES/THREE-LICENSE.txt">Three.js’s MIT license</a>, and <a href="README.md">the worked-reference notes</a>.</p></div>
+    </details>
+  </main>
+  <footer><span>ONE WORLD. AN ENDLESS REASON TO LOOK.</span><span>EARTH / FIELD NOTES</span></footer>
+  <noscript><p class="noscript">The interactive view needs scripting enabled. The <a href="assets/earth-day.jpg">Earth surface map</a> is available as an image.</p></noscript>
+</body>
+</html>

@@ -1,0 +1,28 @@
+PASS desktop assets, fonts, default turn, healthy shader
+PASS paused render settles; keyboard, zoom and illumination redraw
+PASS reset restores view and motion; offscreen stops rendering
+PASS real context loss offers fallback; retry creates healthy scene
+PASS dispose releases textures, geometry and scheduling
+PASS phone composition, local fonts and overflow
+PASS reduced motion starts paused, reset respects it, explicit Play works
+PASS required image failure ends loading; local map fallback and retry work
+PASS unavailable WebGL presents usable fallback without endless busy state
+{
+  "passed": 9,
+  "results": [
+    "desktop assets, fonts, default turn, healthy shader",
+    "paused render settles; keyboard, zoom and illumination redraw",
+    "reset restores view and motion; offscreen stops rendering",
+    "real context loss offers fallback; retry creates healthy scene",
+    "dispose releases textures, geometry and scheduling",
+    "phone composition, local fonts and overflow",
+    "reduced motion starts paused, reset respects it, explicit Play works",
+    "required image failure ends loading; local map fallback and retry work",
+    "unavailable WebGL presents usable fallback without endless busy state"
+  ],
+  "screenshots": [
+    "/tmp/earth-reference-desktop.png",
+    "/tmp/earth-reference-phone.png",
+    "/tmp/earth-reference-phone-320.png"
+  ]
+}

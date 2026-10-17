@@ -6,9 +6,9 @@ Live site: https://thomas-warden.github.io/Solsystemet/
 
 ## Create another learning app
 
-The [Interactive Learning Worlds skill](.agents/skills/interactive-learning-worlds/README.md) packages this project's learning-design, motion, review, and publication workflow for reuse. It includes a runnable starter, recipes for dinosaurs, the periodic table, cultures, machines, and the ocean, plus scaffolding and validation tools.
+The [Interactive Exhibit Studio skill](.agents/skills/interactive-exhibit-studio/README.md) packages this project's art direction, detailed visual assets, motion, and rendered-review workflow for reuse. It includes a finished Earth reference, reusable scene patterns, subject guidance, and a transfer trial on an ocean exhibit.
 
-Start a new Codex session in this repository and invoke `$interactive-learning-worlds`, or follow the skill's installation instructions to use it in another project.
+Start a new Codex session in this repository and invoke `$interactive-exhibit-studio`, or follow the skill's installation instructions to use it in another project. The earlier [Interactive Learning Worlds package](.agents/skills/interactive-learning-worlds/README.md) remains available for its simple activity demonstrations.
 
 ## Run locally
 

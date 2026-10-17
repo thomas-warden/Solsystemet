@@ -1,0 +1,116 @@
+{
+  "schemaVersion": 1,
+  "accessed": "2026-10-17",
+  "sources": [
+    {
+      "id": "nasa-blue-marble",
+      "title": "Blue Marble Next Generation: July 2004 with topography",
+      "url": "https://science.nasa.gov/earth/earth-observatory/blue-marble-next-generation/base-topography/",
+      "credit": "NASA Earth Observatory; Reto Stöckli / NASA Goddard Space Flight Center; based on MODIS observations",
+      "license": "NASA-produced imagery; generally not subject to US copyright; retain credit and do not imply endorsement",
+      "licenseUrl": "https://www.nasa.gov/nasa-brand-center/images-and-media/",
+      "files": [
+        "assets/earth-day.jpg"
+      ],
+      "processing": "Unchanged copy of Solsystemet assets/research/earth-nasa-5400.jpg (5400×2700). Runtime bitmap downsampling to at most 4096×2048 or 2048×1024 on phones; shader adds approximate ocean reflectance and directional illumination.",
+      "limitations": "Historical composite, not a single photograph or current view.",
+      "sha256": {
+        "assets/earth-day.jpg": "85a24885616097b5e06532b7d8e30fa5d749a782e70ea55971dd8539a0899206"
+      }
+    },
+    {
+      "id": "solar-system-scope",
+      "title": "Earth cloud and night texture maps",
+      "url": "https://www.solarsystemscope.com/textures/",
+      "credit": "Solar System Scope / INOVE, based on NASA imagery",
+      "license": "Creative Commons Attribution 4.0 International",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+      "files": [
+        "assets/earth-clouds.jpg",
+        "assets/earth-night.jpg"
+      ],
+      "processing": "Unchanged copies of existing Solsystemet derivatives: assets/orbits/clouds.jpg (2048×1024) and assets/research/earth-night-4k.jpg (4096×2048). Earlier Lanczos resizing retained; runtime downsampling may cap night map at 2048 pixels wide.",
+      "limitations": "Historical maps from different observations. Cloud height, shadows and drift, city-light brightness and exposure are illustrative.",
+      "sha256": {
+        "assets/earth-clouds.jpg": "47a216dce57c4cb5a71c88173a487a4f59923d60dd49c240f0ff01c5197016f8",
+        "assets/earth-night.jpg": "75f21a27cc6f9965debbfd5e329021cf6a4b99fe635f0df7c3bb85b8a06116a5"
+      }
+    },
+    {
+      "id": "three",
+      "title": "Three.js r180 and OrbitControls",
+      "url": "https://github.com/mrdoob/three.js/tree/r180",
+      "credit": "Copyright 2010–2025 Three.js authors",
+      "license": "MIT",
+      "licenseUrl": "https://opensource.org/license/mit",
+      "files": [
+        "vendor/three.module.js",
+        "vendor/three.core.js",
+        "vendor/OrbitControls.js",
+        "LICENSES/THREE-LICENSE.txt"
+      ],
+      "processing": "Copied existing r180 modules; OrbitControls uses the existing local relative import.",
+      "limitations": "Library source; no imagery or scientific data.",
+      "sha256": {
+        "vendor/three.module.js": "c8211c69345d2e9949dc7a8ac969380497aa0600a5a8ac6a459c8cd02dd9cb8a",
+        "vendor/three.core.js": "eb077d2417f61d3e6d9264c317cabc4ea35769ed6b0ab533067292a550784c20",
+        "vendor/OrbitControls.js": "06864a0fcb647730bfbc690b6c25a121199d716a3e299a40158509cbd247c3bf",
+        "LICENSES/THREE-LICENSE.txt": "bfe119ea4fd413f5f7ca3fcd63adb0c4a073ed39daa2fe7d3e6b769e21272601"
+      }
+    },
+    {
+      "id": "dm-sans",
+      "title": "DM Sans Latin variable WOFF2",
+      "url": "https://fonts.google.com/specimen/DM+Sans",
+      "credit": "DM Sans Project Authors (see bundled OFL notice)",
+      "license": "SIL Open Font License 1.1",
+      "licenseUrl": "https://openfontlicense.org/open-font-license-official-text/",
+      "files": [
+        "assets/fonts/dm-sans-normal-latin.woff2",
+        "LICENSES/dmsans-OFL.txt"
+      ],
+      "processing": "Unchanged Google Fonts Latin subset, normal 400–600. Original download: https://fonts.gstatic.com/s/dmsans/v17/rP2Yp2ywxg089UriI5-g4vlH9VoD8Cmcqbu0-K4.woff2",
+      "limitations": "Latin subset; other writing systems need appropriately licensed font coverage.",
+      "sha256": {
+        "assets/fonts/dm-sans-normal-latin.woff2": "9fea608a947e67020c33cad9a6fe3d60c54119dfb8cff87768a8117a15ed7543",
+        "LICENSES/dmsans-OFL.txt": "9af36190332437f5ecd09974de43c1f7c77a310a996cdd8ceb25628b458840e1"
+      }
+    },
+    {
+      "id": "instrument-serif",
+      "title": "Instrument Serif Latin regular and italic WOFF2",
+      "url": "https://fonts.google.com/specimen/Instrument+Serif",
+      "credit": "Instrument Serif Project Authors (see bundled OFL notice)",
+      "license": "SIL Open Font License 1.1",
+      "licenseUrl": "https://openfontlicense.org/open-font-license-official-text/",
+      "files": [
+        "assets/fonts/instrument-serif-normal-latin.woff2",
+        "assets/fonts/instrument-serif-italic-latin.woff2",
+        "LICENSES/instrumentserif-OFL.txt"
+      ],
+      "processing": "Unchanged Google Fonts Latin subsets. Original download records retained in FONT_SOURCES.json.",
+      "limitations": "Latin subset; other writing systems need appropriately licensed font coverage.",
+      "sha256": {
+        "assets/fonts/instrument-serif-normal-latin.woff2": "5eb09b5ac0e28b67c2f041c8ba6d244604ca0c0980d65912ab2d47fed84ddc31",
+        "assets/fonts/instrument-serif-italic-latin.woff2": "5a51946dfffa82972bc98745359c46761515641fda557c25116459a9f83da4a7",
+        "LICENSES/instrumentserif-OFL.txt": "129ed7618959716959f2941fdd5b49e0ad6e6c1d78726761786a00253d865521"
+      }
+    },
+    {
+      "id": "nasa-earth-facts",
+      "title": "Earth facts: rotation and atmosphere",
+      "url": "https://science.nasa.gov/earth/facts/",
+      "credit": "NASA Science",
+      "license": "NASA educational reference; attribution retained",
+      "licenseUrl": "https://www.nasa.gov/nasa-brand-center/images-and-media/",
+      "files": [
+        "index.html"
+      ],
+      "processing": "Brief explanatory prose about Earth’s turn, sunlight and atmospheric scattering; no source prose copied.",
+      "limitations": "The renderer illustrates these ideas; it does not compute current weather, seasons or calibrated atmospheric scattering.",
+      "sha256": {
+        "index.html": "539bea9bd18032523ab0c992bab0cbdfbc84fa8425bdd52fcfa86eca9adc79b5"
+      }
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "passed": true,
+  "method": "Chromium with networking offline; a Playwright route supplied only the exported HTML document. All imagery, fonts, code, and downloaded credits came from embedded data.",
+  "checks": [
+    "embedded images and fonts load",
+    "all three depths and creature inspections",
+    "Escape and focus restoration",
+    "wrong/correct discovery answers",
+    "source and font-license downloads",
+    "home reload",
+    "timed descent"
+  ],
+  "javascript_errors": [],
+  "external_or_asset_requests": [],
+  "limit": "The managed browser disallows file:// navigation, so direct local-file navigation was not tested. The offline HTTP document test verified self-contained runtime resources."
+}
