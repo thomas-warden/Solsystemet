@@ -27,7 +27,11 @@ Next critique: on wide desktop Mercury's guide can cover the upper scene after t
 
 ## Pass 2 — Earth–Moon lighting and material detail
 
-Pass 1 has been rendered and reviewed. Lighting changes now begin from that implementation.
+Corrected cloud opacity to use scalar data rather than sRGB decoding. Earth now has blue ocean reflectance, clearer cloud detail and a thin sunlit atmospheric edge. Earth and Moon share a fixed sunlight direction; low neutral fill preserves the dark hemisphere. Jupiter and Saturn retain their previous light rigs. Existing textures and sphere geometry are reused, with one additional atmospheric draw.
+
+Recheck: compared the same desktop, phone, close-up and night-side cameras before and after the change. The cloud pattern remains detailed, the limb is restrained and the night side stays dark. Source notes identify the reflectance and atmospheric treatment as illustrative. The focused browser suite passed colour/data handling, shared sunlight, texture/geometry budget, shader compilation, actual rendered day/night luminance (70.88 versus 1.80), paused rendering, keyboard camera changes, family switching, phone layout, reduced motion and normal autoplay. Offscreen time advances without GPU draws. Syntax and whitespace checks passed. Evidence: `/tmp/earth-moon-lighting/after-desktop.png`, `after-detail.png`, `after-night.png` and `after-phone.png`.
+
+Next critique: the smaller phone Moon needs a readable orientation guide, and the useful controls still sit below the initial view. Preserve the proportional body diameters while improving the teaching overlay and page layout.
 
 ## Pass 3 — An observable Earth–Moon experiment and usable controls
 
