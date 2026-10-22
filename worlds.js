@@ -1,4 +1,4 @@
-import { MOONS } from './moons.js?v=b267d2ab8fbf';
+import { MOONS } from './moons.js?v=da31e73ffd0d';
 // Display order follows distance from the Sun; renderer IDs preserve the approved three worlds.
 export const ORDER=['mercury','venus','earth','mars','jupiter','saturn','uranus','neptune'];
 export const WORLDS={

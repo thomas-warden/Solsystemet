@@ -1,8 +1,8 @@
-import { addCelestialSky } from './sky-scene.js?v=b267d2ab8fbf';
-import { AnchoredLabels } from './orbit-labels.js?v=b267d2ab8fbf';
+import { addCelestialSky } from './sky-scene.js?v=da31e73ffd0d';
+import { AnchoredLabels } from './orbit-labels.js?v=da31e73ffd0d';
 import * as THREE from './vendor/three.module.js';
 import { OrbitControls } from './vendor/OrbitControls.js';
-import { ORDER, WORLDS, orbitalPosition } from './worlds.js?v=b267d2ab8fbf';
+import { ORDER, WORLDS, orbitalPosition } from './worlds.js?v=da31e73ffd0d';
 const $=id=>document.getElementById(id),YEAR=WORLDS.earth.period,EPOCH=16550;
 const reduced=matchMedia('(prefers-reduced-motion: reduce)');
 const CAMERA_DURATION=.75;
