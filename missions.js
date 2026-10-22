@@ -53,7 +53,7 @@ export function createMissions({navigate,readState,setSunriseView=()=>{},capture
  function fitScene(){
   if(!root.classList.contains('mission-active'))return;
   root.style.setProperty('--mission-guide-height',$('missionGuide').offsetHeight+'px');
-  if(matchMedia('(max-width:1000px), (max-width:1200px) and (max-height:820px)').matches){const top=window.scrollY+$('missionGuide').getBoundingClientRect().top;window.scrollTo({top,behavior:'instant'});}
+  if(active?.id==='mercury'||matchMedia('(max-width:1000px), (max-width:1200px) and (max-height:820px)').matches){const top=window.scrollY+$('missionGuide').getBoundingClientRect().top;window.scrollTo({top,behavior:'instant'});}
  }
  new ResizeObserver(()=>root.style.setProperty('--mission-guide-height',$('missionGuide').offsetHeight+'px')).observe($('missionGuide'));
  function close(){active=null;$('missionGuide').hidden=true;syncMode();const heading=[...document.querySelectorAll('h1')].find(h=>h.getClientRects().length);if(heading){heading.tabIndex=-1;heading.focus({preventScroll:true});}announce('Mission closed. Keep exploring at your own pace.');}
@@ -83,7 +83,7 @@ export function createMissions({navigate,readState,setSunriseView=()=>{},capture
   else announce(`Step ${step+1}: ${active.steps[step].title}`);
   renderGuide({focus:finished,fit:true});
  }
- function spotlight(id){const el=$(id);if(matchMedia('(max-width:1000px), (max-width:1200px) and (max-height:820px)').matches)fitScene();else el.scrollIntoView({block:'center',behavior:'instant'});el.focus({preventScroll:true});el.classList.remove('mission-target');void el.offsetWidth;el.classList.add('mission-target');setTimeout(()=>el.classList.remove('mission-target'),3500);}
+ function spotlight(id){const el=$(id);if(active?.id==='mercury'||matchMedia('(max-width:1000px), (max-width:1200px) and (max-height:820px)').matches)fitScene();else el.scrollIntoView({block:'center',behavior:'instant'});el.focus({preventScroll:true});el.classList.remove('mission-target');void el.offsetWidth;el.classList.add('mission-target');setTimeout(()=>el.classList.remove('mission-target'),3500);}
  function action(){
   if(!canAdvance())return;
   if(active.id==='sunrise'&&step===0){advance();spotlight('earthRotation');}

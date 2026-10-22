@@ -45,4 +45,16 @@ Next critique: failed downloads still leave imagery missing after a revisit, and
 
 ## Pass 4 — Integrated critique, failures and final refinement
 
-Pending review of the completed third pass.
+The third pass was rendered, reviewed and tested before these fixes began. Wide Mercury missions now use a dedicated workspace: guide above, scene left, time and the two relevant counters right. Focus scrolling keeps the whole experiment together. A scale note remains visible; leaving the mission restores the full exploration controls and eight counters.
+
+Moon-family image loads now track success and failure separately. Failed cached requests are evicted; a revisit or Retry images retries only missing images. Explicit retry patches the current meshes without resetting time, playback, selection or camera. Earth clouds load independently of its surface and atmosphere. Late responses from a retired family can populate the reusable texture cache but cannot change that family's disposed materials or the current status. The retry notice sits below the scene and identifies a missing optional cloud layer.
+
+Recheck: the new wide-layout regression reproduced the original failure at 1440×900 (the canvas alone extended 138 pixels below the viewport). Inspected the completed revised Mercury workspace: the scene, guide, controls, evidence and scale note fit together. Native keyboard tests passed at 1440×900, 1366×768 and 1200×900 through running, wrong-answer feedback, completion and closing. All three activities also passed the six existing phone/tablet layouts. Evidence: `/tmp/solsystemet-fourpass/pass4/mercury-wide-1440x900.png` and the matching compact captures under `pass4-compact/`.
+
+Inspected phone captures with a deliberately missing cloud layer and after retry. The warning and 44-pixel Retry button remain clear below the scene; the restored clouds match the healthy view. Evidence: `/tmp/exhibit-four-passes/pass4/moon-cloud-warning-phone.png` and `moon-cloud-recovered-phone.png`.
+
+Recovery checks passed Moon and cloud failures through both revisit and explicit retry, exact request counts and coalescing, preserved paused time/camera/selection, independent atmosphere, giant-family recovery, and late-response isolation with cache reuse. Explicit Retry hands keyboard focus to the canvas only when its button owns focus; completion does not steal focus from a control chosen during loading. Final lighting checks also pass, including day/night contrast (70.96 versus 1.82), the retained allocation budget and paused/offscreen behavior. Syntax and whitespace checks pass.
+
+## Remaining limits
+
+These are browser and rendered-image checks, not an independent test with children or a physical-device frame-rate measurement. Very short screens still require scrolling. Earth’s daily spin remains omitted in the Earth–Moon neighbourhood; its fixed sunlight, compressed distance and circular orbital model do not represent today's sky or a lunar-phase calendar. The page and source notes state these limits.

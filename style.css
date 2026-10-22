@@ -254,3 +254,34 @@ h1[tabindex="-1"]:focus,h2[tabindex="-1"]:focus{outline:none}
 }
 
 .checkpoint-result{display:block;min-height:20px;margin-top:5px;color:#c5d0d3;font-size:12px;line-height:1.5}
+
+/* A wide Mercury mission keeps its world, clock and comparison in one view.
+   Smaller mission layouts above keep their existing proportions. */
+@media(min-width:1201px),(min-width:1001px) and (min-height:821px){
+ .mission-active[data-mission=mercury] .mission-guide{position:static}
+ .mission-active[data-mission=mercury] .orrery-view{display:grid;grid-template-columns:minmax(0,1.8fr) minmax(280px,1fr);grid-template-rows:1fr 1fr;gap:24px 36px;min-height:calc(100dvh - var(--mission-guide-height,180px));padding:24px 4%;align-items:center}
+ .mission-active[data-mission=mercury] .orrery-heading,.mission-active[data-mission=mercury] .neighbourhood-nav,.mission-active[data-mission=mercury] .orbit-toolbar,.mission-active[data-mission=mercury] .orbit-selected,.mission-active[data-mission=mercury] .orbit-model-note,.mission-active[data-mission=mercury] .year-insight,.mission-active[data-mission=mercury] .trip-key{display:none}
+ .mission-active[data-mission=mercury] .orrery-stage{grid-column:1;grid-row:1/3;height:clamp(180px,calc(100dvh - var(--mission-guide-height,180px) - 48px),680px);min-width:0;margin:0}
+ .mission-active[data-mission=mercury] .orbit-key{display:block;left:12px;right:12px;bottom:12px;font-size:11px;letter-spacing:.04em;line-height:1.4}
+ .mission-active[data-mission=mercury] .orbit-key>span:last-child{display:none}
+ .mission-active[data-mission=mercury] .orbit-console{grid-column:2;grid-row:1;grid-template-columns:minmax(0,1fr);min-width:0;gap:18px;padding:0;align-self:end}
+ .mission-active[data-mission=mercury] .time-actions{grid-column:auto}
+ .mission-active[data-mission=mercury] #orbitPlay{min-height:46px;font-size:14px}
+ .mission-active[data-mission=mercury] .orbit-speed,.mission-active[data-mission=mercury] #oneYear{display:none}
+ .mission-active[data-mission=mercury] .orbit-timeline{min-width:0}
+ .mission-active[data-mission=mercury] .orbit-timeline label>span:first-child{font-size:22px}
+ .mission-active[data-mission=mercury] .orbit-timeline label>span:last-child{font-size:10px;letter-spacing:.03em}
+ .mission-active[data-mission=mercury] .orbit-timeline .range-caption{font-size:10px}
+ .mission-active[data-mission=mercury] .orbit-scoreboard{grid-column:2;grid-row:2;grid-template-columns:1fr 1fr;gap:24px;align-self:start;padding:22px 0 0;border-top:1px solid var(--line)}
+ .mission-active[data-mission=mercury] #orbitScoreboard button:not([data-orbit=mercury]):not([data-orbit=earth]){display:none}
+ .mission-active[data-mission=mercury] .orbit-scoreboard button>span{font-size:14px}
+ .mission-active[data-mission=mercury] .orbit-scoreboard strong{font-size:32px;gap:10px;margin:14px 0}
+ .mission-active[data-mission=mercury] .orbit-scoreboard strong small{font-size:11px}
+ .mission-active[data-mission=mercury] .trip-dial{width:40px;height:40px}
+ .mission-active[data-mission=mercury] .orbit-scoreboard .trip-caption{font-size:12px;min-height:0}
+}
+
+/* Image recovery stays beside the moon scene, clear of its canvas controls. */
+.moon-load-notice{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px 16px;padding:12px 0;color:#aabac3;font-size:12px}
+.moon-load-notice p{flex:1 1 230px;margin:0;line-height:1.5}
+.moon-load-notice button{flex-shrink:0;min-height:44px;border:1px solid #b9a78688;border-radius:3px;padding:10px 14px;color:#dfcba4;font-size:12px}
