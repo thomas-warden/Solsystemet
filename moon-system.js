@@ -7,6 +7,7 @@ import { AnchoredLabels } from './orbit-labels.js?v=20261016labels';
 const $=id=>document.getElementById(id),TAU=Math.PI*2;
 const reduced=matchMedia('(prefers-reduced-motion: reduce)');
 const CAMERA_DURATION=.75;
+const CHECKPOINT_DURATION=.8;
 
 function earthMaterial(material){
  // Color maps are already decoded to linear light by Three. The water mask is
@@ -59,8 +60,11 @@ export class MoonSystem {
   this.scene=new THREE.Scene();this.sky=addCelestialSky(this.scene);this.camera=new THREE.PerspectiveCamera(38,1,.03,500);this.camera.position.set(0,17,25);this.controls=new OrbitControls(this.camera,$('moonCanvas'));this.controls.enableDamping=true;this.controls.enablePan=false;this.controls.minDistance=4;this.controls.maxDistance=90;this.controls.maxPolarAngle=Math.PI*.9;this.controls.target.set(0,0,0);this.controls.addEventListener('start',()=>{this.flight=null;});this.controls.addEventListener('change',()=>{this.dirty=true;});
   this.ambientLight=new THREE.AmbientLight(0x73879a,.34);this.sunlight=new THREE.DirectionalLight(0xffedcf,2.9);this.sunlight.position.set(-8,5,7);this.sunDirection=this.sunlight.position.clone().normalize();this.scene.add(this.ambientLight,this.sunlight);this.group=new THREE.Group();this.scene.add(this.group);this.sphere=new THREE.SphereGeometry(1,64,40);this.loader=new THREE.TextureLoader();this.labels=[];
   this.labelLayout=new AnchoredLabels($('moonLabels'),()=>{this.dirty=true;});
+  this.consoleAnchor=document.createComment('Moon console position for the larger families');$('moonConsole').before(this.consoleAnchor);
+  this.guideVectors=Array.from({length:5},()=>new THREE.Vector3());
   $('moonFocus').onchange=e=>this.select(e.target.value);
-  $('moonPlay').onclick=()=>{if(this.days>=this.span)this.days=0;this.playing=!this.playing;this.updateUI();};$('moonDay').oninput=e=>{this.days=Number(e.target.value)/1000*this.span;this.playing=false;this.modelDirty=true;this.updateUI();};$('moonPerspective').onclick=()=>this.setView(false);$('moonTop').onclick=()=>this.setView(true);$('moonReset').onclick=()=>{this.days=0;this.playing=!reduced.matches;this.select(FAMILIES[this.parent][0]);this.setView(false);this.updateUI();};
+  $('moonPlay').onclick=()=>{this.cancelCheckpoint();if(this.days>=this.span){this.days=0;this.modelDirty=true;}this.playing=!this.playing;this.updateUI();};$('moonDay').oninput=e=>{this.cancelCheckpoint();this.days=Number(e.target.value)/1000*this.span;this.playing=false;this.modelDirty=true;this.updateUI();};$('moonPerspective').onclick=()=>this.setView(false);$('moonTop').onclick=()=>this.setView(true);$('moonReset').onclick=()=>{this.cancelCheckpoint();this.days=0;this.playing=!reduced.matches;this.select(FAMILIES[this.parent][0]);this.setView(false);this.updateUI();};
+  for(const button of document.querySelectorAll('[data-moon-checkpoint]'))button.onclick=()=>this.checkpoint(Number(button.dataset.moonCheckpoint));
   const canvas=$('moonCanvas');
   canvas.addEventListener('pointerdown',e=>{if(e.isPrimary&&e.button===0)this.pointer={id:e.pointerId,x:e.clientX,y:e.clientY,moved:false};});
   canvas.addEventListener('pointermove',e=>{if(this.pointer?.id===e.pointerId&&Math.hypot(e.clientX-this.pointer.x,e.clientY-this.pointer.y)>6)this.pointer.moved=true;});
@@ -76,25 +80,56 @@ export class MoonSystem {
    if(body?.userData.id)location.hash='#'+body.userData.id;
   });
   canvas.onkeydown=e=>{if(!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','+','=','-'].includes(e.key))return;e.preventDefault();this.flight=null;const s=new THREE.Spherical().setFromVector3(this.camera.position);if(e.key==='ArrowLeft')s.theta-=.12;if(e.key==='ArrowRight')s.theta+=.12;if(e.key==='ArrowUp')s.phi=Math.max(.05,s.phi-.1);if(e.key==='ArrowDown')s.phi=Math.min(Math.PI*.9,s.phi+.1);if(['+','='].includes(e.key))s.radius=Math.max(4,s.radius*.85);if(e.key==='-')s.radius=Math.min(90,s.radius/.85);this.camera.position.setFromSpherical(s);this.controls.update();};
-  reduced.addEventListener('change',e=>{if(e.matches){this.playing=false;this.dirty=true;this.updateUI();}});
+  reduced.addEventListener('change',e=>{if(e.matches){this.playing=false;if(this.timeFlight)this.finishCheckpoint();this.dirty=true;this.updateUI();}});
   this.observer=new ResizeObserver(()=>this.resize());this.observer.observe($('moonStage'));
   this.labelObserver=new ResizeObserver(()=>this.measureLabelBounds());for(const el of $('moonStage').querySelectorAll('.orbit-toolbar,.orbit-key'))this.labelObserver.observe(el);
+  this.arrivalObserver=new ResizeObserver(()=>this.fitEarthStage());for(const el of [$('moonConsole'),$('moonSystemView').querySelector('.orrery-heading'),$('moonSystemView').querySelector('.neighbourhood-nav'),document.querySelector('.topbar')])this.arrivalObserver.observe(el);
+  window.addEventListener('resize',()=>this.fitEarthStage());
  }
  texture(path,colorSpace=THREE.SRGBColorSpace){const key=path+'|'+colorSpace;if(!this.textures.has(key))this.textures.set(key,this.loader.loadAsync(path).then(t=>{t.colorSpace=colorSpace;t.anisotropy=Math.min(8,this.renderer.capabilities.getMaxAnisotropy());this.dirty=true;return t;}));return this.textures.get(key);}
  async show(parent,selected){
-  this.active=true;this.dirty=true;this.modelDirty=true;this.playing=!reduced.matches;if(this.parent===parent){if(this.days>=this.span)this.days=0;this.select(selected||this.selected);this.resize();this.updateUI();return;}this.parent=parent;this.days=0;this.selected=selected||FAMILIES[parent][0];const token=++this.request;
+  this.cancelCheckpoint();this.configureObservation(parent);
+  this.active=true;this.dirty=true;this.modelDirty=true;this.playing=!reduced.matches;if(this.parent===parent){if(this.days>=this.span)this.days=0;this.select(selected||this.selected);this.fitEarthStage();this.resize();this.updateUI();return;}this.parent=parent;this.days=0;this.selected=selected||FAMILIES[parent][0];const token=++this.request;
   // The Earth neighbourhood has neutral sunlight and a darker night side.
   // Restore the established rig when moving to either giant-planet family.
   this.ambientLight.color.setHex(parent==='earth'?0xffffff:0x73879a);this.ambientLight.intensity=parent==='earth'?.035:.34;
   this.sunlight.color.setHex(parent==='earth'?0xfffaf3:0xffedcf);this.sunlight.intensity=parent==='earth'?3.2:2.9;
   for(const child of [...this.group.children]){child.traverse(o=>{if(o.geometry&&o.geometry!==this.sphere)o.geometry.dispose();if(o.material)o.material.dispose();});this.group.remove(child);}this.items={};this.labels=[];this.labelLayout.clear();$('moonLabels').replaceChildren();
   const ids=FAMILIES[parent];this.span=parent==='earth'?28:parent==='jupiter'?17:80;this.maxRadius=parent==='earth'?4.6:parent==='jupiter'?8.3:11.4;
-  $('moonSystemTitle').textContent=parent==='earth'?'Earth & the Moon.':WORLDS[parent].title+'’s moons.';$('moonSystemIntro').innerHTML=parent==='earth'?'Two worlds, one familiar sky.<br>Watch the Moon circle our home.':parent==='jupiter'?'Four moons. Four different worlds.<br>Fire, ice and hidden oceans.':'Seven moons beyond the rings.<br>Ice fountains, methane rain and a mountain seam.';
+  $('moonSystemTitle').textContent=parent==='earth'?'Earth & the Moon.':WORLDS[parent].title+'’s moons.';$('moonSystemIntro').innerHTML=parent==='earth'?'Why do we see the same face?<br>Follow the drawn gold pointer.':parent==='jupiter'?'Four moons. Four different worlds.<br>Fire, ice and hidden oceans.':'Seven moons beyond the rings.<br>Ice fountains, methane rain and a mountain seam.';
   $('moonSystemEyebrow').textContent=parent==='earth'?'OUR NEAREST NEIGHBOUR':parent==='jupiter'?'THE FOUR GALILEAN MOONS':'SEVEN MAJOR MOONS OF SATURN';$('moonClockNote').textContent=parent==='jupiter'?'Io makes about four trips while Ganymede makes one.':parent==='saturn'?'Watch the inner moons hurry past distant Iapetus.':'The Moon takes about 27 Earth days to circle Earth.';$('moonTimeSpan').textContent=this.span+' EARTH DAYS';
   
   const jobs=[this.makeBody(parent,1.3,0,0)];
   ids.forEach((id,i)=>{const p=MOONS[id],r=parent==='earth'?4.6:3.5+i*(parent==='jupiter'?1.6:1.3166667),size=parent==='earth'?1.3*p.radius/WORLDS.earth.radius:Math.max(.115,1.3*p.radius/WORLDS[parent].radius*5.5);jobs.push(this.makeBody(id,size,r,i));});
-  if(parent==='saturn')jobs.push(this.makeRings());this.setView(false,{immediate:true});this.resize();this.select(this.selected);this.updateUI();$('moonStatus').textContent='Preparing the moon system…';const results=await Promise.allSettled(jobs);if(token===this.request)$('moonStatus').textContent=results.some(r=>r.status==='rejected')?'Some imagery is unavailable. The orbit model is still active.':'';
+  if(parent==='saturn')jobs.push(this.makeRings());this.fitEarthStage();this.setView(false,{immediate:true});this.resize();this.select(this.selected);this.updateUI();$('moonStatus').textContent='Preparing the moon system…';const results=await Promise.allSettled(jobs);if(token===this.request)$('moonStatus').textContent=results.some(r=>r.status==='rejected')?'Some imagery is unavailable. The orbit model is still active.':'';
+ }
+ configureObservation(parent){
+  const earth=parent==='earth';$('moonSystemView').dataset.parent=parent;
+  if(earth)$('moonStage').before($('moonConsole'));else this.consoleAnchor.after($('moonConsole'));
+  $('moonCheckpoints').hidden=$('moonObservationNotes').hidden=!earth;$('moonFaceGuide').setAttribute('hidden','');
+  $('moonScaleKey').textContent=earth?'GOLD POINTER · DRAWN SAME-FACE GUIDE':'COMPOSED DISTANCES · MOONS ENLARGED';
+  $('moonGestureKey').textContent=earth?'TRY FROM ABOVE · DRAG TO ORBIT':'CLICK A WORLD TO VISIT · DRAG TO ORBIT';
+  if(!earth)$('moonStage').style.removeProperty('height');
+ }
+ fitEarthStage(){
+  if(this.parent!=='earth'||!this.active||$('moonSystemView').hidden)return;
+  const stage=$('moonStage'),top=stage.getBoundingClientRect().top+window.scrollY;
+  // Leave scrolling room on short phones; fit the complete scene on ordinary arrivals.
+  const height=Math.max(280,Math.min(620,innerHeight-top-12));
+  if(Math.abs(stage.getBoundingClientRect().height-height)>1)stage.style.height=height+'px';
+ }
+ cancelCheckpoint(){this.timeFlight=null;this.checkpointTarget=null;$('moonCheckpointStatus').textContent='The pointer turns with the Moon.';}
+ checkpoint(fraction){
+  if(!this.active||this.parent!=='earth'||!this.items.moon)return;
+  this.cancelCheckpoint();this.playing=false;this.checkpointTarget=fraction;
+  this.timeFlight={start:this.days,end:MOONS.moon.period*fraction,t:0};
+  if(reduced.matches||Math.abs(this.days-this.timeFlight.end)<1e-9)this.finishCheckpoint();
+  this.updateUI();
+ }
+ finishCheckpoint(){
+  if(!this.timeFlight)return;this.days=this.timeFlight.end;this.timeFlight=null;this.modelDirty=true;
+  const fraction=this.checkpointTarget,label=fraction===.25?'¼ turn':fraction===.5?'½ turn':'One turn';
+  $('moonCheckpointStatus').textContent=label+'; the pointer still faces Earth.';
  }
  async makeBody(id,size,r,index){
   const p=WORLDS[id],material=new THREE.MeshStandardMaterial({roughness:1,color:0xffffff}),mesh=new THREE.Mesh(this.sphere,material);mesh.scale.set(size,size*(id==='jupiter'?.935:id==='saturn'?.902:1),size);mesh.userData.id=id;this.group.add(mesh);
@@ -134,16 +169,34 @@ export class MoonSystem {
   // Observe wrapping controls once, instead of reading their layout per label/frame.
   const stage=$('moonStage'),canvas=this.renderer.domElement.getBoundingClientRect(),toolbar=stage.querySelector('.orbit-toolbar').getBoundingClientRect(),key=stage.querySelector('.orbit-key').getBoundingClientRect();
   this.labelLayout.measure(canvas,toolbar,key);
+  this.guideObstacles=[...stage.querySelectorAll('.orbit-toolbar button,.orbit-toolbar select')].filter(el=>el.getClientRects().length).map(el=>{const r=el.getBoundingClientRect();return {left:r.left-canvas.left-4,right:r.right-canvas.left+4,top:r.top-canvas.top-4,bottom:r.bottom-canvas.top+4};});
  }
- hide(){this.active=false;this.playing=false;this.updateUI();}
- updateUI(){$('moonPlay').textContent=this.playing?'Ⅱ Pause orbits':'▶ Play orbits';$('moonPlay').setAttribute('aria-pressed',String(this.playing));$('moonDay').value=Math.round(this.days/this.span*1000);$('moonDay').setAttribute('aria-valuetext',this.days.toFixed(1)+' Earth days');$('moonTime').textContent='Day '+this.days.toFixed(1);}
+ hide(){this.cancelCheckpoint();this.active=false;this.playing=false;$('moonFaceGuide').setAttribute('hidden','');this.updateUI();}
+ updateUI(){
+  $('moonPlay').textContent=this.playing?'Ⅱ Pause orbits':'▶ Play orbits';$('moonPlay').setAttribute('aria-pressed',String(this.playing));$('moonDay').value=Math.round(this.days/this.span*1000);$('moonDay').setAttribute('aria-valuetext',this.days.toFixed(1)+' Earth days');$('moonTime').textContent='Day '+this.days.toFixed(1);
+  if(this.parent==='earth'){
+   const progress=this.days/MOONS.moon.period,near=value=>Math.abs(progress-value)<.0001;
+   const value=near(.25)?'¼':near(.5)?'½':near(1)?'1':near(0)?'0':progress.toFixed(2);
+   $('moonTurnReading').textContent=value+' orbit'+(progress>1.0001?'s':'')+' · '+value+' turn'+(progress>1.0001?'s':'');
+   for(const button of document.querySelectorAll('[data-moon-checkpoint]')){
+    if(!this.timeFlight&&near(Number(button.dataset.moonCheckpoint)))button.setAttribute('aria-current','step');else button.removeAttribute('aria-current');
+   }
+  }
+ }
  advanceTime(dt){
-  if(!this.playing||this.labelLayout.hasFocus())return false;const previousDays=this.days;
+  if(this.labelLayout.hasFocus())return false;
+  if(this.timeFlight){
+   const trip=this.timeFlight;trip.t+=dt;const t=Math.min(1,trip.t/CHECKPOINT_DURATION),e=t*t*(3-2*t);
+   this.days=trip.start+(trip.end-trip.start)*e;
+   if(t===1){this.finishCheckpoint();this.updateUI();}
+   return true;
+  }
+  if(!this.playing)return false;const previousDays=this.days;
   this.days=Math.min(this.span,this.days+dt*(this.parent==='earth'?1:.25));if(this.days>=this.span)this.playing=false;
   return this.days!==previousDays;
  }
  advanceOffscreen(dt,now){
-  if(!this.active||!this.parent||!this.playing)return;
+  if(!this.active||!this.parent||(!this.playing&&!this.timeFlight))return;
   if(this.advanceTime(dt))this.modelDirty=true;
   if(!this.playing||!this.lastRead||now-this.lastRead>100){this.updateUI();this.lastRead=now;}
  }
@@ -172,6 +225,37 @@ export class MoonSystem {
    const radius=mesh.scale.x*(id==='saturn'?2.27:1)*scale/Math.max(.001,-view.z);
    return {id,x:(p.x*.5+.5)*width,y:(-p.y*.5+.5)*height,radius,visible:p.z>=-1&&p.z<1};
   });
-  return this.labelLayout.update(items,dt,{selected:this.selected,reducedMotion:reduced.matches});
+  const moving=this.labelLayout.update(items,dt,{selected:this.selected,reducedMotion:reduced.matches});
+  this.positionFaceGuide();return moving;
+ }
+ positionFaceGuide(){
+  const svg=$('moonFaceGuide'),moon=this.items.moon?.mesh,earth=this.items.earth?.mesh;
+  if(this.parent!=='earth'||!moon||!earth){svg.setAttribute('hidden','');return;}
+  const {width,height,left,right,bottom}=this.labelLayout.bounds;
+  const [center,face,planet,view,earthView]=this.guideVectors;
+  moon.getWorldPosition(center);earth.getWorldPosition(planet);
+  // Derive the direction from the real mesh orientation, not a line aimed at Earth.
+  face.set(-1,0,0).applyMatrix4(moon.matrixWorld);
+  view.copy(center).applyMatrix4(this.camera.matrixWorldInverse);earthView.copy(planet).applyMatrix4(this.camera.matrixWorldInverse);
+  const scale=height/(2*Math.tan(THREE.MathUtils.degToRad(this.camera.fov)/2));
+  const radius=moon.scale.x*scale/Math.max(.001,-view.z),earthRadius=earth.scale.x*scale/Math.max(.001,-earthView.z);
+  center.project(this.camera);face.project(this.camera);planet.project(this.camera);
+  const x=(center.x*.5+.5)*width,y=(-center.y*.5+.5)*height,dx=(face.x-center.x)*width/2,dy=-(face.y-center.y)*height/2;
+  const length=Math.hypot(dx,dy),extent=radius+9;
+  const covered=earthView.z>view.z&&Math.hypot((planet.x-center.x)*width/2,(planet.y-center.y)*height/2)<earthRadius+radius;
+  // A nearly end-on direction has no stable screen angle. Never normalize it,
+  // clip a pointer into controls, or draw it through the foreground Earth.
+  const obstructed=this.guideObstacles?.some(r=>x+extent>r.left&&x-extent<r.right&&y+extent>r.top&&y-extent<r.bottom);
+  if(!width||center.z<0||center.z>=1||length<(svg.hasAttribute('hidden')?2.5:1.5)||covered||obstructed||x-extent<left||x+extent>right||y-extent<8||y+extent>bottom){svg.setAttribute('hidden','');return;}
+  const entry=this.labelLayout.entries.get('earth');
+  if(entry?.target){
+   const ex=(planet.x*.5+.5)*width+earthRadius+10,ey=(-planet.y*.5+.5)*height-entry.height/2;
+   if(x+extent>ex&&x-extent<ex+entry.width&&y+extent>ey&&y-extent<ey+entry.height){svg.setAttribute('hidden','');return;}
+  }
+  svg.removeAttribute('hidden');svg.setAttribute('viewBox',`0 0 ${width} ${height}`);
+  $('moonFacePointer').setAttribute('transform',`translate(${x} ${y}) rotate(${Math.atan2(dy,dx)*180/Math.PI})`);
+  $('moonFaceRing').setAttribute('r',radius+6);
+  const tip=radius+8,neck=radius-1;
+  $('moonFaceArrow').setAttribute('d',`M ${tip} 0 L ${neck} -6 L ${neck} -2 L -3 -2 L -3 2 L ${neck} 2 L ${neck} 6 Z`);
  }
 }

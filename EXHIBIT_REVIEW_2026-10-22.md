@@ -35,7 +35,13 @@ Next critique: the smaller phone Moon needs a readable orientation guide, and th
 
 ## Pass 3 — An observable Earth–Moon experiment and usable controls
 
-Pending review of the completed second pass.
+Moved Earth–Moon time controls above the scene, removed its single-option moon picker and duplicate upper close-up link, and fitted the scene to the remaining opening viewport. Larger moon families retain their established controls. Quarter-, half- and full-orbit checkpoints show both orbital travel and the matching turn, measured from Day zero.
+
+A gold pointer follows the Moon's actual local near-side direction. It is explicitly labelled as a drawing, stays separate from the clickable name, and hides for occlusion or a nearly end-on direction. The bodies keep their proportional diameters. Notes distinguish compressed spacing, omitted daily Earth rotation and fixed illustrative sunlight from a phase calendar. Re-review added a short visible conclusion at each checkpoint; reserved space prevents the scene from jumping when that text changes.
+
+Recheck: inspected fresh phone arrival and quarter-orbit views at 390×844, plus desktop arrival at 1440×1000. Pause, time, checkpoints and the complete scene fit together. The gold pointer is readable on the phone Moon without obscuring its name. Also inspected the compact 320×568 and landscape 844×390 views: these remain scrollable and usable rather than forcing every element into the opening screen. The focused suite passed forward/reverse checkpoint travel, actual orientation in both camera views, occlusion, paused rendering, keyboard access, cancellations, family restoration, close-up links and reduced motion. Lighting checks still pass. The science regression passed prograde motion and period closure for eight planets and twelve moons, plus actual mesh tidal locking through all orbital phases, including inclined Moon and Iapetus. Final evidence: `/tmp/solsystemet-pass3/moon-observation-390-quarter.png`, `moon-observation-1440-quarter.png`, `moon-observation-320-reduced.png` and `moon-observation-844-reduced.png`.
+
+Next critique: failed downloads still leave imagery missing after a revisit, and the wide Mercury activity still needs a workspace that keeps the orbit scene and its evidence together. These are the final integrated pass's two concrete fixes.
 
 ## Pass 4 — Integrated critique, failures and final refinement
 
