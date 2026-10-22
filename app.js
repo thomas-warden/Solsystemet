@@ -44,8 +44,8 @@ fetch('assets/research/moon-stories.json').then(r=>r.json()).then(data=>{
 const reduced=matchMedia('(prefers-reduced-motion: reduce)');
 const profiles=WORLDS;
 const cities={'abu-dhabi':{name:'Abu Dhabi',lon:54.37,lat:24.45},stockholm:{name:'Stockholm',lon:18.06,lat:59.33},tokyo:{name:'Tokyo',lon:139.69,lat:35.68},'new-york':{name:'New York',lon:-74.01,lat:40.71},quito:{name:'Quito',lon:-78.47,lat:-.18}};
-const state={world:'earth',otherSpin:0,moonTilt:0,lightPhase:.943,axisTilt:98,titanSurface:false,venusEnhanced:true,venusSurface:false,earthProgress:.3,jupiterSpin:2.224,saturnSpin:.4,angle:24,renderAngle:24,spin:0,time:0,clouds:true,lights:true,zoom:0,storm:false,compare:false,particles:false,speed:1,running:!reduced.matches,city:'abu-dhabi'};
-let renderer,ready=false,last=0,lastReadout=0,drag=null,venusRequest=0,titanRequest=0,lastPlanetFrame='',rendererFailure='';
+const state={world:'earth',earthViewYaw:0,otherSpin:0,moonTilt:0,lightPhase:.943,axisTilt:98,titanSurface:false,venusEnhanced:true,venusSurface:false,earthProgress:.3,jupiterSpin:2.224,saturnSpin:.4,angle:24,renderAngle:24,spin:0,time:0,clouds:true,lights:true,zoom:0,storm:false,compare:false,particles:false,speed:1,running:!reduced.matches,city:'abu-dhabi'};
+let renderer,ready=false,last=0,lastReadout=0,drag=null,venusRequest=0,titanRequest=0,lastPlanetFrame='',rendererFailure='',earthInput=null;
 const releaseMotion={x:0,y:0};
 const sceneVisibility=new WeakMap();
 const sceneObserver=new IntersectionObserver(entries=>{for(const entry of entries)sceneVisibility.set(entry.target,entry.isIntersecting);},{threshold:0});
@@ -54,10 +54,22 @@ const isSceneVisible=id=>{const el=$(id);return el&&sceneVisibility.get(el)!==fa
 const wrap=v=>((v%1)+1)%1;
 function toast(text){$('toast').textContent=text;$('toast').classList.add('show');clearTimeout(toast.timer);toast.timer=setTimeout(()=>$('toast').classList.remove('show'),3500);}
 function setRunning(value){releaseMotion.x=releaseMotion.y=0;state.running=value;updateReadouts();}
+function setSunriseView(active){
+ const yaw=active?-Math.PI*.8:0;if(state.earthViewYaw!==yaw){state.earthViewYaw=yaw;lastPlanetFrame='';updateReadouts();}
+ if(state.world==='earth')$('sceneCaption').textContent=active?'EARTH / WATCHING THE DAWN SIDE':profiles.earth.caption;
+}
+function captureSunrise(from,to){
+ // Locate the actual night-to-day crossing along the user's forward time input.
+ // This holds the observation at the boundary instead of awarding a skipped scene.
+ const city=cities[state.city],lat=city.lat*Math.PI/180;
+ const lit=value=>{const lon=city.lon*Math.PI/180-((1-value/1000)*Math.PI*2-1.3);return Math.cos(lat)*(-1.8*Math.sin(lon)+1.3*Math.cos(lon))+.55*Math.sin(lat)>0;};
+ let night=from,day=to;for(let i=0;i<24;i++){const middle=(night+day)/2;if(lit(middle))day=middle;else night=middle;}
+ state.earthProgress=1-day/1000;setRunning(false);lastPlanetFrame='';
+}
 function updateReadouts(){
  const p=profiles[state.world];
  $('playButton').setAttribute('aria-pressed',String(state.running));$('playIcon').textContent=state.running?'Ⅱ':'▶';$('playLabel').textContent=state.running?'Pause':state.world==='venus'&&state.venusSurface?'Watch the backward turn':p.play;
- $('earthRotation').value=Math.round(state.earthProgress*1000);
+ $('earthRotation').value=Math.round((1-state.earthProgress)*1000);
  const spin=state.earthProgress*Math.PI*2-1.3;
  const sunLon=(Math.atan2(-1.8,1.3)+spin)*180/Math.PI;
  const hour=wrap((12+(cities[state.city].lon-sunLon)/15)/24)*24;
@@ -66,6 +78,7 @@ function updateReadouts(){
  const n=[Math.cos(lat)*Math.sin(lon),Math.sin(lat),Math.cos(lat)*Math.cos(lon)];
  const daylight=n[0]*-1.8+n[1]*.55+n[2]*1.3>0;
  $('dayStatus').textContent=daylight?'Daylight':'Nighttime';
+ $('earthRotation').setAttribute('aria-valuetext',cities[state.city].name+', '+$('solarClock').textContent+' model solar time, '+$('dayStatus').textContent);
  $('jupiterReading').textContent='×'+state.speed.toFixed(1);$('saturnReading').textContent=Math.round(state.angle)+'°';$('saturnAngle').value=state.angle;
  $('stormButton').setAttribute('aria-pressed',String(state.storm));$('earthCompare').setAttribute('aria-pressed',String(state.compare));$('particleButton').setAttribute('aria-pressed',String(state.particles));
  $('compareLabel').hidden=state.world!=='jupiter'||!state.compare;
@@ -79,7 +92,8 @@ function updateReadouts(){
 function positionCity(n){
  const c=cities[state.city],lat=c.lat*Math.PI/180,lon=c.lon*Math.PI/180-(state.earthProgress*Math.PI*2-1.3);
  n=n||[Math.cos(lat)*Math.sin(lon),Math.sin(lat),Math.cos(lat)*Math.cos(lon)];
- const a=.15,r=-.12;const y=Math.cos(a)*n[1]-Math.sin(a)*n[2],z=Math.sin(a)*n[1]+Math.cos(a)*n[2];const x=Math.cos(r)*n[0]-Math.sin(r)*y,yy=Math.sin(r)*n[0]+Math.cos(r)*y;
+ const yaw=state.earthViewYaw,cameraX=Math.cos(yaw)*n[0]-Math.sin(yaw)*n[2],cameraZ=Math.sin(yaw)*n[0]+Math.cos(yaw)*n[2];
+ const a=.15,r=-.12;const y=Math.cos(a)*n[1]-Math.sin(a)*cameraZ,z=Math.sin(a)*n[1]+Math.cos(a)*cameraZ;const x=Math.cos(r)*cameraX-Math.sin(r)*y,yy=Math.sin(r)*cameraX+Math.cos(r)*y;
  const rect=canvas.getBoundingClientRect(),half=1.13,aspect=rect.width/rect.height;
  $('cityMarker').hidden=state.world!=='earth'||z<.12||!ready;
  $('cityMarker').style.left=(.5+x/(2*half*aspect))*rect.width+'px';$('cityMarker').style.top=(.5-yy/(2*half))*rect.height+'px';$('cityMarkerName').textContent=c.name;
@@ -184,7 +198,7 @@ $('titanNorth').onclick=()=>{
 $('sunAngle').oninput=e=>{state.lightPhase=Number(e.target.value)*Math.PI/180;updateReadouts();};
 $('axisTilt').oninput=e=>{state.axisTilt=Number(e.target.value);updateReadouts();};
 $('citySelect').onchange=e=>{state.city=e.target.value;updateReadouts();};
-$('earthRotation').oninput=e=>{state.earthProgress=Number(e.target.value)/1000;setRunning(false);};
+$('earthRotation').oninput=e=>{const from=(1-state.earthProgress)*1000,to=Number(e.target.value);earthInput={from,to,wasDaylight:$('dayStatus').textContent==='Daylight'};state.earthProgress=1-to/1000;setRunning(false);};
 $('cloudToggle').onchange=e=>state.clouds=e.target.checked;$('lightsToggle').onchange=e=>state.lights=e.target.checked;
 $('jupiterTime').oninput=e=>{state.speed=1+Number(e.target.value)*.1;updateReadouts();};
 $('saturnAngle').oninput=e=>{state.angle=Number(e.target.value);updateReadouts();};
@@ -260,7 +274,7 @@ async function switchWorld(path){
  missions.routeChanged();$('routeAnnouncement').textContent=document.title.split(' — ')[0];
 }
 $('homeMotion').onclick=()=>{if(orrery){orrery.playing=!orrery.playing;orrery.updateUI();$('homeMotion').setAttribute('aria-pressed',String(orrery.playing));$('homeMotion').textContent=orrery.playing?'Ⅱ Pause':'▶ Play';}};
-const missions=createMissions({navigate,readState:()=>({view,world:state.world,ready,availability:view==='planet'?(ready?'ready':$('scene').classList.contains('is-loading')?'loading':'unavailable'):view==='orrery'?orreryAvailability:'ready',daylight:$('dayStatus').textContent,days:orrery?.days||0})});
+const missions=createMissions({navigate,setSunriseView,captureSunrise,readState:()=>({view,world:state.world,ready,earthInput,city:cities[state.city].name,yearLength:WORLDS.earth.period,availability:view==='planet'?(ready?'ready':$('scene').classList.contains('is-loading')?'loading':'unavailable'):view==='orrery'?orreryAvailability:'ready',daylight:$('dayStatus').textContent,days:orrery?.days||0})});
 let lastMissionRead=0,lastReduced=reduced.matches;
 function frame(ts){
  // Some browsers delay media-query change events; also observe the preference at frame boundaries.
@@ -282,7 +296,7 @@ function frame(ts){
   if(Math.abs(state.zoom-(state.storm?1:0))<.00005)state.zoom=state.storm?1:0;
   if(Math.abs(state.renderAngle-state.angle)<.001)state.renderAngle=state.angle;
   const renderState={...state,angle:profiles[state.world].parent?state.moonTilt:state.renderAngle};
-  const signature=[state.world,state.spin,state.time,renderState.angle,state.lightPhase,state.axisTilt,state.clouds,state.lights,state.zoom,state.compare,state.particles,state.speed,state.titanSurface,state.venusEnhanced,state.venusSurface,canvas.width,canvas.height,renderer.revision].join('|');
+  const signature=[state.world,state.spin,state.time,renderState.angle,state.lightPhase,state.axisTilt,state.clouds,state.lights,state.zoom,state.compare,state.particles,state.speed,state.titanSurface,state.earthViewYaw,state.venusEnhanced,state.venusSurface,canvas.width,canvas.height,renderer.revision].join('|');
   if(signature!==lastPlanetFrame){renderer.render(renderState);lastPlanetFrame=signature;}
   if(ts-lastReadout>100&&(state.running||drag||Math.abs(releaseMotion.x)>.5||Math.abs(releaseMotion.y)>.5)){updateReadouts();lastReadout=ts;}
  }

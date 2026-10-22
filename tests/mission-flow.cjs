@@ -29,14 +29,6 @@ async function start(page, id) {
   await page.waitForFunction(() => document.querySelector('#atlas').classList.contains('mission-active'));
 }
 
-async function earthLight(page, wanted) {
-  for (let value = 0; value <= 1000; value += 100) {
-    await range(page, '#earthRotation', value);
-    if (await page.locator('#dayStatus').textContent() === wanted) return value;
-  }
-  throw new Error(`Earth never reached ${wanted}`);
-}
-
 async function checkFit(page, activeControl, scene = '#scene') {
   await page.waitForTimeout(250);
   const viewport = page.viewportSize(), label = `${viewport.width}×${viewport.height} mission`;
@@ -67,28 +59,35 @@ async function checkFit(page, activeControl, scene = '#scene') {
     console.log('PASS welcome and keyboard mission entry');
 
     await start(page, 'sunrise');
-    const night = await earthLight(page, 'Nighttime');
+    await range(page, '#earthRotation', 200);
+    assert.equal(await page.locator('#dayStatus').textContent(), 'Nighttime');
     assert.equal(await step(page), '0', 'rotating before choosing a city must not skip city selection');
     await page.locator('#missionAction').click();
     await page.waitForTimeout(700);
     assert.equal(await step(page), '1', 'an already-dark city must not pass an observation without input');
-    await range(page, '#earthRotation', night);
+    await range(page, '#earthRotation', 200);
     assert.equal(await step(page), '2');
     await page.waitForTimeout(700);
     assert.equal(await step(page), '2', 'nighttime alone must not earn the sunrise badge');
-    await earthLight(page, 'Daylight');
+    await range(page, '#earthRotation', 250);
+    assert.equal(await page.locator('#dayStatus').textContent(), 'Daylight');
+    assert.equal(await step(page), '2', 'observing dawn leaves an explicit save action');
+    await page.locator('#missionAction').click();
     assert.equal(await page.locator('#missionStepTitle').textContent(), 'Sunrise spotter');
     await completionFocus(page);
-    console.log('PASS sunrise requires deliberate observations');
+    console.log('PASS sunrise requires a forward dawn observation and explicit save');
 
     await page.locator('#missionNext').click();
     await ready(page);
     assert.equal(await step(page), '0');
     await range(page, '#sunAngle', 60);
-    assert.equal(await step(page), '0', 'a tiny lighting adjustment must not finish observing cracks');
+    assert.equal(await step(page), '0', 'lighting alone does not answer the visual observation');
     await range(page, '#sunAngle', 110);
     assert.equal(await step(page), '0', 'light movement needs an explicit observation');
-    await page.locator('#missionAction').click();
+    await page.locator('[data-answer="1"]').click();
+    assert.equal(await step(page), '0');
+    assert.match(await page.locator('#missionFeedback').textContent(), /ice|surface|water|ocean/i);
+    await page.locator('[data-answer="0"]').click();
     assert.equal(await step(page), '1');
     assert.equal(await page.locator('#europaCutaway').evaluate(element => element.classList.contains('is-open')), false);
     await page.locator('#missionAction').click();
@@ -102,6 +101,8 @@ async function checkFit(page, activeControl, scene = '#scene') {
     assert.ok((await page.locator('#missionFeedback').textContent()).trim(), 'incorrect answer needs useful feedback');
     await page.locator('[data-answer="1"]').click();
     assert.equal(await page.locator('#missionStepTitle').textContent(), 'Ocean detective');
+    await revealedOcean(page);
+    assert.equal(await page.locator('#europaCutaway').isVisible(), true, 'earned discovery retains its visual evidence');
     await completionFocus(page);
     console.log('PASS Europa crack observation, illustrated ocean reveal, and answer feedback');
 
@@ -144,7 +145,7 @@ async function checkFit(page, activeControl, scene = '#scene') {
       await start(page, 'europa');
       await checkFit(page, '#sunAngle');
       await range(page, '#sunAngle', 110);
-      await page.locator('#missionAction').click();
+      await page.locator('[data-answer="0"]').click();
       await checkFit(page, '#missionAction');
       await page.locator('#missionAction').click();
       await revealedOcean(page);
@@ -187,7 +188,7 @@ async function checkFit(page, activeControl, scene = '#scene') {
     await ready(blocked.page);
     assert.equal(await blocked.page.locator('#playButton').getAttribute('aria-pressed'), 'false');
     await range(blocked.page, '#sunAngle', 110);
-    await blocked.page.locator('#missionAction').click();
+    await blocked.page.locator('[data-answer="0"]').click();
     await blocked.page.locator('#missionAction').click();
     await blocked.page.locator('[data-answer="1"]').click();
     assert.equal(await blocked.page.locator('#missionStepTitle').textContent(), 'Ocean detective');
