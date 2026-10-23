@@ -4,6 +4,12 @@ An interactive solar-system atlas for curious children and the adults exploring 
 
 Live site: https://thomas-warden.github.io/Solsystemet/
 
+## Add to your iPhone Home Screen
+
+Open the [welcome page](https://thomas-warden.github.io/Solsystemet/#explore) in Safari on your iPhone. Tap **Share → Add to Home Screen**, keep the name **Solsystemet**, then tap **Add**. This creates a shortcut to the live website. Adding it from another scene may save that scene as the shortcut's destination.
+
+If an existing shortcut still shows the old icon, remove that Home Screen shortcut, reload the site in Safari, then add it again. iOS can cache previously saved icons.
+
 ## Create another learning app
 
 The [Interactive Exhibit Studio skill](.agents/skills/interactive-exhibit-studio/README.md) packages this project's art direction, detailed visual assets, motion, and rendered-review workflow for reuse. It includes a finished Earth reference, reusable scene patterns, subject guidance, and a transfer trial on an ocean exhibit.
