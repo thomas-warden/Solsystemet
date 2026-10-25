@@ -1,4 +1,5 @@
 const { assert, baseURL, launch, newPage, visit, ready, screenshot, assertClean } = require('./browser-helpers.cjs');
+const fs = require('node:fs'), path = require('node:path');
 
 async function instrument(page) {
   // Capture the real module instance, without adding production test hooks.
@@ -16,7 +17,7 @@ async function settled(page) {
   await page.locator('#moonCanvas').scrollIntoViewIfNeeded();
   await page.waitForFunction(() => {
     const s = window.__tideScene;
-    return s && !s.playing && !s.timeFlight && !s.flight && !s.dirty && !s.modelDirty && !s.labelsMoving && s.skyReady === 1;
+    return s && !s.playing && !s.timeFlight && !s.solarFlight && !s.flight && !s.dirty && !s.modelDirty && !s.labelsMoving && s.skyReady === 1;
   });
 }
 async function navigate(page, hash) {
@@ -41,8 +42,8 @@ async function projectedMoon(page, angle = 0) {
     return { x: r.x + (p.x * .5 + .5) * r.width, y: r.y + (-p.y * .5 + .5) * r.height };
   }, angle);
 }
-async function moonHitTarget(page, occluded = false) {
-  return page.evaluate(async occluded => {
+async function moonHitTarget(page, occluded = false, tangential = false) {
+  return page.evaluate(async ({ occluded, tangential }) => {
     const s = window.__tideScene, THREE = await import('./vendor/three.module.js');
     const moon = s.items.moon.mesh, earth = s.items.earth.mesh;
     if (occluded) {
@@ -58,20 +59,135 @@ async function moonHitTarget(page, occluded = false) {
     const offset = occluded ? 0 : radius * .85;
     if (!occluded) {
       const dx = (center.x - globe.x) * box.width, dy = -(center.y - globe.y) * box.height, length = Math.hypot(dx, dy);
-      point.x += dx / length * offset; point.y += dy / length * offset;
+      point.x += (tangential ? -dy : dx) / length * offset; point.y += (tangential ? dx : dy) / length * offset;
     }
     const ray = new THREE.Raycaster();
     ray.setFromCamera(new THREE.Vector2((point.x - box.x) / box.width * 2 - 1, 1 - (point.y - box.y) / box.height * 2), s.camera);
     let hit = ray.intersectObjects([earth, moon], true)[0]?.object;
     while (hit && !hit.userData.id) hit = hit.parent;
-    return { point, radius, offset, firstHit: hit?.userData.id };
-  }, occluded);
+    return { point, radius, offset, days: s.days, firstHit: hit?.userData.id };
+  }, { occluded, tangential });
 }
 async function beginDrag(page) {
   await settled(page); const point = await projectedMoon(page);
   await page.mouse.move(point.x, point.y); await page.mouse.down();
   assert.equal(await page.evaluate(() => !!window.__tideScene.tideDrag), true, 'Pointer press on the visible Moon starts a water interaction');
   assert.equal(await page.evaluate(() => window.__tideScene.controls.enabled), false, 'Moon drag temporarily owns the pointer');
+}
+async function solarTransitions(page) {
+  await preset(page, 0, 1.46);
+  const lighting = await page.evaluate(() => ({ sun: window.__tideScene.sunDirection.toArray(), position: window.__tideScene.sunlight.position.toArray() }));
+  await page.locator('#tideSun').click();
+  await page.waitForFunction(() => window.__tideScene.solarMix > 0 && window.__tideScene.solarMix < 1);
+  const reversal = await page.evaluate(() => {
+    const s = window.__tideScene, before = s.solarMix, range = s.tideData.range, reading = document.querySelector('#tideStrength').textContent;
+    document.querySelector('#tideSun').click();
+    return { before, range, reading, after: s.solarMix, start: s.solarFlight.start };
+  });
+  assert.equal(reversal.after, reversal.before); assert.equal(reversal.start, reversal.before, 'Reversing the Sun transition starts from the current contribution');
+  assert.notEqual(reversal.reading, 'Moon only', 'The readout does not claim Moon-only before the contribution reaches zero');
+  assert(reversal.range > 1 && reversal.range < 1.46);
+  await settled(page);
+  assert.equal(await page.evaluate(() => window.__tideScene.solarMix), 1);
+  await page.evaluate(() => {
+    const s = window.__tideScene, original = s.tideOcean.setState, render = s.renderer.render; window.__solarSamples = []; window.__solarMidFrame = null;
+    s.tideOcean.setState = function (...args) { const state = original.apply(this, args); window.__solarSamples.push({ mix: state.solarMix, range: state.range, uniform: this.uniforms.solarWeight.value }); return state; };
+    s.renderer.render = function (...args) {
+      const result = render.apply(this, args);
+      if (!window.__solarMidFrame && s.solarMix > .35 && s.solarMix < .65) window.__solarMidFrame = {
+        image: this.domElement.toDataURL('image/png'), mix: s.solarMix, range: s.tideData.range, uniform: s.tideOcean.uniforms.solarWeight.value,
+      };
+      return result;
+    };
+    window.__restoreSolarProbe = () => { s.tideOcean.setState = original; s.renderer.render = render; };
+  });
+  await page.locator('#tideSun').click(); await settled(page);
+  const samples = await page.evaluate(() => { window.__restoreSolarProbe(); return window.__solarSamples; });
+  const mid = await page.evaluate(() => window.__solarMidFrame);
+  assert(mid && mid.mix > .35 && mid.mix < .65, 'Capture a real intermediate rendered water state');
+  const directory = process.env.TEST_ARTIFACTS || '/tmp/solsystemet-regression'; fs.mkdirSync(directory, { recursive: true });
+  fs.writeFileSync(path.join(directory, 'tides-sun-mid-frame.png'), Buffer.from(mid.image.split(',')[1], 'base64'));
+  fs.writeFileSync(path.join(directory, 'tides-sun-mid-frame.json'), JSON.stringify({ mix: mid.mix, range: mid.range, uniform: mid.uniform }, null, 2));
+  assert(samples.filter(s => s.mix > 0 && s.mix < 1).length >= 2, 'Normal Sun switch renders intermediate contributions');
+  for (const sample of samples) {
+    assert(Math.abs(sample.uniform - .46 * sample.mix) < 1e-10, 'Water shader uses the actual eased contribution');
+    assert(Math.abs(sample.range - (1 + .46 * sample.mix)) < 1e-8, 'The range follows the same eased contribution');
+  }
+  assert.equal(await page.locator('#tideStrength').textContent(), 'Moon only');
+  assert.deepEqual(await page.evaluate(() => ({ sun: window.__tideScene.sunDirection.toArray(), position: window.__tideScene.sunlight.position.toArray() })), lighting, 'Removing tidal pull preserves sunlight and source direction');
+  const frame = await page.evaluate(() => window.__tideScene.renderer.info.render.frame);
+  await page.waitForTimeout(300); assert.equal(await page.evaluate(() => window.__tideScene.renderer.info.render.frame), frame, 'A settled solar transition returns to GPU idle');
+  await page.locator('#tideSun').click();
+  await page.waitForFunction(() => window.__tideScene.solarMix > 0 && window.__tideScene.solarMix < 1);
+  await page.evaluate(() => {
+    window.__solarPreferenceResult = null;
+    matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change', () => queueMicrotask(() => {
+      const s = window.__tideScene; window.__solarPreferenceResult = { flight: s.solarFlight, mix: s.solarMix };
+    }), { once: true });
+  });
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.waitForFunction(() => window.__solarPreferenceResult);
+  assert.equal(await page.evaluate(() => window.__solarPreferenceResult.flight), null, 'The motion-preference event finishes a pending solar transition immediately');
+  assert.equal(await page.evaluate(() => window.__solarPreferenceResult.mix), 1);
+  await page.emulateMedia({ reducedMotion: 'no-preference' }); await settled(page);
+  await page.evaluate(() => {
+    const spacer = document.createElement('div'); spacer.id = 'solarOffscreenFixture'; spacer.style.height = '200vh'; spacer.setAttribute('aria-hidden', 'true');
+    document.querySelector('#moonSystemView').append(spacer); scrollTo(0, document.documentElement.scrollHeight);
+  });
+  await page.waitForFunction(() => document.querySelector('#moonCanvas').getBoundingClientRect().bottom < 0);
+  await page.waitForFunction(() => { const frame = window.__tideScene.renderer.info.render.frame;
+    if (window.__solarOffFrame !== frame) { window.__solarOffFrame = frame; window.__solarOffSince = performance.now(); return false; }
+    return performance.now() - window.__solarOffSince > 250;
+  });
+  const offFrame = await page.evaluate(() => { document.querySelector('#tideSun').click(); return window.__tideScene.renderer.info.render.frame; });
+  await page.waitForFunction(() => !window.__tideScene.solarFlight);
+  assert.equal(await page.evaluate(() => window.__tideScene.renderer.info.render.frame), offFrame, 'Offscreen Sun transitions update state without GPU draws');
+  assert.equal(await page.locator('#tideStrength').textContent(), 'Moon only');
+  await page.evaluate(() => document.querySelector('#solarOffscreenFixture').remove()); await settled(page);
+  await page.locator('#tideSun').click();
+  await page.waitForFunction(() => window.__tideScene.solarFlight);
+  await page.evaluate(() => { document.querySelector('#moonReset').click(); });
+  assert.equal(await page.evaluate(() => window.__tideScene.solarFlight), null);
+  assert.equal(await page.evaluate(() => window.__tideScene.solarMix), 1, 'Reset settles Sun pull at full strength');
+  await page.locator('#moonPlay').click(); await settled(page);
+  await page.evaluate(() => { document.querySelector('#tideSun').click(); location.hash = 'earth-moons/moon'; }); await ready(page);
+  assert.equal(await page.evaluate(() => window.__tideScene.solarFlight), null, 'Changing experiment cancels the transition');
+  assert.equal(await page.evaluate(() => window.__tideScene.solarMix), 0, 'Route departure settles at the requested endpoint');
+  assert.equal(await page.evaluate(() => window.__tideScene.items.moon.phase), 1.1, 'Same-face restores its original model phase');
+  await navigate(page, 'earth-moons/tides'); await tideReady(page);
+  assert.equal(await page.evaluate(() => window.__tideScene.items.moon.phase), 0);
+  await page.locator('#moonPlay').click(); await settled(page);
+  await page.locator('#tideSun').click(); await settled(page);
+}
+async function dragPrecision(page) {
+  await page.locator('#moonTop').click(); await settled(page);
+  const limb = await moonHitTarget(page, false, true);
+  assert.equal(limb.firstHit, 'moon');
+  await page.mouse.move(limb.point.x, limb.point.y); await page.mouse.down();
+  await page.mouse.move(limb.point.x + 1, limb.point.y + 1); await page.mouse.up(); await settled(page);
+  const limbDelta = await page.evaluate(start => Math.atan2(Math.sin((window.__tideScene.days - start) / 27.322 * Math.PI * 2), Math.cos((window.__tideScene.days - start) / 27.322 * Math.PI * 2)) * 180 / Math.PI, limb.days);
+  assert(Math.abs(limbDelta) < 1, 'A one-pixel limb drag preserves its grab offset instead of snapping the Moon center under the pointer');
+  for (const elevation of [-1, 0, 1]) {
+    const start = await page.evaluate(elevation => {
+      const s = window.__tideScene, n = s.tideNormal; s.days = 0; s.modelDirty = true; s.flight = null;
+      const view = n.clone().set(0, 0, 1).addScaledVector(n, -n.z).normalize().multiplyScalar(Math.cos(elevation * Math.PI / 180)).addScaledVector(n, Math.sin(elevation * Math.PI / 180));
+      s.camera.position.copy(view).multiplyScalar(13); s.controls.target.set(0, 0, 0); s.controls.update(); s.dirty = true; s.frame(.02, performance.now());
+      const p = s.items.moon.mesh.position.clone().project(s.camera), r = document.querySelector('#moonCanvas').getBoundingClientRect();
+      return { x: r.x + (p.x * .5 + .5) * r.width, y: r.y + (-p.y * .5 + .5) * r.height, width: r.width };
+    }, elevation);
+    await page.mouse.move(start.x, start.y); await page.mouse.down();
+    assert.equal(await page.evaluate(() => window.__tideScene.tideDrag?.scrub), true, 'Near-edge view selects a fixed stable horizontal gesture');
+    await page.mouse.move(start.x, start.y + 1);
+    assert(Math.abs(await page.evaluate(() => window.__tideScene.days)) < 1e-9, 'A vertical pixel at edge-on does not teleport the Moon');
+    for (const dx of [12, 24, 48, 0]) {
+      await page.mouse.move(start.x + dx, start.y + 1);
+      const delta = await page.evaluate(() => { const angle = window.__tideScene.days / 27.322 * Math.PI * 2; return Math.atan2(Math.sin(angle), Math.cos(angle)) * 180 / Math.PI; });
+      assert(Math.abs(Math.abs(delta) - dx / start.width * 360) < 1e-7, 'Horizontal travel is continuous, reversible, and one orbit per canvas width');
+    }
+    assert.match(await page.locator('#tideFeedback').textContent(), /left or right/);
+    await page.mouse.up(); assert.equal(await page.evaluate(() => window.__tideScene.controls.enabled), true);
+  }
+  await page.locator('#moonPerspective').click(); await settled(page);
 }
 function allowFailure(result, path) {
   assert(result.failed.some(message => message.startsWith('503 ') && message.includes(path)), 'The intended 503 fixture was exercised');
@@ -103,6 +219,8 @@ async function layout(page, viewport) {
     const normal = await newPage(browser, { viewport: { width: 1440, height: 1000 } });
     page = normal.page; await instrument(page); await visit(page, 'earth-moons/tides'); await tideReady(page);
     assert.equal(await page.locator('#moonPlay').getAttribute('aria-pressed'), 'true', 'Tides start with gentle motion');
+    assert.equal(await page.evaluate(() => window.__tideScene.items.moon.phase), 0, 'Tide arrival starts with its readable phase');
+    assert(Math.abs(await page.evaluate(() => window.__tideScene.camera.position.y / window.__tideScene.camera.position.length()) - .58) < 1e-8, 'Default Tide camera uses the higher teaching view');
     const day = await page.evaluate(() => window.__tideScene.days);
     await page.waitForFunction(day => window.__tideScene.days > day, day);
     await page.locator('#moonPlay').click(); await settled(page);
@@ -113,6 +231,8 @@ async function layout(page, viewport) {
     await page.waitForFunction(() => !window.__tideScene.timeFlight); await settled(page);
     for (const [angle, expected] of [[0, 1.46], [90, .54], [180, 1.46]]) await preset(page, angle, expected);
     await screenshot(page, 'tides-desktop-opposite');
+    await solarTransitions(page);
+    await preset(page, 180, 1.46); await dragPrecision(page);
     await page.locator('#tideSun').click();
     for (const angle of [0, 90, 180]) await preset(page, angle, 1);
     assert.equal(await page.locator('#tideStrength').textContent(), 'Moon only');
@@ -182,6 +302,11 @@ async function layout(page, viewport) {
       const result = await newPage(browser, { viewport, reducedMotion: 'reduce' }); page = result.page;
       await instrument(page); await visit(page, 'earth-moons/tides'); await tideReady(page); await layout(page, viewport);
       assert.equal(await page.locator('#moonPlay').getAttribute('aria-pressed'), 'false');
+      await page.locator('#tideSun').click();
+      assert.equal(await page.evaluate(() => window.__tideScene.solarFlight), null);
+      assert.equal(await page.evaluate(() => window.__tideScene.solarMix), 0);
+      await page.locator('#tideSun').click();
+      assert.equal(await page.evaluate(() => window.__tideScene.solarMix), 1);
       await screenshot(page, `tides-${viewport.width}-arrival`);
       for (const [angle, expected] of [[0, 1.46], [90, .54], [180, 1.46]]) await preset(page, angle, expected, true);
       const button = page.locator('[data-tide-angle="90"]'); await button.focus(); await page.keyboard.press('Enter');
@@ -189,6 +314,9 @@ async function layout(page, viewport) {
       await settled(page); assert(Math.abs(await page.evaluate(() => window.__tideScene.tideData.range) - .54) < 1e-8);
       await page.locator('#moonReset').click(); await settled(page);
       assert.equal(await page.locator('#moonPlay').getAttribute('aria-pressed'), 'false', 'Reduced-motion reset remains paused');
+      await page.locator('#moonDay').evaluate(element => { element.value = '1000'; element.dispatchEvent(new Event('input', { bubbles: true })); });
+      assert.equal(await page.locator('#moonDay').inputValue(), '1000', 'The complete-orbit slider endpoint remains at the end');
+      assert.equal(await page.locator('#moonDay').getAttribute('aria-valuetext'), '360 degrees around the model orbit');
       await page.locator('#moonPlay').click();
       await page.evaluate(() => {
         // The compact Tide page ends close to the scene. Extra fixture space

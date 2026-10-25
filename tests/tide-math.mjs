@@ -32,15 +32,56 @@ close(neap.globalRange, 1.5, 'Global range differs from spring-neap planar range
 assert.ok(neap.range < 1 && neap.globalRange === 1.5);
 console.log('PASS aligned1.46× versus quadrature.54× planar range; global range remains distinct');
 
+const baseline = ocean.baseline;
+for (const mix of [0, .25, .5, .75, 1]) {
+  const q = SOLAR_TIDE_RATIO * mix;
+  for (const degree of [0, 27, 45, 90, 180]) {
+    const a = degree * Math.PI / 180, direction = new Vector3(Math.cos(a), 0, Math.sin(a));
+    const state = ocean.setState({ moonDirection: direction, sunDirection: moon, solarMix: mix });
+    const expectedRange = Math.sqrt((1 - q) ** 2 + 4 * q * Math.cos(a) ** 2);
+    close(state.range, expectedRange, 'Fractional solar forcing has the matching planar range');
+    close(state.solarMix, mix, 'State exposes the actual solar contribution');
+    close(ocean.uniforms.solarWeight.value, q, 'Shader uses the same solar forcing');
+    close(ocean.uniforms.highDirection.value.dot(state.highDirections[0]), 1,
+      'Both optical cap accents use the combined-field maximum axis');
+    close(ocean.baseline, baseline, 'Solar transitions do not inflate the display baseline');
+    const high = ocean.sample(state.highDirections[0]), low = ocean.sample(state.lowDirections[0]);
+    close((high.potential - low.potential) / 1.5, state.range, 'Fractional cue extrema match sampled surface');
+    close(high.radius, state.highRadius, 'High cue touches the fractional surface');
+    close(low.radius, state.lowRadius, 'Low cue touches the fractional surface');
+    const point = new Vector3(.2, .6, .7).normalize();
+    const lunarField = tidalField(point, direction, moon);
+    const fullField = tidalField(point, direction, moon, true);
+    const blendedField = tidalField(point, direction, moon, false, mix);
+    close(blendedField.potential, lunarField.potential + mix * (fullField.potential - lunarField.potential),
+      'Potential interpolates the physical solar contribution');
+    close(ocean.sample(point).potential, blendedField.potential, 'sample uses fractional forcing instead of a boolean');
+    close(blendedField.gradient.distanceTo(lunarField.gradient.clone().lerp(fullField.gradient, mix)), 0,
+      'Spherical gradient interpolates the same forcing');
+  }
+}
+close(ocean.setState({ moonDirection: moon, sunDirection: moon, solarEnabled: true, solarMix: 0 }).range, 1,
+  'Explicit zero overrides the boolean target during a transition');
+close(ocean.setState({ moonDirection: moon, sunDirection: moon, solarEnabled: false, solarMix: 1 }).range, 1.46,
+  'Explicit one overrides the boolean target during a transition');
+ocean.setState({ moonDirection: moon, sunDirection: sun, solarMix: .5 });
+assert.equal(ocean.setState({ moonDirection: moon, sunDirection: sun, solarMix: .5 }).changed, false);
+assert.equal(ocean.setState({ moonDirection: moon, sunDirection: sun, solarMix: .51 }).changed, true);
+for (const mix of [NaN, Infinity, -Infinity, -.01, 1.01, null, '0.5']) {
+  assert.throws(() => ocean.setState({ solarMix: mix }), /solarMix.*finite.*between 0 and 1/);
+  assert.throws(() => tidalField(moon, moon, sun, false, mix), /solarMix.*finite.*between 0 and 1/);
+}
+console.log('PASS fractional Sun endpoints, intermediate surface/readout agreement and input validation');
+
 let worstNormal = 0, worstRange = 0;
-for (let degree = 0; degree <= 360; degree += 5) {
+for (const solarMix of [0, .25, .5, 1]) for (let degree = 0; degree <= 360; degree += 5) {
   const a = degree * Math.PI / 180;
   const direction = new Vector3(Math.cos(a), 0, Math.sin(a));
-  const state = ocean.setState({ moonDirection: direction, sunDirection: sun, solarEnabled: true });
+  const state = ocean.setState({ moonDirection: direction, sunDirection: sun, solarMix });
   const high = ocean.sample(state.highDirections[0]), low = ocean.sample(state.lowDirections[0]);
   worstRange = Math.max(worstRange, Math.abs((high.potential - low.potential) / 1.5 - state.range));
   for (const n of [new Vector3(.2, .6, .7).normalize(), direction, north, state.highDirections[0]]) {
-    const field = tidalField(n, direction, sun, true);
+    const field = tidalField(n, direction, sun, true, solarMix);
     close(field.gradient.dot(n), 0, 'Spherical gradient is tangent');
     const tangent = new Vector3().crossVectors(n, Math.abs(n.y) < .8 ? north : moon).normalize();
     const otherTangent = new Vector3().crossVectors(n, tangent).normalize();

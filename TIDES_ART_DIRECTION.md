@@ -46,3 +46,20 @@ Inspected Mercury's compact race and desktop prediction-versus-result screen, an
 - Copy measurements: world introductions/hints fell from 1,028 to 656 words (36.2%); mission copy from 349 to 224 words (35.8%). Parsed data comparison confirms orbital numbers, facts, image paths, IDs, family order, stories and source URLs are unchanged.
 
 Browser software rendering verifies behavior and workload. It does not establish physical iPhone frame pacing or independent usability with eight-year-olds. This is an exaggerated equilibrium illustration, not a fluid simulation or a coastal tide forecast.
+
+## Refinement review — source 761305c
+
+The follow-up critique found four concrete weaknesses. The thick blue shell and detached white glint suggested a protective bubble; the low camera hid the opposite bulge and put the arriving Moon partly behind Earth; the tiny incoming-light compass did not explain the alignment buttons; and two actual input problems interrupted otherwise smooth exploration.
+
+Baseline captures: `/tmp/solsystemet-tide-refine/before/`. A real pointer probe at 0.1° above the orbital plane turned the Moon about 67° after a 1px vertical movement. At exactly edge-on the interaction stalled. Grabbing a visible tangential limb instead of the centre also caused a roughly 5.3° initial jump. These were interaction defects, not frame-rate measurements. The Sun switch changed its forcing in one update with no intermediate geometry.
+
+### Corrections and rendered recheck
+
+- Consolidated the blue angular shading, reduced noisy ripple detail and the detached glint, and retained subtle paired accents at the actual combined-field maxima. The shape, fixed baseline, .24 display exaggeration, photographic assets and two-pass budget remain unchanged. A .20 exaggeration trial weakened the phone comparison without improving the explanation.
+- Raised the view from about 26° to about 41° above the orbital plane. A roughly 50° trial improved separation but made the phone Earth too small, so it was revised. The Moon now begins beside Earth. Its original same-face phase is restored on leaving the tide view.
+- Replaced ambiguous alignment labels with three small position diagrams: Same side, Right angle and Opposite side. The source-direction arrow now points **to** the Sun, rather than along incoming light. “Rise & fall” replaces the visible range heading; spring/neap terminology is explained in the expandable note.
+- Trimmed the phone header and removed its repeated eyebrow to recover space for the scene. At 390×844, the globe is about 135px wide and the entire scene and controls fit together. The exaggeration/gesture captions are larger and brighter. Desktop, phone spring/neap and above-view captures were inspected at `/tmp/solsystemet-tide-refine/final/`.
+- Sun contribution now eases for .35 seconds, with geometry, normals, paired maxima and the gauge using the same fractional coefficient. Reduced motion applies the final state immediately. Reversals begin from the visible state; switching off gravity leaves scene illumination intact. A captured real intermediate frame had mix .4640, forcing .21345 and aligned range 1.21345: `/tmp/solsystemet-tide-refined-regression/tides-sun-mid-frame.png` and its JSON record.
+- Normal dragging preserves the initial grab offset. Near edge-on, a horizontal scrub avoids the singular ray/plane intersection and gives a brief left/right instruction. Tests use actual pointer movements above, below and exactly on the orbital plane, plus outer-limb grabs, cancellation and Earth occlusion.
+
+The five math groups pass, including fractional contribution and analytical-normal checks. The extended Tide browser suite passes across desktop, phone and tablet layouts, with transition reversal, live preference changes, paused/offscreen rendering, route/reset settlement and loading recovery. Existing Moon observation and Earth–Moon lighting suites also pass, preserving the original orientation guide and family lighting. This refinement remains an expert/browser review; it does not establish independent comprehension by children or real-device frame pacing.
