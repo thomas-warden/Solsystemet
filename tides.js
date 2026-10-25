@@ -16,10 +16,18 @@ function unit(vector, name) {
 
 function p2(value) { return (3 * value * value - 1) / 2; }
 
+function solarWeight(mix) {
+  if (!Number.isFinite(mix) || mix < 0 || mix > 1) {
+    throw new RangeError('solarMix must be a finite number between 0 and 1.');
+  }
+  return SOLAR_TIDE_RATIO * mix;
+}
+
 // Directions are unit vectors. Returned gradient is tangent to the unit sphere.
-export function tidalField(direction, moonDirection, sunDirection, solarEnabled = false) {
+export function tidalField(direction, moonDirection, sunDirection, solarEnabled = false,
+  solarMix = solarEnabled ? 1 : 0) {
   const n = unit(direction, 'direction'), moon = unit(moonDirection, 'moonDirection');
-  const sun = unit(sunDirection, 'sunDirection'), q = solarEnabled ? SOLAR_TIDE_RATIO : 0;
+  const sun = unit(sunDirection, 'sunDirection'), q = solarWeight(solarMix);
   const m = n.dot(moon), s = n.dot(sun);
   const gradient = moon.multiplyScalar(3 * m).addScaledVector(sun, 3 * q * s)
     .addScaledVector(n, -3 * (m * m + q * s * s));
@@ -45,7 +53,7 @@ const vertexShader = `
 
 const fragmentShader = `
   uniform float radius, exaggeration, baseline, solarWeight, time, opacity, rimPass;
-  uniform vec3 moonDirection, sunDirection;
+  uniform vec3 moonDirection, sunDirection, highDirection;
   varying vec3 sphereDirection, worldPosition;
   varying float forcing;
 
@@ -66,36 +74,42 @@ const fragmentShader = `
       - (m * m + solarWeight * s * s) * n);
     // Exact normal of the radial quadrupole surface, before tiny optical ripples.
     vec3 normal = normalize(distance * n - exaggeration * gradient);
-    vec3 fine = ripple(n, normalize(vec3(.73,.31,.61)), 94., time * .72, .023)
-      + ripple(n, normalize(vec3(-.29,.87,.39)), 153., -time * .91, .014)
-      + ripple(n, normalize(vec3(.42,-.48,.77)), 231., time * .51, .008);
-    normal = normalize(normal - fine);
+    // The broad outline follows the analytical surface. Only the water pass
+    // needs fine normal detail; repeating it on the rim made a noisy glass edge.
+    if (rimPass < .5) {
+      vec3 fine = ripple(n, normalize(vec3(.73,.31,.61)), 94., time * .72, .014)
+        + ripple(n, normalize(vec3(-.29,.87,.39)), 153., -time * .91, .009)
+        + ripple(n, normalize(vec3(.42,-.48,.77)), 231., time * .51, .005);
+      normal = normalize(normal - fine);
+    }
     vec3 view = normalize(cameraPosition - worldPosition);
     float facing = max(dot(normal, view), 0.);
     float sunlight = max(dot(normal, sunDirection), 0.);
     float fresnel = .0204 + .9796 * pow(1. - facing, 5.);
-    float edge = pow(1. - facing, 3.);
-    float opticalDepth = pow(1. - facing, 1.7);
+    float grazing = pow(1. - facing, 2.2);
     float sunEdge = smoothstep(-.16, .45, dot(normal, sunDirection));
-    vec3 halfDirection = normalize(view + sunDirection);
-    float specular = pow(max(dot(normal, halfDirection), 0.), 210.) * sunlight;
+    vec3 halfVector = view + sunDirection;
+    vec3 halfDirection = halfVector / max(length(halfVector), .0001);
+    float specular = pow(max(dot(normal, halfDirection), 0.), 350.) * sunlight;
 
     if (rimPass > .5) {
       // Mostly sunlit, with a faint illustrative sky fill so both bulges remain
       // legible against space. This is an optical cue, not measured radiance.
-      float rim = pow(1. - facing, 5.5) * (.065 + .935 * sunEdge);
-      gl_FragColor = vec4(vec3(.018,.32,.72), rim * .34);
+      float cap = pow(abs(dot(n, highDirection)), 12.);
+      float rim = pow(1. - facing, 7.) * (.18 + .82 * sunEdge);
+      // Matching soft accents identify the two actual combined-field maxima.
+      // Their directions come from the same eigenproblem as the range reading.
+      vec3 rimColor = mix(vec3(.025,.26,.48), vec3(.07,.36,.53), cap);
+      gl_FragColor = vec4(rimColor, rim * (.26 + cap * .12));
     } else {
       float crest = clamp((height + .73) / 2.19, 0., 1.);
-      // Longer grazing paths reveal blue water; the almost transparent front
-      // still carries the real land and cloud detail underneath this ideal ocean.
-      vec3 water = mix(vec3(.003,.035,.095), vec3(.016,.25,.58), opticalDepth);
-      vec3 color = water * (.16 + sunlight * 1.25);
-      color += vec3(.012,.18,.42) * opticalDepth * (.10 + .90 * sunEdge);
-      color += vec3(1.05,1.35,1.55) * specular * (1. + fresnel * 2.);
-      color += vec3(.01,.10,.20) * edge * sunEdge;
-      float alpha = opacity + opticalDepth * .26 + fresnel * .20 + crest * .025 + specular * .35;
-      gl_FragColor = vec4(color, clamp(alpha, 0., .72));
+      // One angular transmission tint keeps the front clear and the grazing
+      // water blue. This is an illustrative material, not measured path length.
+      vec3 water = mix(vec3(.003,.025,.065), vec3(.022,.27,.48), grazing);
+      vec3 color = water * (.22 + sunlight * 1.15);
+      color += vec3(1.,.98,.94) * specular * (.18 + fresnel * .7);
+      float alpha = opacity + grazing * .30 + fresnel * .15 + crest * .015 + specular * .12;
+      gl_FragColor = vec4(color, clamp(alpha, 0., .65));
     }
     #include <tonemapping_fragment>
     #include <colorspace_fragment>
@@ -126,6 +140,7 @@ export class TideOcean {
     this.uniforms = {
       radius: { value: radius }, exaggeration: { value: exaggeration }, baseline: { value: this.baseline },
       moonDirection: { value: this.moonDirection }, sunDirection: { value: this.sunDirection },
+      highDirection: { value: new THREE.Vector3(1, 0, 0) },
       solarWeight: { value: 0 }, time: { value: 0 }, opacity: { value: opacity },
     };
     this.object = new THREE.Group();
@@ -150,12 +165,16 @@ export class TideOcean {
     this.setState({ moonDirection: this.moonDirection, sunDirection: this.sunDirection });
   }
 
+  // solarMix optionally overrides the boolean target while the caller eases it;
+  // it is a normalized fraction of the fixed .46 solar-to-lunar forcing ratio.
   setState({ moonDirection = this.moonDirection, sunDirection = this.sunDirection,
-    solarEnabled = false, time = 0, animated = false } = {}) {
+    solarEnabled = false, solarMix = solarEnabled ? 1 : 0, time = 0, animated = false } = {}) {
     if (this.disposed) throw new Error('Cannot update a disposed TideOcean.');
     if (!Number.isFinite(time)) throw new TypeError('time must be finite seconds.');
     const moon = unit(moonDirection, 'moonDirection'), sun = unit(sunDirection, 'sunDirection');
-    const q = solarEnabled ? SOLAR_TIDE_RATIO : 0;
+    // The caller may ease the Sun's contribution. The same coefficient drives
+    // displacement, normals, extrema and the range reading throughout the fade.
+    const q = solarWeight(solarMix);
     const nextTime = animated ? time : this.uniforms.time.value;
     const changed = !this.state || this.moonDirection.distanceToSquared(moon) > 1e-20
       || this.sunDirection.distanceToSquared(sun) > 1e-20 || q !== this.uniforms.solarWeight.value
@@ -168,6 +187,7 @@ export class TideOcean {
     const range = Math.sqrt((1 - q) ** 2 + 4 * q * cosine * cosine);
     const major = (1 + q + range) / 2, minor = (1 + q - range) / 2;
     const high = moon.clone().multiplyScalar(major - q).addScaledVector(sun, q * cosine).normalize();
+    this.uniforms.highDirection.value.copy(high);
     const plane = new THREE.Vector3().crossVectors(moon, sun);
     if (q && plane.lengthSq() > 1e-12) {
       plane.normalize();
@@ -186,7 +206,7 @@ export class TideOcean {
     const maximum = 1.5 * major - .5 * (1 + q), minimum = -.5 * (1 + q);
     const planeMinimum = 1.5 * minor - .5 * (1 + q);
     this.state = {
-      changed,
+      changed, solarMix,
       // In-plane range relative to Moon alone: 1 / 1.46 / .54. This is the
       // spring-neap display value, not global max-minus-min across the sphere.
       range, strength: range / (1 + SOLAR_TIDE_RATIO),
@@ -206,7 +226,8 @@ export class TideOcean {
   // normal are in world axes when .object has its documented unscaled pose.
   sample(direction) {
     const n = unit(direction, 'direction');
-    const field = tidalField(n, this.moonDirection, this.sunDirection, this.uniforms.solarWeight.value > 0);
+    const field = tidalField(n, this.moonDirection, this.sunDirection, true,
+      this.uniforms.solarWeight.value / SOLAR_TIDE_RATIO);
     const scale = this.baseline + this.exaggeration * field.potential;
     return { potential: field.potential, radius: this.radius * scale,
       normal: n.multiplyScalar(scale).addScaledVector(field.gradient, -this.exaggeration).normalize() };
