@@ -1,5 +1,5 @@
-import { MOONS, FAMILIES } from './moons.js?v=55a4b757d80b';
-import { ORDER } from './worlds.js?v=55a4b757d80b';
+import { MOONS, FAMILIES } from './moons.js?v=761305c7e527';
+import { ORDER } from './worlds.js?v=761305c7e527';
 
 export const FEATURED_MOONS={earth:['moon'],jupiter:['europa','io','ganymede','callisto'],saturn:['enceladus','titan','mimas','iapetus']};
 export const MOON_HOOKS={moon:'Footprints that last for ages.',europa:'A whole ocean beneath the ice.',io:'A world with hundreds of volcanoes.',ganymede:'Bigger than Mercury. Still a moon.',callisto:'Billions of years written in craters.',enceladus:'An ocean spraying into space.',titan:'Lakes and rain made of methane.',mimas:'One crater almost a third of a moon wide.',iapetus:'A moon with a mountain seam.',rhea:'Shining cliffs made of ice.',dione:'Three moons share one track.',tethys:'A valley more than half a world long.'};
@@ -14,6 +14,7 @@ export function resolveRoute(hash){
   const selected=base==='orrery-belt'?'belt':ORDER.includes(selection)||selection==='belt'?selection:undefined;
   return {view:'orrery',selected,path:selected?'orrery/'+selected:'orrery'};
  }
+ if(!rest.length&&base==='earth-moons'&&selection==='tides')return {view:'moons',parent:'earth',selected:'moon',experiment:'tides',path:'earth-moons/tides'};
  const parent=base.replace(/-moons$/,'');
  if(!rest.length&&base.endsWith('-moons')&&FAMILIES[parent]){
   const selected=FAMILIES[parent].includes(selection)?selection:undefined;
@@ -31,7 +32,7 @@ export function renderFamilyNavigation(world){
  if(host.hidden)return;
  const link=(text,hash,cls)=>{const a=document.createElement('a');a.textContent=text;a.href='#'+hash;if(cls)a.className=cls;host.append(a);};
  if(p)link('← View '+parentName(parent),parent,'family-parent');
- else if(parent==='earth')link('View the Moon ↗','moon','family-primary');
+ else if(parent==='earth'){link('View the Moon ↗','moon','family-primary');link('Make ocean tides ↗','earth-moons/tides','family-moon');}
  else{
   const label=document.createElement('span');label.className='family-eyebrow';label.textContent='MOONS TO EXPLORE';host.append(label);
   for(const id of FEATURED_MOONS[parent])link(MOONS[id].title+' ↗',id,'family-moon');

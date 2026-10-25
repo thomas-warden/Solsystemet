@@ -285,3 +285,58 @@ h1[tabindex="-1"]:focus,h2[tabindex="-1"]:focus{outline:none}
 .moon-load-notice{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px 16px;padding:12px 0;color:#aabac3;font-size:12px}
 .moon-load-notice p{flex:1 1 230px;margin:0;line-height:1.5}
 .moon-load-notice button{flex-shrink:0;min-height:44px;border:1px solid #b9a78688;border-radius:3px;padding:10px 14px;color:#dfcba4;font-size:12px}
+
+/* Short, hands-on mission feedback and direct manipulation of Europa's ice. */
+.mission-choices [data-predict][aria-pressed=true]{border-color:var(--gold);color:#ead5ad;background:#cbb7921a}
+.europa-ice-shell[role=button]{cursor:grab;touch-action:none;user-select:none}
+.europa-ice-shell[role=button]:focus-visible{outline:2px solid var(--gold);outline-offset:4px}
+.europa-cutaway.is-dragging .europa-ice-shell{transform:translateY(var(--ice-lift,0px));transition:none;cursor:grabbing}
+.europa-cutaway.is-dragging .europa-unopened{opacity:var(--ice-cover,1);transition:none;pointer-events:none}
+@media(prefers-reduced-motion:reduce){.europa-ice-shell,.europa-unopened{transition:none}}
+
+/* Earth–Moon experiments share one scene and clock. */
+.earth-experiments{display:flex;gap:28px;border-bottom:1px solid var(--line);margin-bottom:12px}
+.earth-experiments a{display:inline-flex;align-items:center;min-height:44px;text-decoration:none;font-size:14px;color:#99a7af;border-bottom:2px solid transparent}
+.earth-experiments a[aria-current=page]{color:#e4cf9f;border-color:#cbb792}
+.tide-controls{min-width:0}.tide-control-top{display:flex;gap:16px;align-items:center}
+#tideSun{border:1px solid #b9a78666;border-radius:3px;min-height:44px;padding:8px 12px;font-size:12px;white-space:nowrap;color:#9aaeb8}
+#tideSun[aria-pressed=true]{color:#ead29e;border-color:#cbb79299;background:#cbb7920c}#tideSun span{margin-left:5px}
+.tide-reading{display:grid;grid-template-columns:1fr auto;gap:6px 12px;flex:1;min-width:70px}.tide-reading>span{font-size:9px;letter-spacing:.1em;color:#91a9b4}.tide-reading output{grid-column:2;grid-row:1/3;align-self:center;font-size:14px;color:#b6e6f1;min-width:64px;text-align:right}
+.tide-meter{height:3px;background:#45606c55;overflow:hidden}.tide-meter i{display:block;width:var(--tide-range,50%);height:100%;background:linear-gradient(90deg,#327e98,#b9e9ef);transform-origin:left}
+.tide-presets{display:flex;gap:6px;margin-top:8px}.tide-presets button{min-height:44px;flex:1;padding:8px;border:1px solid #b5c4cd33;border-radius:3px;font-size:12px;white-space:nowrap}.tide-presets button[aria-current=step]{border-color:#bcdce2;color:#d8f0f3;background:#70c7df12}
+.tide-feedback{min-height:18px;margin:6px 0 0;font-size:12px;color:#b3cbd4;line-height:1.5}.tide-loading{font-size:12px;line-height:1.4;color:#dbc59d}.tide-loading:has(#tideStatus:empty){display:none}.tide-loading button{min-height:44px;text-decoration:underline;padding:8px}
+.moon-system-view[data-experiment=tides] .moon-console{grid-template-columns:auto minmax(180px,1fr) minmax(330px,.9fr)}
+.moon-system-view[data-experiment=tides] .orrery-heading h1{font-size:78px}.moon-system-view[data-experiment=tides] #moonFaceGuide{display:none}
+.moon-system-view[data-experiment=tides] #moonTimeSpan{font-size:9px;letter-spacing:.06em}.moon-system-view[data-experiment=tides] .orbit-key{font-size:10px;letter-spacing:.03em}
+.tide-sun-cue{position:absolute;pointer-events:none;display:flex;align-items:center;gap:8px;color:#dcca9c;font-size:8px;letter-spacing:.1em;transform:translate(-50%,-50%);text-shadow:0 1px 4px #000}
+.tide-sun-cue i{width:20px;height:1px;background:#e9ce92;transform:rotate(var(--sun-arrow));box-shadow:0 0 9px #ffd78966;position:relative}.tide-sun-cue i:after{content:"";position:absolute;right:0;top:-2px;width:5px;height:5px;border-top:1px solid #e9ce92;border-right:1px solid #e9ce92;transform:rotate(45deg)}
+@media(max-width:760px){
+ .moon-system-view[data-parent=earth]>.neighbourhood-nav{flex-wrap:nowrap;overflow-x:auto;white-space:nowrap;scrollbar-width:none;gap:18px;padding:3px 0}
+ .moon-system-view[data-parent=earth]>.neighbourhood-nav a{flex:none}
+ .earth-experiments{gap:24px;margin-bottom:8px}.earth-experiments a{font-size:13px}
+ #atlas:has(#moonSystemView[data-experiment=tides]:not([hidden])) .world-nav{display:none}
+ #atlas:has(#moonSystemView[data-experiment=tides]:not([hidden])) .topbar{min-height:74px;padding:10px 18px}
+ .moon-system-view[data-experiment=tides] .orrery-heading h1{font-size:46px;margin-bottom:7px}
+ .moon-system-view[data-experiment=tides] .orrery-heading{margin-top:8px;margin-bottom:6px}
+ .moon-system-view[data-experiment=tides] .moon-console{grid-template-columns:auto minmax(0,1fr);gap:4px 14px;padding-top:7px;padding-bottom:9px}
+ .moon-system-view[data-experiment=tides] .tide-controls{grid-column:1/-1}
+ .moon-system-view[data-experiment=tides] .orbit-key{font-size:9px;line-height:1.5}
+ .tide-control-top{gap:14px}.tide-feedback{font-size:12px}.tide-presets{margin-top:5px}
+}
+.europa-cutaway svg:has(.europa-ice-shell[role=button]){touch-action:none}
+.europa-cutaway.is-dragging .europa-unopened text,.europa-cutaway.is-dragging .europa-unopened path{visibility:hidden}
+@media(min-width:1001px){
+ .moon-system-view[data-experiment=tides]{display:grid;grid-template-columns:minmax(260px,300px) minmax(0,1fr);grid-template-rows:auto min-content min-content 1fr;column-gap:4%;align-items:start}
+ .moon-system-view[data-experiment=tides]>.neighbourhood-nav{grid-column:1/-1}
+ .moon-system-view[data-experiment=tides]>.orrery-heading{grid-column:1;grid-row:2;display:block;margin:26px 0 24px}
+ .moon-system-view[data-experiment=tides] .orrery-heading h1{font-size:86px;line-height:1;margin:22px 0 24px}
+ .moon-system-view[data-experiment=tides] .orrery-heading p{font-size:15px;max-width:250px}
+ .moon-system-view[data-experiment=tides]>.earth-experiments{grid-column:1;grid-row:3;gap:24px;margin-bottom:22px}
+ .moon-system-view[data-experiment=tides]>.moon-console{grid-column:1;grid-row:4;display:flex;flex-direction:column;align-items:stretch;gap:14px;border:0;padding:0;margin:0}
+ .moon-system-view[data-experiment=tides] #moonPlay{align-self:flex-start;min-width:100px;justify-content:center}
+ .moon-system-view[data-experiment=tides] .tide-reading{gap:6px}.moon-system-view[data-experiment=tides] .tide-reading output{min-width:52px}
+ .moon-system-view[data-experiment=tides] #moonStage{grid-column:2;grid-row:2/5;margin-top:0;min-width:0}
+ .moon-system-view[data-experiment=tides] #moonLoadNotice{grid-column:2;grid-row:5}
+ .moon-system-view[data-experiment=tides] #tideNotes{grid-column:1/-1;grid-row:6}
+ .moon-system-view[data-experiment=tides] #moonSelection{grid-column:1/-1;grid-row:7}
+}

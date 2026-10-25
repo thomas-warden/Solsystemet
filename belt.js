@@ -1,4 +1,4 @@
-import { addCelestialSky } from './sky-scene.js?v=55a4b757d80b';
+import { addCelestialSky } from './sky-scene.js?v=761305c7e527';
 import * as THREE from './vendor/three.module.js';
 const $ = id => document.getElementById(id);
 const reduced = matchMedia('(prefers-reduced-motion: reduce)');
