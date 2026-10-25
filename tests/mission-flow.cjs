@@ -108,15 +108,21 @@ async function checkFit(page, activeControl, scene = '#scene') {
 
     await page.locator('#missionNext').click();
     await ready(page);
+    assert.equal(await page.locator('#missionAction').isDisabled(), true, 'the race waits for a prediction');
+    await page.locator('[data-predict="earth"]').click();
+    assert.equal(await step(page), '0', 'a prediction does not start or grade the race');
+    assert.equal(await page.locator('[data-predict="earth"]').getAttribute('aria-pressed'), 'true');
     await page.locator('#missionAction').click();
     assert.equal(await step(page), '1');
     await page.locator('#orbitDay').focus();
     await page.keyboard.press('End');
     await page.waitForFunction(() => document.querySelector('#atlas').dataset.missionStep === '2');
+    assert.match(await page.locator('#missionPrediction').textContent(), /Earth/);
     await page.locator('[data-answer="0"]').click();
     assert.equal(await step(page), '2');
     await page.locator('[data-answer="1"]').click();
     assert.equal(await page.locator('#missionStepTitle').textContent(), 'Orbit explorer');
+    assert.match(await page.locator('#missionPrediction').textContent(), /Earth/);
     await completionFocus(page);
     await page.locator('#missionNext').click();
     await page.waitForFunction(() => !document.querySelector('#homeView').hidden);
@@ -153,7 +159,9 @@ async function checkFit(page, activeControl, scene = '#scene') {
       await screenshot(page, `europa-${viewport.width}x${viewport.height}`);
       await page.locator('#missionEnd').click();
       await start(page, 'mercury');
-      await checkFit(page, '#missionAction', '#orreryStage');
+      await checkFit(page, '[data-predict="mercury"]', '#orreryStage');
+      await inViewport(page, ['[data-predict="earth"]', '#missionAction'], 'Mercury prediction and start');
+      await page.locator('[data-predict="mercury"]').click();
       await page.locator('#missionAction').click();
       await checkFit(page, '#orbitDay', '#orreryStage');
       await screenshot(page, `mercury-${viewport.width}x${viewport.height}`);

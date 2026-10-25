@@ -14,6 +14,7 @@ export function resolveRoute(hash){
   const selected=base==='orrery-belt'?'belt':ORDER.includes(selection)||selection==='belt'?selection:undefined;
   return {view:'orrery',selected,path:selected?'orrery/'+selected:'orrery'};
  }
+ if(!rest.length&&base==='earth-moons'&&selection==='tides')return {view:'moons',parent:'earth',selected:'moon',experiment:'tides',path:'earth-moons/tides'};
  const parent=base.replace(/-moons$/,'');
  if(!rest.length&&base.endsWith('-moons')&&FAMILIES[parent]){
   const selected=FAMILIES[parent].includes(selection)?selection:undefined;
@@ -31,7 +32,7 @@ export function renderFamilyNavigation(world){
  if(host.hidden)return;
  const link=(text,hash,cls)=>{const a=document.createElement('a');a.textContent=text;a.href='#'+hash;if(cls)a.className=cls;host.append(a);};
  if(p)link('← View '+parentName(parent),parent,'family-parent');
- else if(parent==='earth')link('View the Moon ↗','moon','family-primary');
+ else if(parent==='earth'){link('View the Moon ↗','moon','family-primary');link('Make ocean tides ↗','earth-moons/tides','family-moon');}
  else{
   const label=document.createElement('span');label.className='family-eyebrow';label.textContent='MOONS TO EXPLORE';host.append(label);
   for(const id of FEATURED_MOONS[parent])link(MOONS[id].title+' ↗',id,'family-moon');

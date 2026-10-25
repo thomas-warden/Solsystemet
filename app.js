@@ -18,11 +18,11 @@ function showStories(){
  $('storyGrid').replaceChildren();
  for(const story of entries){const el=document.createElement('article');el.className='story';const title=document.createElement('h3'),body=document.createElement('p'),link=document.createElement('a');title.textContent=story.title;body.textContent=story.text;link.href=story.source;link.target='_blank';link.rel='noopener';link.textContent='Field source ↗';el.append(title,body,link);if(story.related){const next=document.createElement('a');next.className='story-next';next.href='#'+story.related;next.textContent=story.action;el.append(next);}$('storyGrid').append(el);}
 }
-async function showMoonSystem(parent,selected){
- moonTarget=parent+'/'+(selected||'');const target=moonTarget;renderMoonSystemNavigation(parent,selected);$('moonDiscoveries').hidden=true;
+async function showMoonSystem(parent,selected,experiment){
+ moonTarget=parent+'/'+(selected||'')+'/'+(experiment||'orbits');const target=moonTarget;renderMoonSystemNavigation(parent,selected);$('moonDiscoveries').hidden=true;
  view='moons';beltFlight?.hide();$('beltView').hidden=true;window.scrollTo(0,0);root.classList.remove('cinema');orrery?.hide();$('main').hidden=true;$('fieldStories').hidden=true;$('orreryView').hidden=true;$('moonSystemView').hidden=false;root.dataset.view='moons';
  document.querySelector('button[data-view="orrery"]').setAttribute('aria-pressed','false');document.querySelectorAll('button[data-world]').forEach(b=>{b.classList.remove('is-active');b.setAttribute('aria-pressed','false');});
- try{moonPromise||=import('./moon-system.js?v=20261014missions').then(({MoonSystem})=>new MoonSystem());moonSystem=await moonPromise;if(view==='moons'&&moonTarget===target)await moonSystem.show(parent,selected);}catch(e){$('moonStatus').textContent='The moon system could not start. Individual moon views remain available below.';console.error(e);}
+ try{moonPromise||=import('./moon-system.js?v=20261014missions').then(({MoonSystem})=>new MoonSystem());moonSystem=await moonPromise;if(view==='moons'&&moonTarget===target)await moonSystem.show(parent,selected,experiment);}catch(e){$('moonLoadNotice').hidden=false;$('moonStatus').textContent='This moving view could not start. Open a moon below.';$('moonRetry').hidden=true;console.error(e);}
 }
 async function showOrrery(selected){$('moonDiscoveries').hidden=true;document.title='The solar system — Solsystemet';beltFlight?.hide();$('beltView').hidden=true;moonSystem?.hide();$('moonSystemView').hidden=true;view='orrery';orreryAvailability='loading';window.scrollTo(0,0);root.classList.remove('cinema');$('cinemaButton').setAttribute('aria-pressed','false');$('cinemaButton').textContent='View only ⤢';$('main').hidden=true;$('fieldStories').hidden=true;$('orreryView').hidden=false;root.dataset.view='orrery';document.querySelector('button[data-view="orrery"]').setAttribute('aria-pressed','true');document.querySelectorAll('button[data-world]').forEach(b=>{b.classList.remove('is-active');b.setAttribute('aria-pressed','false');});
  document.querySelectorAll('#orreryView button,#orreryView input,#orreryView select').forEach(el=>el.disabled=true);
@@ -114,7 +114,7 @@ async function applyRoute(path){
  if(route.view==='home'){await showHome(route.path==='missions');return;}
  if(route.view==='belt'){await showBeltEntry();return;}
  if(route.view==='orrery'){await showOrrery(route.selected);return;}
- if(route.view==='moons'){await showMoonSystem(route.parent,route.selected);return;}
+ if(route.view==='moons'){await showMoonSystem(route.parent,route.selected,route.experiment);return;}
  const world=route.world;
  moonSystem?.hide();$('moonSystemView').hidden=true;beltFlight?.hide();$('beltView').hidden=true;
  view='planet';root.classList.remove('cinema');$('cinemaButton').setAttribute('aria-pressed','false');$('cinemaButton').textContent='View only ⤢';window.scrollTo(0,0);if(orrery)orrery.hide();$('main').hidden=false;$('fieldStories').hidden=false;$('orreryView').hidden=true;root.dataset.view='planet';document.querySelector('button[data-view="orrery"]').setAttribute('aria-pressed','false');

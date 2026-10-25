@@ -55,6 +55,22 @@ async function tabTo(page, selector, key, state) {
       await ready(page);
       await page.waitForFunction(() => document.activeElement.id === 'missionStepTitle');
       await checkWorkspace(page, 'arrival');
+      assert.equal(await page.locator('#missionAction').isDisabled(), true);
+      await page.keyboard.press('Tab');
+      assert.equal(await page.evaluate(() => document.activeElement.dataset.predict), 'mercury');
+      await page.keyboard.press('Enter');
+      assert.equal(await page.locator('[data-predict="mercury"]').getAttribute('aria-pressed'), 'true');
+      assert.equal(await page.evaluate(() => document.activeElement.dataset.predict), 'mercury', 'selecting keeps keyboard focus on the prediction');
+      assert.equal(await page.locator('#atlas').getAttribute('data-mission-step'), '0');
+      await checkWorkspace(page, 'Mercury prediction selected');
+      await page.keyboard.press('Tab');
+      assert.equal(await page.evaluate(() => document.activeElement.dataset.predict), 'earth');
+      await page.keyboard.press('Enter');
+      assert.equal(await page.locator('[data-predict="earth"]').getAttribute('aria-pressed'), 'true');
+      assert.equal(await page.locator('[data-predict="mercury"]').getAttribute('aria-pressed'), 'false');
+      assert.equal(await page.evaluate(() => document.activeElement.dataset.predict), 'earth');
+      assert.equal(await page.locator('#atlas').getAttribute('data-mission-step'), '0');
+      await checkWorkspace(page, 'Earth prediction selected');
       await page.keyboard.press('Tab');
       assert.equal(await page.evaluate(() => document.activeElement.id), 'missionAction');
       await page.keyboard.press('Enter');
@@ -72,6 +88,7 @@ async function tabTo(page, selector, key, state) {
       await page.keyboard.press('End');
       await page.waitForFunction(() => document.querySelector('#atlas').dataset.missionStep === '2');
       await checkWorkspace(page, 'question');
+      assert.match(await page.locator('#missionPrediction').textContent(), /Earth/);
 
       await tabTo(page, '[data-answer="0"]', 'Shift+Tab', 'question navigation');
       await page.keyboard.press('Enter');
@@ -82,6 +99,7 @@ async function tabTo(page, selector, key, state) {
       await page.keyboard.press('Enter');
       await page.waitForFunction(() => document.activeElement.id === 'missionStepTitle');
       assert.equal(await page.locator('#missionStepTitle').textContent(), 'Orbit explorer');
+      assert.match(await page.locator('#missionPrediction').textContent(), /Earth/);
       await checkWorkspace(page, 'completion');
       assert.equal(await page.locator('[data-orbit="mercury"] .trip-count').textContent(), '4');
       assert.equal(await page.locator('[data-orbit="earth"] .trip-count').textContent(), '1');

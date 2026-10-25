@@ -35,7 +35,9 @@ Open http://127.0.0.1:8087/. No package install or compilation is required. Serv
 - The solar-system model compares orbital periods, with readable or true orbital spacing, camera presets and a one-Earth-year experiment.
 - Earth, Jupiter and Saturn have interactive moon systems. The asteroid belt offers an explicitly illustrated close-up flight.
 - Earth–Moon orbit checkpoints show why the Moon keeps the same face toward Earth, using a labelled gold orientation pointer and visible turn/orbit feedback. Time controls remain beside the experiment on phones.
-- **Catch a sunrise** asks you to choose a city, move forward through dawn and save the visible observation. **An ocean in hiding** distinguishes the cracks visible on Europa from its inferred ocean, then reveals an illustrated cutaway. **Race around the Sun** compares Mercury's whole trips with Earth's year. Completed discoveries keep their evidence on screen.
+- In [**Ocean tides**](https://thomas-warden.github.io/Solsystemet/#earth-moons/tides), drag the Moon or use the position slider. Compare aligned and right-angle positions, then switch the Sun's pull off. The enlarged water shell makes the two bulges and changing tide range visible.
+- **Catch a sunrise:** choose a city, move forward through dawn and save what you saw. **An ocean in hiding:** spot Europa's cracks, then drag its illustrated ice layer open; keyboard controls work too. **Race around the Sun:** predict a winner, run the clock and compare Mercury's trips with Earth's year. Completed discoveries retain their evidence.
+- Shorter introductions and hints keep the worlds and experiments in view. Longer stories and scientific notes remain available.
 - Distinct discovery badges stay on the device. Activities also work when browser storage is unavailable.
 
 ## Browser regression checks
@@ -59,6 +61,9 @@ node tests/earth-moon-lighting.cjs
 node tests/moon-observation.cjs
 node tests/moon-image-recovery.cjs
 node tests/mission-wide-layout.cjs
+node tests/tide-math.mjs
+node tests/tide-experiment.cjs
+node tests/mission-ice-drag.cjs
 ~~~
 
 BASE_URL overrides the site address; BROWSER_BIN defaults to /usr/bin/chromium. TEST_ARTIFACTS chooses the screenshot directory, defaulting to /tmp/solsystemet-regression.
@@ -73,6 +78,8 @@ The observation checks reject backward sunset and passive dawn as sunrise eviden
 
 Image recovery checks simulate failed Moon/cloud downloads, retry and revisit, preserved clock/camera state, and late responses after changing families. Wide Mercury layout checks use native keyboard focus through the race, answer feedback and completion, then verify that closing the mission restores the full exploration controls.
 
+Tide checks cover the quadrupole model, opposite bulges, aligned/right-angle range, the Sun toggle, manipulation, motion preferences and scene lifecycle. Europa's ice check exercises direct drag and keyboard control, including deliberate completion and retained evidence. Mercury checks require an ungraded prediction before the race and compare it with the observed counters.
+
 ## Runtime structure
 
 - index.html, style.css, app.js: interface, routing, input and animation coordination.
@@ -80,6 +87,7 @@ Image recovery checks simulate failed Moon/cloud downloads, retry and revisit, p
 - renderer.js: analytic WebGL2 planets and texture allocation.
 - worlds.js, moons.js: world profiles and orbital models.
 - orrery.js, moon-system.js, belt.js: Three.js scenes.
+- tides.js: exaggerated ocean shell, tide forcing and relative range calculation.
 - orbit-labels.js: shared planet-attached labels, collision fades and accessible hit targets.
 - navigation.js, sky.js, sky-scene.js: shared navigation and sky.
 - assets/ and vendor/: bundled imagery, provenance, fonts and licenses.
@@ -102,5 +110,7 @@ The output contains the runtime site, .nojekyll and build-info.json with its sou
 Imagery comes from historical observations, composites and labelled reconstructions. Cloud drift, camera travel and animation rates are illustrative. Venus's cloud movement differs from the solid planet's 243-Earth-day turn; its radar colours are simulated and its marker is drawn. Europa's cutaway depicts an inferred ocean without claiming measured layer thickness or a live view.
 
 The solar-system model uses fixed NASA/JPL orbital elements and relative periods; starting positions are illustrative rather than today's sky. Body sizes and readable orbital spacing are exaggerated. Moon paths are simplified circular models with stated inclinations and tidal locking. The Earth–Moon neighbourhood preserves the bodies' diameter ratio, compresses their separation, omits daily Earth rotation and uses fixed illustrative sunlight rather than a lunar-phase calendar. Earth local solar time in the close-up is not civil clock time, and its model has no seasons.
+
+Ocean tides uses an ideal global-ocean quadrupole model. The Sun contributes 0.46 times the Moon's forcing; the relative range in their shared plane is 1 for Moon only, 1.46 when aligned and 0.54 at right angles. The water shell and its height are greatly exaggerated, and the compressed display distance does not change the forcing. The tide calculation omits Earth's daily spin, tidal lag and the effects of coasts, basins and weather; its Sun direction is fixed. It is not a local tide forecast or a volume-conserving fluid simulation. [Sources and model details](https://thomas-warden.github.io/Solsystemet/sources.html#tides).
 
 The asteroid flight compresses distances and illustrates shapes and occasional collisions; the real belt is mostly empty space. The catalogue-based sky is brightened for visibility. Atmospheres, rings and shadows are real-time approximations. Source manifests and font/Three.js licenses are bundled with the site.

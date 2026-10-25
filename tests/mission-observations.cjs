@@ -121,9 +121,37 @@ async function oceanVisible(page) {
     const desktop = await newPage(browser, { reducedMotion: 'reduce' });
     page = desktop.page;
     await start(page, 'mercury');
+    assert.equal(await page.locator('#missionAction').isDisabled(), true);
+    for (const choice of ['mercury', 'earth']) {
+      assert.equal(await page.locator(`[data-predict="${choice}"]`).getAttribute('aria-pressed'), 'false');
+    }
+    // The orbit model remains explorable. Finishing its clock before choosing
+    // and explicitly starting the activity must not bypass the prediction.
+    await range(page, '#orbitDay', 990);
+    await page.locator('#orbitPlay').click();
+    await page.waitForFunction(() => document.querySelector('#orbitDay').value === '1000');
+    await page.waitForTimeout(300);
+    assert.equal(await step(page), '0', 'passive completion of free time cannot skip prediction');
+    assert.equal(await page.locator('[data-answer]').count(), 0);
+    await page.locator('#missionAction').dispatchEvent('click');
+    assert.equal(await step(page), '0', 'a disabled start event cannot bypass prediction');
+    assert.equal(await page.locator('#passportCount').textContent(), '0 / 3');
+    await page.locator('[data-predict="earth"]').click();
+    assert.equal(await page.locator('[data-predict="earth"]').getAttribute('aria-pressed'), 'true');
+    assert.equal(await page.locator('[data-predict="mercury"]').getAttribute('aria-pressed'), 'false');
+    assert.equal(await page.locator('#missionAction').isEnabled(), true);
+    assert.doesNotMatch(await page.locator('#missionFeedback').textContent(), /wrong|incorrect|try again/i,
+      'a prediction is a hypothesis, not a graded answer');
+    await page.waitForTimeout(300);
+    assert.equal(await step(page), '0', 'choosing after a completed clock still requires Start race');
+    assert.equal(await page.locator('#passportCount').textContent(), '0 / 3');
     await page.locator('#missionAction').click();
     await waitStep(page, 1);
+    assert.ok(Number(await page.locator('#orbitDay').inputValue()) < 100, 'Start race resets the existing clock');
+    assert.equal(await page.locator('#orbitScoreboard [data-orbit="mercury"] .trip-count').textContent(), '0');
+    assert.equal(await page.locator('#orbitScoreboard [data-orbit="earth"] .trip-count').textContent(), '0');
     await finishYear(page);
+    assert.match(await page.locator('#missionPrediction').textContent(), /Earth/);
     await page.evaluate(() => { location.hash = '#venus'; });
     await ready(page);
     await page.locator('#missionReturn').click();
@@ -139,10 +167,12 @@ async function oceanVisible(page) {
     await finishYear(page);
     await page.locator('[data-answer="1"]').click();
     assert.equal(await page.locator('#missionStepTitle').textContent(), 'Orbit explorer');
+    assert.match(await page.locator('#missionPrediction').textContent(), /Earth/);
+    assert.equal(await page.locator('#passportCount').textContent(), '1 / 3', 'a changed mind earns the full discovery');
     await screenshot(page, 'observation-mercury-earned-desktop');
     assertClean(desktop);
     await page.close();
-    console.log('PASS Mercury return and replay invalidate stale questions until a full year is observed again');
+    console.log('PASS ungraded Mercury prediction, explicit fresh race, evidence comparison and safe return/replay');
   } catch (error) {
     if (page && !page.isClosed()) {
       console.error('Failure screenshot:', await screenshot(page, 'mission-observations-failure').catch(() => 'unavailable'));

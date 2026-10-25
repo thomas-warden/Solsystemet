@@ -99,10 +99,13 @@ const { assert, baseURL, launch, newPage, visit, ready, inViewport, screenshot, 
     assert.equal(await page.locator('#atlas').getAttribute('data-mission-step'), '0');
     releaseOrbit();
     await ready(page);
-    await page.waitForFunction(() => document.querySelector('#missionAction') && !document.querySelector('#missionAction').disabled);
-    for (const selector of ['#missionAction', '#oneYear', '#orbitDay', '#orbitPlay']) {
+    await page.waitForSelector('[data-predict="mercury"]');
+    for (const selector of ['[data-predict="mercury"]', '[data-predict="earth"]', '#oneYear', '#orbitDay', '#orbitPlay']) {
       assert.equal(await page.locator(selector).isDisabled(), false, selector + ' becomes usable after initialization');
     }
+    assert.equal(await page.locator('#missionAction').isDisabled(), true, 'ready graphics still require a prediction');
+    await page.locator('[data-predict="mercury"]').click();
+    assert.equal(await page.locator('#atlas').getAttribute('data-mission-step'), '0');
     await page.locator('#missionAction').click();
     assert.equal(await page.locator('#atlas').getAttribute('data-mission-step'), '1');
     assertClean(pendingOrbit);
@@ -127,11 +130,17 @@ const { assert, baseURL, launch, newPage, visit, ready, inViewport, screenshot, 
     assert.equal(await page.locator('#oneYear').isDisabled(), true);
     await page.locator('#missionRetry').click();
     await ready(page);
-    await page.waitForFunction(() => document.querySelector('#missionAction') && !document.querySelector('#missionAction').disabled);
+    await page.waitForSelector('[data-predict="earth"]');
     assert.ok(moduleAttempts >= 2, 'retry must actually fetch a fresh module after an import failure');
     assert.equal(await page.locator('#atlas').getAttribute('data-mission'), 'mercury');
     assert.equal(await page.locator('#atlas').getAttribute('data-mission-step'), '0');
     assert.equal(await page.locator('#oneYear').isDisabled(), false);
+    assert.equal(await page.locator('[data-predict="earth"]').isEnabled(), true);
+    assert.equal(await page.locator('[data-predict="mercury"]').isEnabled(), true);
+    assert.equal(await page.locator('#missionAction').isDisabled(), true, 'retry restores prediction, not a prematurely started race');
+    await page.locator('[data-predict="earth"]').click();
+    assert.equal(await page.locator('#missionAction').isEnabled(), true);
+    assert.equal(await page.locator('#atlas').getAttribute('data-mission-step'), '0');
     assert.deepEqual(failedOrbit.failed.filter(message => !message.includes('/orrery.js')), []);
     failedOrbit.failed.length = 0;
     assertClean(failedOrbit);
