@@ -1,14 +1,14 @@
-import { addCelestialSky } from './sky-scene.js?v=3088c1f8a1c3';
+import { addCelestialSky } from './sky-scene.js?v=a1c1d19620f0';
 import * as THREE from './vendor/three.module.js';
 import { OrbitControls } from './vendor/OrbitControls.js';
-import { WORLDS } from './worlds.js?v=3088c1f8a1c3';
-import { MOONS, FAMILIES, moonPosition } from './moons.js?v=3088c1f8a1c3';
-import { AnchoredLabels } from './orbit-labels.js?v=3088c1f8a1c3';
+import { WORLDS } from './worlds.js?v=a1c1d19620f0';
+import { MOONS, FAMILIES, moonPosition } from './moons.js?v=a1c1d19620f0';
+import { AnchoredLabels } from './orbit-labels.js?v=a1c1d19620f0';
 const $=id=>document.getElementById(id),TAU=Math.PI*2;
 const reduced=matchMedia('(prefers-reduced-motion: reduce)');
 const CAMERA_DURATION=.75;
 const CHECKPOINT_DURATION=.8;
-const SOLAR_DURATION=.35,TIDE_CAMERA_Y=.58;
+const SOLAR_DURATION=.35,TIDE_CAMERA_Y=.58,TIDE_ORBIT_RADIUS=3.3;
 
 function earthMaterial(material){
  // Color maps are already decoded to linear light by Three. The water mask is
@@ -97,7 +97,7 @@ export class MoonSystem {
  configureEarthExperiment(){
   if(this.parent!=='earth')return;
   this.sunDirection.copy(this.tideMode?this.tideSunDirection:this.earthSunDirection);if(this.tideMode)this.sunlight.position.copy(this.sunDirection).multiplyScalar(12);else this.sunlight.position.set(-8,5,7);
-  this.maxRadius=this.tideMode?2.8:4.6;this.span=this.tideMode?MOONS.moon.period:28;const item=this.items.moon;
+  this.maxRadius=this.tideMode?TIDE_ORBIT_RADIUS:4.6;this.span=this.tideMode?MOONS.moon.period:28;const item=this.items.moon;
   if(item){item.r=this.maxRadius;item.phase=this.tideMode?0:1.1;const p=item.orbit.geometry.attributes.position;for(let n=0;n<p.count;n++){const a=n/(p.count-1)*TAU;p.setXYZ(n,Math.cos(a)*item.r,Math.sin(a)*item.r*Math.sin(item.inclination),-Math.sin(a)*item.r*Math.cos(item.inclination));}p.needsUpdate=true;item.orbit.geometry.computeBoundingSphere();item.orbit.material.opacity=this.tideMode?.2:.65;}
   $('moonSystemTitle').textContent=this.tideMode?'Ocean tides.':'Earth & the Moon.';
   $('moonSystemEyebrow').textContent=this.tideMode?'EARTH + MOON + SUN':'OUR NEAREST NEIGHBOUR';
@@ -111,7 +111,7 @@ export class MoonSystem {
   if(this.tideOcean){this.tideOcean.object.visible=true;this.setTideReady(true);return;}
   $('tideStatus').textContent='Preparing the ocean…';$('tideRetry').hidden=true;this.setTideReady(false);
   try{
-   this.tideImport||=import('./tides.js?v=3088c1f8a1c3'+(this.tideAttempts?'&retry='+this.tideAttempts:'')).catch(error=>{this.tideImport=null;this.tideAttempts++;throw error;});
+   this.tideImport||=import('./tides.js?v=a1c1d19620f0'+(this.tideAttempts?'&retry='+this.tideAttempts:'')).catch(error=>{this.tideImport=null;this.tideAttempts++;throw error;});
    const {TideOcean}=await this.tideImport;
    if(!this.tideOcean){this.tideOcean=new TideOcean({radius:1.3,sunDirection:this.sunDirection,orbitNormal:this.tideNormal,exaggeration:.24,opacity:.11});this.scene.add(this.tideOcean.object);}
    this.tideOcean.object.visible=this.active&&this.parent==='earth'&&this.tideMode;
@@ -343,7 +343,7 @@ export class MoonSystem {
   else this.flight={start:this.camera.position.clone(),end,targetStart:this.controls.target.clone(),targetEnd:new THREE.Vector3(),t:0};
   this.dirty=true;$('moonTop').setAttribute('aria-pressed',String(top));$('moonPerspective').setAttribute('aria-pressed',String(!top));
  }
- distance(){if(this.tideMode){const tangent=Math.tan(THREE.MathUtils.degToRad(this.camera.fov/2)),aspect=Math.max(.35,this.camera.aspect),cy=this.top?1:TIDE_CAMERA_Y,cz=this.top?0:Math.sqrt(1-cy*cy);let distance=2.03/(tangent*.80);for(let n=0;n<64;n++){const angle=n/64*TAU,x=Math.cos(angle)*2.8,y=Math.sin(angle)*2.8*Math.sin(.09),z=-Math.sin(angle)*2.8*Math.cos(.09),depth=y*cy+z*cz,up=y*cz-z*cy;distance=Math.max(distance,depth+(Math.abs(x)+.36)/(tangent*aspect*.92),depth+(Math.abs(up)+.36)/(tangent*.80));}return distance;}return (this.maxRadius+.9)*Math.max(this.top?3.25:2.35,3.65/Math.max(.4,this.camera.aspect));}
+ distance(){if(this.tideMode){const tangent=Math.tan(THREE.MathUtils.degToRad(this.camera.fov/2)),aspect=Math.max(.35,this.camera.aspect),cy=this.top?1:TIDE_CAMERA_Y,cz=this.top?0:Math.sqrt(1-cy*cy);let distance=2.03/(tangent*.80);for(let n=0;n<64;n++){const angle=n/64*TAU,x=Math.cos(angle)*TIDE_ORBIT_RADIUS,y=Math.sin(angle)*TIDE_ORBIT_RADIUS*Math.sin(.09),z=-Math.sin(angle)*TIDE_ORBIT_RADIUS*Math.cos(.09),depth=y*cy+z*cz,up=y*cz-z*cy;distance=Math.max(distance,depth+(Math.abs(x)+.36)/(tangent*aspect*.92),depth+(Math.abs(up)+.36)/(tangent*.80));}return distance;}return (this.maxRadius+.9)*Math.max(this.top?3.25:2.35,3.65/Math.max(.4,this.camera.aspect));}
  resize(){
   if(!this.parent)return;const r=$('moonStage').getBoundingClientRect();if(!r.width||!r.height)return;
   const oldFit=this.distance(),oldAspect=this.camera.aspect;this.camera.aspect=r.width/r.height;this.camera.updateProjectionMatrix();this.renderer.setSize(r.width,r.height,false);
