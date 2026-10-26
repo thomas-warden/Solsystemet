@@ -1,0 +1,50 @@
+{
+  "created": "2026-10-26",
+  "purpose": "Static transparent globe illustrations for the Ocean tides explanation. These are lit 3D reconstructions from existing credited maps, not spacecraft photographs or observed tidal deformations.",
+  "production": "scripts/render-tide-illustrations.cjs; Three.js 192x128 spheres, orthographic camera, fixed illustrative upper-left sunlight, neutral fill, ACES tone mapping. Earth has its existing cloud map and restrained atmospheric rim. Canvas-encoded transparent WebP quality0.92. No AI-generated surface features.",
+  "earth_surface_credit": {
+    "creator": "NASA Earth Observatory, Reto St\u00f6ckli / NASA Goddard Space Flight Center",
+    "source": "https://science.nasa.gov/earth/earth-observatory/blue-marble-next-generation/base-topography/",
+    "description": "Blue Marble Next Generation July2004 topographic composite, based on MODIS observations.",
+    "reuse": "NASA imagery; retain attribution; no endorsement implied."
+  },
+  "moon_and_cloud_credit": {
+    "creator": "Solar System Scope / INOVE, based on NASA imagery",
+    "source": "https://cloud.solarsystemscope.com/textures/",
+    "license": "CC BY4.0",
+    "license_url": "https://creativecommons.org/licenses/by/4.0/",
+    "modifications": "Mapped to spheres with illustrative lighting and composited cloud opacity; rendered to transparent WebP."
+  },
+  "source_records": [
+    "assets/research/moons/MOON_ASSET_SOURCES.json",
+    "sources.html#earth-moon-lighting"
+  ],
+  "assets": [
+    {
+      "file": "earth.webp",
+      "dimensions": [
+        768,
+        768
+      ],
+      "bytes": 130136,
+      "sha256": "3702239e91d81208fd69e7345d642772b56f47ac4ce9ba86d0fe8d1d4458c000",
+      "surface_source": "assets/research/earth-nasa-5400.jpg",
+      "cloud_source": "assets/research/earth-clouds-4k.jpg",
+      "body_diameter_fraction": 0.9009009009009008,
+      "atmosphere_diameter_fraction": 0.9171171171171171
+    },
+    {
+      "file": "moon.webp",
+      "dimensions": [
+        384,
+        384
+      ],
+      "bytes": 25242,
+      "sha256": "236178a5a2c8f98e71bbe4b4d0bc73b1cfb6e82f25266fff0ec9857304b5d613",
+      "surface_source": "assets/research/moons/moon.jpg",
+      "cloud_source": null,
+      "body_diameter_fraction": 0.9009009009009008,
+      "atmosphere_diameter_fraction": null
+    }
+  ]
+}

@@ -237,6 +237,8 @@ async function layout(page, viewport) {
     for (const angle of [0, 90, 180]) await preset(page, angle, 1);
     assert.equal(await page.locator('#tideStrength').textContent(), 'Moon only');
     await page.locator('#tideSun').click(); await preset(page, 180, 1.46);
+    // Deliberately enlarge the Moon beyond the old fixed 26px pickup radius.
+    await page.locator('#moonCanvas').focus(); await page.keyboard.press('+'); await page.keyboard.press('+'); await settled(page);
     const limb = await moonHitTarget(page);
     assert.equal(limb.firstHit, 'moon'); assert(limb.offset > 26, 'This large visible limb exercises more than the old fixed-radius target');
     await page.mouse.move(limb.point.x, limb.point.y); await page.mouse.down();
