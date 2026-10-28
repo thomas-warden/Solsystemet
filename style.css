@@ -344,10 +344,6 @@ h1[tabindex="-1"]:focus,h2[tabindex="-1"]:focus{outline:none}
 .tide-field-guide h3{font-family:'Instrument Serif',serif;font-weight:400;font-size:clamp(34px,4vw,54px);line-height:1.06;color:#eee9de;margin:16px 0}
 .tide-field-guide figcaption p{max-width:34em;font-size:14px;line-height:1.65;margin:12px 0;color:#adbdc6}
 .tide-arrow-key{display:flex;align-items:center;gap:12px;color:#a6b9c1;font-size:11px}.tide-arrow-key i{color:#f3d399;font-style:normal;font-size:26px;line-height:1}
-.tide-comparisons{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--line)}
-.tide-comparisons figure{padding:24px 8% 0}.tide-comparisons figure+figure{border-left:1px solid var(--line)}
-.tide-comparisons figcaption{padding:8px 0 12px}
-.tide-comparisons h3{font-size:36px;margin:12px 0}.tide-comparisons h3 span{display:block;margin-top:8px;font:12px 'DM Sans',sans-serif;color:#a7d5df}
 .tide-field-guide .tide-illustration-note{border-top:1px solid var(--line);padding-top:16px;font-size:11px;color:#8fa4ae;line-height:1.7;margin-top:24px}
 @media(max-width:650px){
  .tide-notes-invitation{font-size:9px;letter-spacing:0}
@@ -355,9 +351,6 @@ h1[tabindex="-1"]:focus,h2[tabindex="-1"]:focus{outline:none}
  .tide-pull-figure figcaption{padding:0 4px}.tide-pull-figure h3 br{display:none}
  .tide-pull-figure h3{font-size:36px}.tide-field-guide h3{margin:12px 0}
  .tide-diagram-label{font-size:19px}
- .tide-comparisons{grid-template-columns:1fr;gap:0}.tide-comparisons figure{padding:14px 0 18px}
- .tide-comparisons figure+figure{border-left:0;border-top:1px solid var(--line);padding-left:0}
- .tide-comparisons figcaption,.tide-comparisons figure+figure figcaption{padding:4px}
  .tide-field-guide .tide-illustration-note{margin-top:6px}
 }
 @media(min-width:1001px){
@@ -372,6 +365,120 @@ h1[tabindex="-1"]:focus,h2[tabindex="-1"]:focus{outline:none}
  .moon-system-view[data-experiment=tides] .tide-reading{gap:6px}.moon-system-view[data-experiment=tides] .tide-reading output{min-width:52px}
  .moon-system-view[data-experiment=tides] #moonStage{grid-column:2;grid-row:2/5;margin-top:0;min-width:0}
  .moon-system-view[data-experiment=tides] #moonLoadNotice{grid-column:2;grid-row:5}
- .moon-system-view[data-experiment=tides] #tideNotes{grid-column:1/-1;grid-row:6}
- .moon-system-view[data-experiment=tides] #moonSelection{grid-column:1/-1;grid-row:7}
+ .moon-system-view[data-experiment=tides] #tideDiscovery{grid-column:1/-1;grid-row:6}
+ .moon-system-view[data-experiment=tides] #tideShore{grid-column:1/-1;grid-row:7}
+ .moon-system-view[data-experiment=tides] #tideLearningNotice{grid-column:1/-1;grid-row:8}
+ .moon-system-view[data-experiment=tides] #tideNotes{grid-column:1/-1;grid-row:9}
+ .moon-system-view[data-experiment=tides] #moonSelection{grid-column:1/-1;grid-row:10}
 }
+.tide-model-key{position:absolute;top:68px;right:16px;color:#bbd1da;font-size:11px;text-align:right;pointer-events:none;text-shadow:0 1px 5px #000}
+.tide-model-key span{display:block;margin-top:4px;font-size:10px;color:#8dabb8}
+#tideInspect[aria-pressed=true]{border-color:var(--gold);color:#ead6ac}
+.tide-discovery{display:flex;justify-content:space-between;align-items:center;gap:28px;padding:24px 0;border-block:1px solid var(--line);margin-top:20px}
+.tide-discovery h2{font:36px/1.1 'Instrument Serif',serif;font-weight:400;margin:12px 0}
+.tide-discovery p{font-size:13px;line-height:1.6;color:#a8c0ca;margin:0;max-width:480px}
+.tide-challenge-actions{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.tide-challenge-actions output{font:28px 'Instrument Serif',serif;color:#ddc89e;white-space:nowrap}
+.tide-challenge-actions button,.tide-learning-notice button{min-height:44px;border:1px solid #cbb79270;padding:10px 14px;border-radius:3px;color:#e2cda4;font-size:12px}
+.tide-discovery[data-found="2"] .tide-challenge-actions output{color:#9edbcf}
+.tide-learning-notice{padding:18px 0;color:#cbb792;font-size:13px;line-height:1.6}
+@media(max-width:760px){
+ #atlas:has(#moonSystemView[data-experiment=tides]:not([hidden])) .topbar{min-height:56px;height:56px}
+ .moon-system-view[data-experiment=tides]>.neighbourhood-nav a[href="#earth-moons"],.moon-system-view[data-experiment=tides]>.neighbourhood-nav a[href="#jupiter-moons"],.moon-system-view[data-experiment=tides]>.neighbourhood-nav a[href="#saturn-moons"]{display:none}
+ .moon-system-view[data-experiment=tides]>.neighbourhood-nav{min-height:36px;padding:0;align-items:center}
+ .moon-system-view[data-experiment=tides] .orrery-heading h1{font-size:38px;margin:3px 0}
+ .moon-system-view[data-experiment=tides] .orrery-heading p{margin:5px 0}
+ .moon-system-view[data-experiment=tides] .earth-experiments{gap:24px;margin-bottom:0}
+ .moon-system-view[data-experiment=tides] .moon-console{padding:10px 0 8px}
+ .moon-system-view[data-experiment=tides] .tide-feedback{margin-top:4px;min-height:18px}
+ .moon-system-view[data-experiment=tides] .tide-presets{margin-top:4px}
+ .moon-system-view[data-experiment=tides] .tide-presets button{padding:5px 3px;gap:2px}
+ .moon-system-view[data-experiment=tides] .orbit-toolbar{gap:4px}.moon-system-view[data-experiment=tides] .orbit-toolbar button{font-size:10px;padding:7px}
+ .tide-model-key{right:12px;font-size:10px}.tide-model-key span{font-size:9px}
+ .tide-discovery{align-items:flex-start;flex-direction:column;gap:16px;margin-top:10px;padding:22px 0}
+ .tide-discovery h2{font-size:32px}.tide-challenge-actions{width:100%;gap:10px}.tide-challenge-actions output{margin-right:auto}
+}
+/* The guide shares the live Moon geometry; explanatory replay is deliberately separate. */
+.tide-guide{padding:18px 0 4px;color:#afc0c8}
+.tide-guide section{min-width:0}
+.tide-guide-heading{display:flex;align-items:center;justify-content:space-between;gap:14px;margin:6px 0 10px}
+.tide-guide .eyebrow{font-size:9px;letter-spacing:.14em;color:#cbb88e}
+.tide-guide h3{font:400 clamp(30px,3vw,43px)/1.08 'Instrument Serif',Georgia,serif;color:#eee9df;margin:12px 0}
+.tide-guide button{min-height:44px;border:1px solid #b9cbd033;border-radius:3px;padding:9px 13px;color:#b7c7cf;font-size:12px;line-height:1.25}
+.tide-guide button:hover{background:#92bac511}
+.tide-guide button[aria-pressed=true]{color:#f0dcaf;border-color:#c7b589aa;background:#cbb7920b}
+.tide-guide-replay{white-space:nowrap;flex:none}
+.tide-guide-pull-layout,.tide-guide-comparison-layout{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(240px,.8fr);gap:7%;align-items:center}
+.tide-guide figure{margin:0;min-width:0}
+.tide-guide svg{display:block;width:100%;height:auto;overflow:visible;background:radial-gradient(ellipse at 47% 50%,#16364c19,transparent 65%)}
+.tide-guide-axis{fill:none;stroke:#a7b8bf44;stroke-dasharray:2 6;stroke-width:1}
+.tide-guide-reference{fill:none;stroke:#c1d0d5;stroke-opacity:.5;stroke-width:.9;stroke-dasharray:3 4}
+.tide-guide-labels{fill:#bccbd2;font:15px 'DM Sans',sans-serif;text-anchor:middle}
+.tide-guide-water-point circle{fill:#bce9ee;stroke:#315e75;stroke-width:2}.tide-guide-water-point path,.tide-guide-earth-point path{stroke:#a8bdc45c;stroke-width:1}
+.tide-guide-water-point text,.tide-guide-earth-point text{fill:#b9cbd3;font:15px 'DM Sans',sans-serif;text-anchor:middle}
+.tide-guide-earth-point circle{fill:#eee9d9;stroke:#0b1721;stroke-width:1}
+.tide-guide-force path{fill:none;stroke:#eed39c;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 1px 2px #000)}
+.tide-guide-range path{fill:none;stroke:#a5d6e0;stroke-width:1.4}.tide-guide-range text{fill:#a9c0ca;font:13px 'DM Sans',sans-serif;text-anchor:middle}
+.tide-guide .tide-guide-scale-note{font-size:10px;line-height:1.5;text-align:center;color:#9aacb6;margin:1px 0 12px}
+.tide-guide-scale-note i{display:inline-block;width:19px;border-top:1px dashed #b2c7cf;vertical-align:middle;margin-right:7px}
+.tide-guide-pull-reading>p,.tide-guide-comparison-reading>p{font-size:14px;line-height:1.65;margin:12px 0;color:#afc0c8;max-width:34em}
+.tide-guide-pull-reading .tide-guide-step-title{color:#e5ded0;font-size:20px;line-height:1.3;margin-top:0}
+.tide-guide-steps{display:flex;gap:6px;margin:20px 0 12px}.tide-guide-steps button{flex:1;min-width:0;padding:8px 5px;font-size:11px;display:flex;flex-direction:column;gap:5px;align-items:center}.tide-guide-steps button span{font-size:11px;color:#cbb88e}
+.tide-guide-pull-reading .tide-guide-replay-note,.tide-guide-comparison-reading .tide-guide-linked-note{font-size:11px;color:#8fa7b1;line-height:1.6}
+.tide-guide-compare{border-top:1px solid var(--line);margin-top:25px;padding-top:22px}
+.tide-guide-compare-buttons{display:flex;gap:8px}.tide-guide-compare-buttons button{flex:1;padding:11px 10px}
+.tide-guide-comparison-reading .tide-guide-comparison-title{font:400 30px/1.13 'Instrument Serif',Georgia,serif;color:#eee8dc;margin-top:22px}
+.tide-guide .tide-guide-footnote{border-top:1px solid var(--line);margin:22px 0 0;padding-top:16px;color:#8fa7b1;font-size:11px;line-height:1.6}
+@media(max-width:650px){
+ .tide-guide{padding-top:12px}.tide-guide-heading{gap:10px;align-items:flex-start}
+ .tide-guide h3{font-size:30px;margin:10px 0}.tide-guide .eyebrow{font-size:8px;letter-spacing:.11em}
+ .tide-guide-heading .tide-guide-replay{margin-top:20px;font-size:11px;padding:9px 10px}
+ .tide-guide-pull-layout,.tide-guide-comparison-layout{grid-template-columns:1fr;gap:3px}
+ .tide-guide-labels,.tide-guide-water-point text,.tide-guide-earth-point text{font-size:18px}
+ .tide-guide-pull-reading .tide-guide-step-title{font-size:18px;margin:9px 0}.tide-guide-pull-reading>p,.tide-guide-comparison-reading>p{font-size:13px;line-height:1.6}
+ .tide-guide-steps{margin:15px 0 10px}.tide-guide-steps button{min-height:56px;font-size:11px}
+ .tide-guide-compare{padding-top:16px;margin-top:22px}
+ .tide-guide-compare-buttons button{font-size:12px}.tide-guide-comparison-reading .tide-guide-comparison-title{font-size:29px;margin:17px 0 10px}
+ .tide-guide-range text{font-size:16px}.tide-guide .tide-guide-scale-note{font-size:10px}
+}
+/* A separate daily clock connects the orbital range to an illustrated coast. */
+.tide-shore{width:100%;min-width:0;border-top:1px solid var(--line);padding:28px 0 20px;margin-top:22px;grid-column:1/-1}
+.tide-shore-heading{display:flex;justify-content:space-between;align-items:end;gap:24px;margin-bottom:22px}
+.tide-shore-heading h2{font:400 clamp(32px,3.2vw,46px)/1.1 'Instrument Serif',Georgia,serif;color:var(--white);margin:10px 0 0}
+.tide-shore-heading>p{font-size:13px;line-height:1.6;color:#a8bbc3;margin:0;max-width:30em}
+.tide-shore-body{display:grid;grid-template-columns:minmax(0,1fr) 210px;gap:28px;align-items:center}
+.tide-shore-scene{position:relative;min-width:0;height:clamp(280px,30vw,420px);overflow:hidden;border:1px solid #8da9b21f;border-radius:3px}
+.tide-shore-art{display:block;width:100%;height:100%}
+.tide-shore-marker{font:18px 'DM Sans',sans-serif;fill:#ecd6ad}
+.tide-shore-marker path{fill:none;stroke:#e5c990;stroke-opacity:.6;stroke-width:1;stroke-dasharray:3 5}
+.tide-shore-marker-low{fill:#c3d8df}.tide-shore-marker-low path{stroke:#b6d2dd;stroke-opacity:.45}
+.tide-shore-water-state{position:absolute;left:18px;top:16px;display:flex;flex-direction:column;gap:5px;text-shadow:0 1px 5px #000a;pointer-events:none}
+.tide-shore-water-state>span:first-child{font:25px 'Instrument Serif',Georgia,serif;color:#edf0e8}
+.tide-shore-water-state>span:last-child{font-size:11px;color:#abcbd4}
+.tide-shore-art-note{position:absolute;bottom:13px;left:18px;font-size:9px;letter-spacing:.06em;color:#a7bcc5;text-shadow:0 1px 4px #000;pointer-events:none}
+.tide-shore-clock{display:grid;grid-template-columns:1fr;justify-items:stretch;align-items:center;min-width:0}
+.tide-shore-orbit{width:180px;max-width:100%;height:auto;justify-self:center}
+.tide-shore-point-label{font:11px 'DM Sans',sans-serif;fill:#cdd6d5}
+.tide-shore-clock-controls{min-width:0}
+.tide-shore-clock-controls button{min-height:44px;margin:0 0 18px;padding:10px 18px;font-size:12px}
+.tide-shore-clock-controls label{display:flex;justify-content:space-between;gap:8px;font-size:12px;color:#c7d3d5}
+.tide-shore-clock-controls output{font-size:10px;color:#a0b6c1;align-self:center}
+.tide-shore-clock-controls input[type=range]{margin-top:5px;height:44px;min-height:44px;touch-action:pan-y;background:linear-gradient(#687d87,#687d87) center/100% 3px no-repeat}
+.tide-shore-clock-controls input[type=range]::-webkit-slider-thumb{width:22px;height:22px;border-width:3px;box-shadow:0 0 0 4px #b0c5c718}
+.tide-shore-day-key{display:flex;justify-content:space-between;color:#849ca8;font-size:8px;letter-spacing:.06em;margin-top:-1px}
+.tide-shore-day-note{font-size:11px;line-height:1.6;color:#95aab4;margin:18px 0 0}
+.tide-shore-limit{font-size:11px;line-height:1.7;color:#91a6af;margin:14px 0 0}.tide-shore-limit a{color:var(--gold);white-space:nowrap}
+@media(max-width:760px){
+ .tide-shore{padding-top:22px;margin-top:14px}
+ .tide-shore-heading{display:block;margin-bottom:16px}.tide-shore-heading h2{font-size:35px}.tide-shore-heading>p{font-size:12px;margin-top:12px}.tide-shore-heading>p br{display:none}
+ .tide-shore-body{grid-template-columns:1fr;gap:12px}
+ .tide-shore-scene{height:260px}
+ .tide-shore-marker{font-size:20px}
+ .tide-shore-clock{grid-template-columns:110px minmax(0,1fr);gap:4px 14px}
+ .tide-shore-orbit{width:125px;max-width:none;margin-left:-10px}
+ .tide-shore-clock-controls button{margin-bottom:12px;font-size:11px;padding:9px 14px}
+ .tide-shore-day-note{grid-column:1/-1;margin:2px 0 0;font-size:11px}.tide-shore-day-note br{display:none}
+ .tide-shore-clock-controls label{font-size:11px}.tide-shore-clock-controls output{font-size:9px}
+ .tide-shore-water-state{left:14px;top:13px}.tide-shore-art-note{font-size:8px;left:14px;bottom:10px}
+}
+@media(max-width:360px){.tide-shore-heading h2{font-size:31px}.tide-shore-scene{height:240px}.tide-shore-clock{grid-template-columns:90px minmax(0,1fr);gap:4px 9px}.tide-shore-orbit{width:110px}.tide-shore-day-key{font-size:7px}}

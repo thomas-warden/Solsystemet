@@ -1,0 +1,15 @@
+{
+  "created": "2026-10-27",
+  "file": "shore-rock.webp",
+  "purpose": "Original imagined coastal rock material for the Ocean tides shoreline cutaway. This is illustrative material, not a photograph of a real coast or geological measurement.",
+  "production": "AI-generated original rock material using OpenAI image generation; then resized to1152x768 and encoded as WebP quality82. The generated image is clipped to an authored SVG coast profile. The waterline, high/low markers, day clock and tidal height are separate numerical illustrations.",
+  "source_original": "/workspace/generated_images/exec-5e306b08-7387-4571-a47d-9d8c981b3620.png",
+  "dimensions": [
+    1152,
+    768
+  ],
+  "bytes": 297190,
+  "sha256": "0ba28288af5fa98bbcb2e2d2111a60ee0f10f40dd385907cf74935b5291ea4e6",
+  "other_assets": "The small Earth globe reuses earth.webp and its existing NASA/Solar System Scope credits in ILLUSTRATION_SOURCES.json.",
+  "limits": "This cutaway uses two sinusoidal high/low tides per illustrative lunar day. Its amplitude tracks the shared model range, but it is not a fluid model or a real coastal forecast. Real timing, number of daily tides and heights vary by coast."
+}

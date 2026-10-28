@@ -1,5 +1,5 @@
 import * as THREE from './vendor/three.module.js';
-import { SKY_URL, SKY_GLSL } from './sky.js?v=a1c1d19620f0';
+import { SKY_URL, SKY_GLSL } from './sky.js?v=c28d94c2dab5';
 let texturePromise;
 function skyTexture(){
  if(!texturePromise)texturePromise=new THREE.TextureLoader().loadAsync(SKY_URL).then(texture=>{

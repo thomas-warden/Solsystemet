@@ -37,7 +37,7 @@ export function tidalField(direction, moonDirection, sunDirection, solarEnabled 
 const vertexShader = `
   uniform float radius, exaggeration, baseline, solarWeight;
   uniform vec3 moonDirection, sunDirection;
-  varying vec3 sphereDirection, worldPosition;
+  varying vec3 sphereDirection, worldPosition, oceanCenter;
   varying float forcing;
   void main() {
     vec3 n = normalize(position);
@@ -47,6 +47,7 @@ const vertexShader = `
     float distance = radius * (baseline + exaggeration * forcing);
     vec4 world = modelMatrix * vec4(n * distance, 1.);
     worldPosition = world.xyz;
+    oceanCenter = (modelMatrix * vec4(0., 0., 0., 1.)).xyz;
     gl_Position = projectionMatrix * viewMatrix * world;
   }
 `;
@@ -54,7 +55,7 @@ const vertexShader = `
 const fragmentShader = `
   uniform float radius, exaggeration, baseline, solarWeight, time, opacity, rimPass;
   uniform vec3 moonDirection, sunDirection, highDirection;
-  varying vec3 sphereDirection, worldPosition;
+  varying vec3 sphereDirection, worldPosition, oceanCenter;
   varying float forcing;
 
   // Fine normal detail, not extra silhouette displacement. Derivative filtering
@@ -99,17 +100,26 @@ const fragmentShader = `
       float rim = pow(1. - facing, 7.) * (.18 + .82 * sunEdge);
       // Matching soft accents identify the two actual combined-field maxima.
       // Their directions come from the same eigenproblem as the range reading.
-      vec3 rimColor = mix(vec3(.025,.26,.48), vec3(.07,.36,.53), cap);
-      gl_FragColor = vec4(rimColor, rim * (.26 + cap * .12));
+      vec3 rimColor = mix(vec3(.018,.18,.28), vec3(.045,.27,.36), cap);
+      gl_FragColor = vec4(rimColor, rim * (.20 + cap * .10));
     } else {
       float crest = clamp((height + .73) / 2.19, 0., 1.);
       // One angular transmission tint keeps the front clear and the grazing
       // water blue. This is an illustrative material, not measured path length.
-      vec3 water = mix(vec3(.003,.025,.065), vec3(.022,.27,.48), grazing);
+      vec3 water = mix(vec3(.003,.025,.065), vec3(.012,.19,.31), grazing);
       vec3 color = water * (.22 + sunlight * 1.15);
       color += vec3(1.,.98,.94) * specular * (.18 + fresnel * .7);
-      float alpha = opacity + grazing * .30 + fresnel * .15 + crest * .015 + specular * .12;
-      gl_FragColor = vec4(color, clamp(alpha, 0., .65));
+      // A quiet, fixed surface reference distinguishes the solid globe from
+      // the exaggerated water. It is the projected Earth limb, not another
+      // inflated sphere or a second ocean. Derivatives keep it one pixel wide.
+      float projectedRadius = length(cross(worldPosition - oceanCenter, view));
+      float pixel = max(fwidth(projectedRadius), .0001);
+      float reference = 1. - smoothstep(pixel * .15, pixel * .70,
+        abs(projectedRadius - radius * 1.009));
+      color = mix(color, vec3(.20,.30,.32) * (.40 + .60 * sunEdge), reference * .65);
+      float alpha = opacity * .55 + grazing * .25 + fresnel * .11 + crest * .015 + specular * .12;
+      alpha += reference * (.12 + .13 * sunEdge);
+      gl_FragColor = vec4(color, clamp(alpha, 0., .58));
     }
     #include <tonemapping_fragment>
     #include <colorspace_fragment>
