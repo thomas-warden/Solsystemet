@@ -74,3 +74,48 @@ Replaced the three explanatory paragraphs with a static illustrated guide: a det
 The opening illustrated review found a misplaced Moon label in the authored SVG and unequal comparison widths. Both were corrected before the final integrated desktop/phone/narrow-phone review. Keyboard Enter/Space opens and closes the guide; text and diagrams stay within the viewport at1440,390 and320px. Final inspected captures: `/tmp/solsystemet-illustrated-tides/{desktop,phone,narrow}-notes.png`. A separate science/learning review confirmed all pull arrows, both spring alignments, neap orientation and concise labels; its wording suggestion made same-side/opposite-side reinforcement explicit.
 
 The existing full Tide browser regression passes, covering real dragging, edge-on and visible-limb interaction, reduced/default motion, Sun/preset behavior, cancellation, offscreen idle, family restoration, tablet/phone layouts and failure/retry. Its large-limb fixture now explicitly zooms twice so it still tests a limb outside the former26px pickup radius after the wider camera fit. No physical-device performance or child testing was performed.
+
+## Five learning flows — 27–28 October 2026
+
+The next critique identified a missing connection between global bulges and a daily tide at a coast, a small phone Earth, a spring/neap comparison that required scrolling and visual memory, an unexplained far-side bulge, and a water envelope that still resembled a glass shell. The implementation keeps the existing detailed globes and 3.3-unit Moon orbit, while linking those views to a daily coastal illustration and deliberate discovery.
+
+### 1. Arrive, then inspect the water
+
+On phones, the main Earth scene now appears before its controls. Redundant neighbourhood links are removed from this compact view, and the whole orbit and controls fit together at 390×844. “Inspect water” pauses the orbit and moves to 0.68 of the fitted camera distance; “Whole orbit” restores the current viewport fit. The Moon's model distance and body sizes do not change. Close-view instructions point to the Moon slider when the Moon is outside the frame. A quiet neutral reference follows the solid Earth's limb, while reduced broad blue tint/front opacity preserve more photographic detail. The water's mathematical field, exaggerated height and two-pass rendering budget remain unchanged.
+
+### 2. Move the Moon, then watch a day at the shore
+
+A textured coastal cutaway has an independently controlled day: the gold coast marker moves through two ideal bulges, and a visible waterline crosses the same rock profile. The actual shared tide range sets the amplitude; the day slider sets phase without advancing the Moon's orbital clock. Entering the coast holds the monthly arrangement so the two clocks do not compete. A roughly 24-hour-50-minute lunar day is a simplified teaching cycle, not a prediction for a named coast.
+
+The first visual pass rejected a geometric rock pattern and clipped phone labels. An original generated rock texture now supplies surface detail inside the authored profile; the water remains a precise SVG layer. The phone crop includes both high/low contacts. The rotating coast marker stays at a fixed radius on Earth rather than riding the changing ocean outline, and its slider has a 44px interaction area. Coastal drawing and its independent animation suspend offscreen, while paused range changes redraw once on return.
+
+### 3. Compare spring and neap without remembering another screen
+
+Two separate static comparison panels are replaced by one fixed-scale diagram. “Bigger change” and “Smaller change” move the actual model Moon, and the diagram's shape, Moon position and range bracket follow the same live state. It also explains the equal-range Moon-only result when solar pull is off. A round reference contour makes the changing shape easier to compare. Initial review corrected a Moon-label collision and matched the orbit's direction to the changing contour. The comparison and replay sections independently avoid drawing while offscreen.
+
+### 4. See why the far side rises
+
+The guide provides three stationary steps and an optional replay. Far water, Earth's centre and near water first move toward the Moon by illustrative amounts of 12, 48 and 84 SVG units. The next step recentres on Earth by subtracting 48, leaving relative offsets of −36, 0 and +36. This makes the far-side explanation visible without an outward arrow incorrectly labelled as the Moon's gravitational pull. The solid Earth does not deform. The reference shapes, sample movement and timing are deliberately schematic; they do not integrate a real fluid response. Reduced motion starts stationary; the same content remains available through keyboard buttons.
+
+### 5. Find both big-tide positions
+
+The challenge records a discovery only after “Check position” evaluates the actual selected Moon–Sun geometry. It requires the Sun's contribution to be on, a settled position within 10 degrees of alignment, and separate same-side/opposite-side discoveries. Rechecking one side cannot count twice. Autoplay, preset travel and dragging alone cannot finish it. Incorrect geometry and Sun-off checks give a concrete next step; Reset clears progress.
+
+### Review evidence and verification boundary
+
+During the 27 October implementation session, the main agent inspected phone arrival, close inspection, coast, replay and comparison captures in `/tmp/tides-five-flow-pass1/`, and the independent flow reviewer inspected `/tmp/solsystemet-five-flows/`. These were temporary artifacts from the previous runtime; they are historical review evidence and were no longer available in the resumed environment. The reviewed changes resolved the flat rock treatment, phone crop, misplaced coastal marker, Moon-label collision and dense initial composition described above.
+
+All five desktop journeys passed before the environment disconnected. The 390px run stopped on a test-fixture assumption: arrival had a resize-preserved camera distance of 11.8423, while the current fit was 11.9387. Inspection correctly used 8.11834, and Whole orbit correctly returned to the current fit. The test must compare the restoration with that current fit, rather than demanding the exact pre-resize radius. The fixture was corrected to compare the current fit. The resumed phone, landscape and recovery checks then completed as recorded below.
+
+On 28 October, verified HTTPS reads of NOAA's [lunar-day glossary](https://tidesandcurrents.noaa.gov/glossary.html#lunarday) confirmed the approximately 24.84-solar-hour mean lunar day. NOAA's [ideal tide explanation](https://tidesandcurrents.noaa.gov/restles3.html) describes Earth's rotation through the bulges, and its [observed-tide limits](https://tidesandcurrents.noaa.gov/restles6.html) support the explicit coastal caveats. The source notes distinguish the global equilibrium field, fixed-scale comparison, relative-pull replay and illustrative daily coast. The generated rock material has its own provenance record; it supplies appearance, not scientific evidence.
+
+This remains browser and expert review. It does not establish independent comprehension by children, real coastal accuracy or physical-device frame pacing.
+
+
+### Final integrated review — 28 October 2026
+
+All five desktop flows and the 390px, 320px and 844px landscape journeys pass in `tests/tide-learning.cjs`. The resumed run found a real reduced-motion defect: a comparison selected while the 3D canvas was offscreen changed the Moon’s day but left its tide range stale. Tide preset settlement, paused slider input and Reset now synchronise the shared tide state immediately while preserving the dirty mesh for its next visible render. A focused offscreen keyboard/comparison regression verifies the fix. Optional coastal-module failure, explicit retry and a late guide response during navigation also pass.
+
+The existing Tide experiment suite passes: direct dragging, large visible limbs, edge-on input, Sun transitions, paused/offscreen GPU idle, family restoration, 390/320/844 layouts, 768/1024 tablets, lazy-module recovery and image retry. All five tide-math groups pass. Existing Moon observation and Earth–Moon lighting suites pass, including keyboard camera input, reduced motion and the original same-face pointer.
+
+Fresh final images were inspected at `/tmp/solsystemet-five-flows-final/` and `/tmp/shore-final-review/`: phone arrival/inspection, the high/low coastal waterline, the live spring/neap comparison, the far-side explanation and discovery feedback. The small coastal Earth now turns with its fixed-radius marker while its water bulges stay still; the globe orientation and baked lighting are explicitly schematic. The phone inspection preserves the wider Moon orbit and keeps the scene controls accessible. Styles from the two temporary module fragments were merged into the production stylesheet, and the obsolete static comparison layout was removed.

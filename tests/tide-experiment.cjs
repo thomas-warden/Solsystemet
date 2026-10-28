@@ -296,7 +296,7 @@ async function layout(page, viewport) {
     assert.equal(await page.evaluate(() => window.__tideScene.timeFlight), null, 'Leaving during travel cancels it');
     assert.deepEqual(await page.evaluate(() => ({ position: window.__tideScene.sunlight.position.toArray(), color: window.__tideScene.sunlight.color.getHex(), intensity: window.__tideScene.sunlight.intensity, fill: window.__tideScene.ambientLight.intensity })), initialGiant, 'Giant-family lighting is restored after tides');
     assert(await page.locator('#tideControls').isHidden()); assert(await page.locator('#tideSunCue').isHidden());
-    assert.equal(await page.locator('#tideFeedback').textContent(), 'Can you make a bigger tide?');
+    assert.equal(await page.locator('#tideFeedback').textContent(), 'Move the Moon. Compare the daily change.');
     assertClean(normal); await page.close();
     console.log('PASS default motion, preset ranges, real Moon drag, camera input, cancellation, idle rendering and family restoration');
 

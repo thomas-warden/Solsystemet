@@ -35,7 +35,7 @@ Open http://127.0.0.1:8087/. No package install or compilation is required. Serv
 - The solar-system model compares orbital periods, with readable or true orbital spacing, camera presets and a one-Earth-year experiment.
 - Earth, Jupiter and Saturn have interactive moon systems. The asteroid belt offers an explicitly illustrated close-up flight.
 - Earth–Moon orbit checkpoints show why the Moon keeps the same face toward Earth, using a labelled gold orientation pointer and visible turn/orbit feedback. Time controls remain beside the experiment on phones.
-- In [**Ocean tides**](https://thomas-warden.github.io/Solsystemet/#earth-moons/tides), drag the Moon or use the position slider. Use the alignment diagrams to compare same-side, right-angle and opposite-side positions, then switch the Sun's pull off. The enlarged water shell shows two bulges, and the Sun comparison blends smoothly unless reduced motion is requested.
+- In [**Ocean tides**](https://thomas-warden.github.io/Solsystemet/#earth-moons/tides), drag the Moon or use the position slider. Use the alignment diagrams to compare same-side, right-angle and opposite-side positions, then switch the Sun's pull off. The exaggerated water shows two bulges, and the Sun comparison blends smoothly unless reduced motion is requested. Inspect the water close up, watch a separate daily tide at an illustrated shore, replay the uneven pull, and find both big-tide positions. The guide’s comparison controls move the actual Moon.
 - **Catch a sunrise:** choose a city, move forward through dawn and save what you saw. **An ocean in hiding:** spot Europa's cracks, then drag its illustrated ice layer open; keyboard controls work too. **Race around the Sun:** predict a winner, run the clock and compare Mercury's trips with Earth's year. Completed discoveries retain their evidence.
 - Shorter introductions and hints keep the worlds and experiments in view. Longer stories and scientific notes remain available.
 - Distinct discovery badges stay on the device. Activities also work when browser storage is unavailable.
@@ -63,6 +63,7 @@ node tests/moon-image-recovery.cjs
 node tests/mission-wide-layout.cjs
 node tests/tide-math.mjs
 node tests/tide-experiment.cjs
+node tests/tide-learning.cjs
 node tests/mission-ice-drag.cjs
 ~~~
 
@@ -87,7 +88,9 @@ Tide checks cover the quadrupole model, opposite bulges, aligned/right-angle ran
 - renderer.js: analytic WebGL2 planets and texture allocation.
 - worlds.js, moons.js: world profiles and orbital models.
 - orrery.js, moon-system.js, belt.js: Three.js scenes.
-- tides.js: exaggerated ocean shell, tide forcing and relative range calculation.
+- tides.js: exaggerated ocean, tide forcing and relative range calculation.
+- tide-shore.js: illustrated coast with its own daily clock and linked tidal range.
+- tide-guide.js: uneven-pull replay and live fixed-scale alignment comparison.
 - orbit-labels.js: shared planet-attached labels, collision fades and accessible hit targets.
 - navigation.js, sky.js, sky-scene.js: shared navigation and sky.
 - assets/ and vendor/: bundled imagery, provenance, fonts and licenses.
@@ -111,6 +114,6 @@ Imagery comes from historical observations, composites and labelled reconstructi
 
 The solar-system model uses fixed NASA/JPL orbital elements and relative periods; starting positions are illustrative rather than today's sky. Body sizes and readable orbital spacing are exaggerated. Moon paths are simplified circular models with stated inclinations and tidal locking. The Earth–Moon neighbourhood preserves the bodies' diameter ratio, compresses their separation, omits daily Earth rotation and uses fixed illustrative sunlight rather than a lunar-phase calendar. Earth local solar time in the close-up is not civil clock time, and its model has no seasons.
 
-Ocean tides uses an ideal global-ocean quadrupole model. The Sun contributes 0.46 times the Moon's forcing; the relative range in their shared plane is 1 for Moon only, 1.46 when aligned and 0.54 at right angles. The water shell and its height are greatly exaggerated, and the compressed display distance does not change the forcing. The tide calculation omits Earth's daily spin, tidal lag and the effects of coasts, basins and weather; its Sun direction is fixed. It is not a local tide forecast or a volume-conserving fluid simulation. [Sources and model details](https://thomas-warden.github.io/Solsystemet/sources.html#tides).
+Ocean tides uses an ideal global-ocean quadrupole model. The Sun contributes 0.46 times the Moon's forcing; the relative range in their shared plane is 1 for Moon only, 1.46 when aligned and 0.54 at right angles. The water shell and its height are greatly exaggerated, and the compressed display distance does not change the forcing. The separate shoreline clock illustrates two ideal highs and lows per lunar day (about 24 h 50 min), with amplitude linked to the global range. The global tide calculation omits Earth's daily spin, tidal lag and the effects of coasts, basins and weather; its Sun direction is fixed. It is not a local tide forecast or a volume-conserving fluid simulation. [Sources and model details](https://thomas-warden.github.io/Solsystemet/sources.html#tides).
 
 The asteroid flight compresses distances and illustrates shapes and occasional collisions; the real belt is mostly empty space. The catalogue-based sky is brightened for visibility. Atmospheres, rings and shadows are real-time approximations. Source manifests and font/Three.js licenses are bundled with the site.
