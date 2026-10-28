@@ -1,15 +1,15 @@
-import { createMissions } from './missions.js?v=c28d94c2dab5';
-import { PlanetRenderer } from './renderer.js?v=c28d94c2dab5';
-import { FAMILIES } from './moons.js?v=c28d94c2dab5';
-import { resolveRoute, renderFamilyNavigation, renderMoonShelf, renderMoonSystemNavigation } from './navigation.js?v=c28d94c2dab5';
-import { ORDER, WORLDS } from './worlds.js?v=c28d94c2dab5';
+import { createMissions } from './missions.js?v=d734cfc91590';
+import { PlanetRenderer } from './renderer.js?v=d734cfc91590';
+import { FAMILIES } from './moons.js?v=d734cfc91590';
+import { resolveRoute, renderFamilyNavigation, renderMoonShelf, renderMoonSystemNavigation } from './navigation.js?v=d734cfc91590';
+import { ORDER, WORLDS } from './worlds.js?v=d734cfc91590';
 const $=id=>document.getElementById(id),root=$('atlas'),canvas=$('universe');
 $('planetNav').innerHTML=ORDER.map(id=>`<button data-world="${id}" type="button"><i style="background:${WORLDS[id].color}"></i>${WORLDS[id].title}</button>`).join('');
 $('worldCards').innerHTML=ORDER.map(id=>`<button data-world="${id}"><small>${WORLDS[id].number}</small><strong>${WORLDS[id].title}</strong></button>`).join('');
 let orrery,orreryPromise,orreryAttempt=0,moonSystem,moonPromise,beltFlight,beltPromise,view='planet',moonTarget='',stories,extraStories={},orreryAvailability='loading';
 function loadOrrery(){
  // Browsers cache failed module downloads, so a retry needs a fresh URL.
- return orreryPromise||=import('./orrery.js?v=c28d94c2dab5'+(orreryAttempt?'&retry='+orreryAttempt:'')).then(({Orrery})=>new Orrery()).catch(error=>{orreryPromise=null;orreryAttempt++;throw error;});
+ return orreryPromise||=import('./orrery.js?v=d734cfc91590'+(orreryAttempt?'&retry='+orreryAttempt:'')).then(({Orrery})=>new Orrery()).catch(error=>{orreryPromise=null;orreryAttempt++;throw error;});
 }
 fetch('assets/research/planet-stories-and-orbits.json').then(r=>r.json()).then(data=>{stories=data.planets;showStories();}).catch(()=>{});
 fetch('assets/research/extra-planet-stories.json').then(r=>r.json()).then(data=>{extraStories=data.planets||data;showStories();}).catch(()=>{});
@@ -22,7 +22,7 @@ async function showMoonSystem(parent,selected,experiment){
  moonTarget=parent+'/'+(selected||'')+'/'+(experiment||'orbits');const target=moonTarget;renderMoonSystemNavigation(parent,selected);$('moonDiscoveries').hidden=true;
  view='moons';beltFlight?.hide();$('beltView').hidden=true;window.scrollTo(0,0);root.classList.remove('cinema');orrery?.hide();$('main').hidden=true;$('fieldStories').hidden=true;$('orreryView').hidden=true;$('moonSystemView').hidden=false;root.dataset.view='moons';
  document.querySelector('button[data-view="orrery"]').setAttribute('aria-pressed','false');document.querySelectorAll('button[data-world]').forEach(b=>{b.classList.remove('is-active');b.setAttribute('aria-pressed','false');});
- try{moonPromise||=import('./moon-system.js?v=c28d94c2dab5').then(({MoonSystem})=>new MoonSystem());moonSystem=await moonPromise;if(view==='moons'&&moonTarget===target)await moonSystem.show(parent,selected,experiment);}catch(e){$('moonLoadNotice').hidden=false;$('moonStatus').textContent='This moving view could not start. Open a moon below.';$('moonRetry').hidden=true;console.error(e);}
+ try{moonPromise||=import('./moon-system.js?v=d734cfc91590').then(({MoonSystem})=>new MoonSystem());moonSystem=await moonPromise;if(view==='moons'&&moonTarget===target)await moonSystem.show(parent,selected,experiment);}catch(e){$('moonLoadNotice').hidden=false;$('moonStatus').textContent='This moving view could not start. Open a moon below.';$('moonRetry').hidden=true;console.error(e);}
 }
 async function showOrrery(selected){$('moonDiscoveries').hidden=true;document.title='The solar system — Solsystemet';beltFlight?.hide();$('beltView').hidden=true;moonSystem?.hide();$('moonSystemView').hidden=true;view='orrery';orreryAvailability='loading';window.scrollTo(0,0);root.classList.remove('cinema');$('cinemaButton').setAttribute('aria-pressed','false');$('cinemaButton').textContent='View only ⤢';$('main').hidden=true;$('fieldStories').hidden=true;$('orreryView').hidden=false;root.dataset.view='orrery';document.querySelector('button[data-view="orrery"]').setAttribute('aria-pressed','true');document.querySelectorAll('button[data-world]').forEach(b=>{b.classList.remove('is-active');b.setAttribute('aria-pressed','false');});
  document.querySelectorAll('#orreryView button,#orreryView input,#orreryView select').forEach(el=>el.disabled=true);
@@ -34,7 +34,7 @@ async function showBeltEntry(){
  $('beltView').hidden=false;root.dataset.view='belt';
  document.querySelector('button[data-view="orrery"]').setAttribute('aria-pressed','false');
  document.querySelectorAll('button[data-world]').forEach(b=>{b.classList.remove('is-active');b.setAttribute('aria-pressed','false');});
- try{beltPromise||=import('./belt.js?v=c28d94c2dab5').then(({BeltFlight})=>new BeltFlight());beltFlight=await beltPromise;if(view==='belt')beltFlight.show();}
+ try{beltPromise||=import('./belt.js?v=d734cfc91590').then(({BeltFlight})=>new BeltFlight());beltFlight=await beltPromise;if(view==='belt')beltFlight.show();}
  catch(e){$('beltStatus').textContent='The flight could not start on this device. You can still explore the stories below.';$('beltPlay').disabled=true;$('beltSpeed').disabled=true;console.error(e);}
 }
 $('locateBelt').onclick=()=>navigate('orrery/belt');

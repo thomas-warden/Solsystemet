@@ -1,9 +1,9 @@
-import { addCelestialSky } from './sky-scene.js?v=c28d94c2dab5';
+import { addCelestialSky } from './sky-scene.js?v=d734cfc91590';
 import * as THREE from './vendor/three.module.js';
 import { OrbitControls } from './vendor/OrbitControls.js';
-import { WORLDS } from './worlds.js?v=c28d94c2dab5';
-import { MOONS, FAMILIES, moonPosition } from './moons.js?v=c28d94c2dab5';
-import { AnchoredLabels } from './orbit-labels.js?v=c28d94c2dab5';
+import { WORLDS } from './worlds.js?v=d734cfc91590';
+import { MOONS, FAMILIES, moonPosition } from './moons.js?v=d734cfc91590';
+import { AnchoredLabels } from './orbit-labels.js?v=d734cfc91590';
 const $=id=>document.getElementById(id),TAU=Math.PI*2;
 const reduced=matchMedia('(prefers-reduced-motion: reduce)');
 const CAMERA_DURATION=.75;
@@ -118,7 +118,7 @@ export class MoonSystem {
   if(this.tideOcean){this.tideOcean.object.visible=true;this.setTideReady(true);return;}
   $('tideStatus').textContent='Preparing the ocean…';$('tideRetry').hidden=true;this.setTideReady(false);
   try{
-   this.tideImport||=import('./tides.js?v=c28d94c2dab5'+(this.tideAttempts?'&retry='+this.tideAttempts:'')).catch(error=>{this.tideImport=null;this.tideAttempts++;throw error;});
+   this.tideImport||=import('./tides.js?v=d734cfc91590'+(this.tideAttempts?'&retry='+this.tideAttempts:'')).catch(error=>{this.tideImport=null;this.tideAttempts++;throw error;});
    const {TideOcean}=await this.tideImport;
    if(!this.tideOcean){this.tideOcean=new TideOcean({radius:1.3,sunDirection:this.sunDirection,orbitNormal:this.tideNormal,exaggeration:.24,opacity:.11});this.scene.add(this.tideOcean.object);}
    this.tideOcean.object.visible=this.active&&this.parent==='earth'&&this.tideMode;
@@ -138,8 +138,8 @@ export class MoonSystem {
   $('tideLearningNotice').hidden=false;$('tideLearningStatus').textContent='Preparing the coastal view…';$('tideLearningRetry').hidden=true;
   const suffix=this.learningAttempts?'&retry='+this.learningAttempts:'';
   this.learningPromise=Promise.allSettled([
-   (async()=>{if(this.tideGuide)return;const {TideGuide}=await import('./tide-guide.js?v=c28d94c2dab5'+suffix);if(!this.active||!this.tideMode)return;this.tideGuide=new TideGuide($('tideGuide'),{onCompare:degrees=>this.tidePreset(degrees)});})(),
-   (async()=>{if(this.tideShore)return;const {TideShore}=await import('./tide-shore.js?v=c28d94c2dab5'+suffix);if(!this.active||!this.tideMode)return;this.tideShore=new TideShore($('tideShore'));})()
+   (async()=>{if(this.tideGuide)return;const {TideGuide}=await import('./tide-guide.js?v=d734cfc91590'+suffix);if(!this.active||!this.tideMode)return;this.tideGuide=new TideGuide($('tideGuide'),{onCompare:degrees=>this.tidePreset(degrees)});})(),
+   (async()=>{if(this.tideShore)return;const {TideShore}=await import('./tide-shore.js?v=d734cfc91590'+suffix);if(!this.active||!this.tideMode)return;this.tideShore=new TideShore($('tideShore'));})()
   ]);
   const results=await this.learningPromise;this.learningPromise=null;
   const failed=results.some(result=>result.status==='rejected');
