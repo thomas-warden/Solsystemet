@@ -1,8 +1,8 @@
 {
   "created": "2026-10-27",
   "file": "shore-rock.webp",
-  "purpose": "Original imagined coastal rock material for the Ocean tides shoreline cutaway. This is illustrative material, not a photograph of a real coast or geological measurement.",
-  "production": "AI-generated original rock material using OpenAI image generation; then resized to1152x768 and encoded as WebP quality82. The generated image is clipped to an authored SVG coast profile. The waterline, high/low markers, day clock and tidal height are separate numerical illustrations.",
+  "purpose": "Original imagined coastal rock material for the Ocean tides shore. This is illustrative material, not a photograph of a real coast or geological measurement.",
+  "production": "AI-generated original rock material using OpenAI image generation; then resized to 1152 × 768 and encoded as WebP quality 82. Used on the authored 3D terrain and clipped to the simpler SVG coastal profile when detailed rendering is unavailable.",
   "source_original": "/workspace/generated_images/exec-5e306b08-7387-4571-a47d-9d8c981b3620.png",
   "dimensions": [
     1152,
@@ -11,5 +11,20 @@
   "bytes": 297190,
   "sha256": "0ba28288af5fa98bbcb2e2d2111a60ee0f10f40dd385907cf74935b5291ea4e6",
   "other_assets": "The small Earth globe reuses earth.webp and its existing NASA/Solar System Scope credits in ILLUSTRATION_SOURCES.json.",
-  "limits": "This cutaway uses two sinusoidal high/low tides per illustrative lunar day. Its amplitude tracks the shared model range, but it is not a fluid model or a real coastal forecast. Real timing, number of daily tides and heights vary by coast."
+  "limits": "The mean coastal water level uses two sinusoidal high/low tides per illustrative lunar day. Its amplitude tracks the shared model range. The terrain is imagined; geometric ripples, reflections, foam and wet-rock appearance are visual approximations. These effects do not alter the tide calculation and do not constitute a fluid model or real coastal forecast. Real timing, number of daily tides and heights vary by coast.",
+  "updated": "2026-10-28",
+  "water_material": {
+    "created": "2026-10-28",
+    "file": "shore-water.webp",
+    "purpose": "Original illustrated ocean-surface material used for optical detail in the 3D coastal water.",
+    "production": "AI-generated original dark ocean material using OpenAI image generation, encoded as WebP quality 85 without resizing. It supplies appearance rather than measured wave or tide data.",
+    "source_original": "/workspace/generated_images/exec-a69fe1bf-99f3-410d-9d28-be54a06c6b03.png",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "bytes": 337282,
+    "sha256": "bf466124068724a3563279c5c45a2ffef6b3a5d04f6d1407f1c79044c41d4de5",
+    "provenance": "Generated for this project; no external photograph was used as an input."
+  }
 }

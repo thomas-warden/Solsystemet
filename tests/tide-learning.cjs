@@ -197,8 +197,18 @@ async function offscreenMoonInput(page) {
     const controls = document.querySelector('#moonConsole');
     scrollTo(0, controls.getBoundingClientRect().top + scrollY + 1);
   });
-  assert(await page.locator('#moonCanvas').evaluate(element => element.getBoundingClientRect().bottom <= 1), 'This input occurs with the orbital canvas offscreen');
-  await page.locator('#moonDay').focus(); await page.keyboard.press('Home');
+  await page.locator('#moonDay').focus();
+  // Layout moves synchronously, but the app's visibility observer is delivered
+  // at the browser's rendering checkpoint. Wait for that same real observation
+  // before testing offscreen input, rather than racing a final visible frame.
+  await page.locator('#moonCanvas').evaluate(element => new Promise(resolve => {
+    const observer = new IntersectionObserver(entries => {
+      if (entries.some(entry => !entry.isIntersecting)) { observer.disconnect(); resolve(); }
+    }, { threshold: 0 });
+    observer.observe(element);
+  }));
+  assert(await page.locator('#moonCanvas').evaluate(element => element.getBoundingClientRect().bottom <= 0), 'This input occurs with the orbital canvas offscreen');
+  await page.keyboard.press('Home');
   await page.waitForFunction(() => window.__learningScene.days === 0);
   const state = await page.evaluate(() => {
     const scene = window.__learningScene, { moonAngle, sunAngle, solarMix } = scene.tideLearningState();

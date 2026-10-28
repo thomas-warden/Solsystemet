@@ -94,32 +94,37 @@ const fragmentShader = `
     float specular = pow(max(dot(normal, halfDirection), 0.), 350.) * sunlight;
 
     if (rimPass > .5) {
-      // Mostly sunlit, with a faint illustrative sky fill so both bulges remain
-      // legible against space. This is an optical cue, not measured radiance.
+      // A continuous reflected-sky edge keeps the far-side bulge readable too.
+      // This is an illustrative optical cue, not measured space illumination.
       float cap = pow(abs(dot(n, highDirection)), 12.);
-      float rim = pow(1. - facing, 7.) * (.18 + .82 * sunEdge);
+      float rim = pow(1. - facing, 7.) * (.65 + .35 * sunEdge);
       // Matching soft accents identify the two actual combined-field maxima.
       // Their directions come from the same eigenproblem as the range reading.
-      vec3 rimColor = mix(vec3(.018,.18,.28), vec3(.045,.27,.36), cap);
-      gl_FragColor = vec4(rimColor, rim * (.20 + cap * .10));
+      vec3 rimColor = mix(vec3(.09,.43,.55), vec3(.22,.64,.70), cap);
+      gl_FragColor = vec4(rimColor, rim * (.44 + cap * .13));
     } else {
       float crest = clamp((height + .73) / 2.19, 0., 1.);
       // One angular transmission tint keeps the front clear and the grazing
       // water blue. This is an illustrative material, not measured path length.
-      vec3 water = mix(vec3(.003,.025,.065), vec3(.012,.19,.31), grazing);
-      vec3 color = water * (.22 + sunlight * 1.15);
+      float projectedRadius = length(cross(worldPosition - oceanCenter, view));
+      float pixel = max(fwidth(projectedRadius), .0001);
+      // Preserve the globe's detail while giving the exposed water a visible
+      // body. The narrow transition is locked to the solid Earth, so changing
+      // the tide never reads as a changing glow or a second opaque planet.
+      float exposed = smoothstep(radius * 1.004, radius * 1.004 + pixel * 2., projectedRadius);
+      vec3 water = mix(vec3(.003,.025,.065), vec3(.028,.28,.39), grazing);
+      water += exposed * vec3(.008,.065,.095);
+      vec3 color = water * (.55 + sunlight * .90);
       color += vec3(1.,.98,.94) * specular * (.18 + fresnel * .7);
       // A quiet, fixed surface reference distinguishes the solid globe from
       // the exaggerated water. It is the projected Earth limb, not another
       // inflated sphere or a second ocean. Derivatives keep it one pixel wide.
-      float projectedRadius = length(cross(worldPosition - oceanCenter, view));
-      float pixel = max(fwidth(projectedRadius), .0001);
       float reference = 1. - smoothstep(pixel * .15, pixel * .70,
         abs(projectedRadius - radius * 1.009));
-      color = mix(color, vec3(.20,.30,.32) * (.40 + .60 * sunEdge), reference * .65);
-      float alpha = opacity * .55 + grazing * .25 + fresnel * .11 + crest * .015 + specular * .12;
+      color = mix(color, vec3(.26,.36,.37) * (.65 + .35 * sunEdge), reference * .72);
+      float alpha = opacity * .55 + exposed * .24 + grazing * .30 + fresnel * .13 + crest * .015 + specular * .12;
       alpha += reference * (.12 + .13 * sunEdge);
-      gl_FragColor = vec4(color, clamp(alpha, 0., .58));
+      gl_FragColor = vec4(color, clamp(alpha, 0., .72));
     }
     #include <tonemapping_fragment>
     #include <colorspace_fragment>
