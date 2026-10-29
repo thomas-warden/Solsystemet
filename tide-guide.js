@@ -1,3 +1,4 @@
+import { MAX_TIDE_RANGE } from './tide-constants.js?v=338159787581';
 // Illustrated equilibrium comparison and a separate, exaggerated pull demonstration.
 // The comparison follows the live Moon/Sun model. The replay demonstrates relative
 // acceleration with sample water points; it is not a time-integrated fluid model.
@@ -20,12 +21,12 @@ function definitions(id) {
   </defs>`;
 }
 
-function comparisonPath(moonAngle, solarMix) {
+function comparisonPath(moonAngle, solarMix, lunarWeight=1) {
   const points = [];
-  const radius = 57, baseline = 1.012 + .24 * 1.46 / 2;
+  const radius = 57, baseline = 1.012 + .24 * MAX_TIDE_RANGE / 2;
   for (let i = 0; i <= 120; i++) {
     const angle = i / 120 * TAU;
-    const forcing = P2(Math.cos(angle - moonAngle)) + .46 * solarMix * P2(Math.cos(angle - Math.PI));
+    const forcing = lunarWeight * P2(Math.cos(angle - moonAngle)) + .46 * solarMix * P2(Math.cos(angle - Math.PI));
     const distance = radius * (baseline + .24 * forcing);
     points.push(`${(240 + Math.cos(angle) * distance).toFixed(2)},${(149 + Math.sin(angle) * distance).toFixed(2)}`);
   }
@@ -72,7 +73,7 @@ export class TideGuide {
       <div class="tide-guide-comparison-layout"><figure><svg viewBox="0 0 480 300" role="img" aria-labelledby="${id}-compare-title ${id}-compare-desc"><title id="${id}-compare-title">The live Moon and Sun alignment</title><desc id="${id}-compare-desc" data-guide-comparison-description>The ocean follows the same Moon and Sun arrangement as the experiment above. Its scale stays fixed as the Moon moves.</desc>${definitions(id + '-compare')}
       <circle cx="39" cy="149" r="75" fill="url(#${id}-compare-sun-glow)" data-guide-sun-glow/><path class="tide-guide-axis" d="M39 149H240"/><path class="tide-guide-axis" d="M240 149H377" data-guide-moon-axis/>
       <path data-guide-ocean fill="url(#${id}-compare-water)" stroke="#93cddd" stroke-width="1"/>
-      <circle cx="240" cy="149" r="67.6704" class="tide-guide-reference"/>
+      <circle cx="240" cy="149" r="${57*(1.012+.24*MAX_TIDE_RANGE/2)}" class="tide-guide-reference"/>
       ${globe(240, 149, 57, 'earth')}
       <circle cx="39" cy="149" r="24" fill="url(#${id}-compare-sun)" data-guide-sun/>
       ${globe(0, 0, 15.6, 'moon', 'data-guide-moon')}
@@ -112,11 +113,11 @@ export class TideGuide {
     if (!this.active) { this.playing = false; this.updateReplayControl(); }
     this.syncRunning();
   }
-  setState({ range = this.state.range, solarMix = this.state.solarMix, moonAngle = this.state.moonAngle, sunAngle = this.state.sunAngle } = {}) {
+  setState({ range = this.state.range, solarMix = this.state.solarMix, moonAngle = this.state.moonAngle, sunAngle = this.state.sunAngle, moonDistanceRatio=1, lunarWeight=1 } = {}) {
     if (this.disposed) return;
     if (![range, solarMix, moonAngle, sunAngle].every(Number.isFinite)) throw new TypeError('Tide guide state must be finite.');
     if (solarMix < 0 || solarMix > 1 || range < 0) throw new RangeError('Tide guide solar mix/range is invalid.');
-    this.state = { range, solarMix, moonAngle, sunAngle }; this.comparisonDirty = true;
+    this.state = { range, solarMix, moonAngle, sunAngle, moonDistanceRatio, lunarWeight }; this.comparisonDirty = true;
     if (this.canRun() && this.comparisonVisible) this.renderComparison();
   }
   selectStep(step) {
@@ -179,12 +180,12 @@ export class TideGuide {
     this.host.dataset.pullStep = String(index); this.host.dataset.pullPosition = p.toFixed(4);
   }
   renderComparison() {
-    const { range, solarMix, moonAngle, sunAngle } = this.state;
+    const { range, solarMix, moonAngle, sunAngle, moonDistanceRatio=1, lunarWeight=1 } = this.state;
     // Rotate the orbital plane as a whole so the Sun stays on the left. Angles
     // are right-handed radians in the model's orbital plane; SVG y is downward.
     const relative = moonAngle - sunAngle, angle = Math.PI - relative;
-    const x = 240 + Math.cos(angle) * 112, y = 149 + Math.sin(angle) * 112;
-    this.elements.ocean.setAttribute('d', comparisonPath(angle, solarMix));
+    const x = 240 + Math.cos(angle) * 112 * moonDistanceRatio, y = 149 + Math.sin(angle) * 112 * moonDistanceRatio;
+    this.elements.ocean.setAttribute('d', comparisonPath(angle, solarMix, lunarWeight));
     this.elements.moon.setAttribute('transform', `translate(${x.toFixed(2)} ${y.toFixed(2)})`);
     this.elements['moon-axis'].setAttribute('d', `M240 149L${x.toFixed(2)} ${y.toFixed(2)}`);
     const vertical = y < 90 || y > 210;
@@ -200,13 +201,15 @@ export class TideGuide {
     const aligned = Math.abs(Math.sin(relative)) < .1, rightAngle = Math.abs(Math.cos(relative)) < .1;
     let title, copy;
     if (solarMix < .01) { title = 'Moon only · one tide range'; copy = 'The Sun’s pull is off. These two positions now give the same range.'; }
+    else if (aligned && moonDistanceRatio < .999) { title = 'Closer-Moon spring tide'; copy = 'Alignment plus a closer Moon makes higher highs. This illustrates one way a “king” tide can happen.'; }
     else if (aligned) { title = 'Spring tide · bigger change'; copy = 'Same side or opposite sides: the Sun and Moon’s tidal effects add together.'; }
     else if (rightAngle) { title = 'Neap tide · smaller change'; copy = 'At a right angle, the Sun partly reduces the Moon’s tidal effect.'; }
     else { title = 'Between spring & neap'; copy = 'Move the Moon. Watch the ocean outline and the tide-range bracket change together.'; }
+    if (moonDistanceRatio < .999 && !aligned) copy += ' The closer Moon increases its contribution.';
     this.elements['comparison-title'].textContent = title;
     this.elements['comparison-copy'].textContent = copy;
     this.elements['comparison-description'].textContent = `${title}. ${copy} The grey dashed circle is a fixed round-ocean reference. Ocean height is exaggerated.`;
-    for (const button of this.compareButtons) button.setAttribute('aria-pressed', String(solarMix >= .01 && (Number(button.dataset.guideCompare) === 0 ? aligned : rightAngle)));
+    for (const button of this.compareButtons) button.setAttribute('aria-pressed', String(solarMix >= .99 && moonDistanceRatio>.999 && (Number(button.dataset.guideCompare) === 0 ? aligned : rightAngle)));
     this.host.dataset.comparisonRange = range.toFixed(6); this.host.dataset.solarMix = solarMix.toFixed(6);
     this.comparisonDirty = false;
   }

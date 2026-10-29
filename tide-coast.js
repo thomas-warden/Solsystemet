@@ -2,13 +2,13 @@ import * as THREE from './vendor/three.module.js';
 
 // An authored, illustrative coast. The mean water plane follows TideShore's
 // equilibrium tide; small optical waves do not change that educational reading.
-const PROFILE=[[0,364],[150,362],[270,351],[365,337],[438,321],[493,305],[546,290],[594,273],[639,253],[674,231],[703,207],[731,189],[751,167],[779,159],[803,143],[838,142],[863,124],[899,124],[925,109],[959,113],[980,104],[1000,110]];
+const PROFILE=[[0,435],[100,412],[200,385],[300,356],[400,324],[500,289],[600,254],[700,219],[800,185],[900,153],[1000,125]];
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const level=y=>(250-y)/80;
 function profileHeight(x){
  const px=(x+7)/14*1000;
- if(px<=0)return level(364)+(px/1000)*.35;
- if(px>=1000)return level(110)+(px-1000)/1000*.9;
+ if(px<=0)return level(435)+(px/1000)*.35;
+ if(px>=1000)return level(125)+(px-1000)/1000*.9;
  for(let i=1;i<PROFILE.length;i++)if(px<=PROFILE[i][0]){const [a,ay]=PROFILE[i-1],[b,by]=PROFILE[i];return level(ay+(by-ay)*(px-a)/(b-a));}
  return 0;
 }
@@ -18,12 +18,12 @@ function noise2(x,z){
  return (hash(a,b)*(1-s)+hash(a+1,b)*s)*(1-t)+(hash(a,b+1)*(1-s)+hash(a+1,b+1)*s)*t;
 }
 function terrainHeight(x,z){
- // The front reference transect is the original scientific profile, while the
- // surrounding coast meanders and carries geological relief in three dimensions.
+ // A gently curved, imagined foreshore; the labelled z=0 transect exactly
+ // matches the fallback profile. Small undulations are visual sand relief.
  const beyond=Math.min(1,Math.abs(z)*.6);
- const bend=((noise2(z*.21,3)-.5)*2+(noise2(z*.63,8)-.5)*.5)*beyond;
+ const bend=((noise2(z*.12,3)-.5)*1.5+(noise2(z*.35,8)-.5)*.3)*beyond;
  const h=profileHeight(x+bend);
- const relief=((noise2(x*1.2,z*1.3)-.5)*.17+(noise2(x*3.1,z*3.2)-.5)*.085+(noise2(x*7,z*6)-.5)*.025)*beyond;
+ const relief=((noise2(x*.7,z*.9)-.5)*.035+(noise2(x*3.1,z*3.2)-.5)*.009)*beyond;
  return h+relief;
 }
 
@@ -68,10 +68,10 @@ const waterFragment=`
   vec2 margin=min(terrainUV,1.-terrainUV);
   float inTerrain=smoothstep(0.,.14,margin.x)*smoothstep(0.,.14,margin.y);
   float terrain=mix(-4.,texture2D(terrainMap,terrainUV).r*8.-4.,inTerrain);
-  float depth=max(0.,waterHeight-terrain);
-  // Shallow glacial green gives way to blue absorption. Rock appears through
-  // the thin shore water, while the reflection remains anchored to this coast.
-  vec3 deep=vec3(.004,.024,.040), shallow=vec3(.023,.14,.145);
+  float depth=max(0.,worldPosition.y-terrain);
+  // Warm sand remains visible through turquoise shallows before blue absorption.
+  // The reflected shoreline stays anchored to the same terrain.
+  vec3 deep=vec3(.004,.024,.040), shallow=vec3(.030,.18,.165);
   vec3 body=mix(shallow,deep,1.-exp(-depth*1.25));
   vec2 reflectionUV=reflectedPosition.xy/reflectedPosition.w;
   reflectionUV+=normal.xz*.025;
@@ -82,13 +82,13 @@ const waterFragment=`
   color+=vec3(.82,.87,.83)*spec*.22;
   color+=vec3(.025,.065,.075)*smoothstep(.12,.53,fine)*(.08+cross*.10);
   // Broken foam exists only where water meets this exact displaced terrain.
-  float contact=(1.-smoothstep(.025,.19,depth))*smoothstep(-.01,.02,waterHeight-terrain)*inTerrain;
+  float contact=(1.-smoothstep(.025,.19,depth))*smoothstep(-.01,.02,worldPosition.y-terrain)*inTerrain;
   float lace=smoothstep(.12,.39,noise(uv*2.1+vec2(time*.011,-time*.009)));
   float pulse=.66+.34*sin(p.y*3.2+p.x*1.8-time*1.6);
   color=mix(color,vec3(.63,.76,.70),contact*lace*pulse*.72);
   float fog=1.-exp(-length(cameraPosition-worldPosition)*.022);
   color=mix(color,vec3(.025,.047,.062),fog);
-  float alpha=mix(.65,.99,1.-exp(-depth*2.));
+  float alpha=mix(.40,.99,1.-exp(-depth*1.8));
   gl_FragColor=vec4(color,alpha);
   #include <tonemapping_fragment>
   #include <colorspace_fragment>
@@ -100,7 +100,6 @@ export class TideCoast{
   this.host=host;this.disposed=false;this.loaded=false;this.width=1000;this.height=420;this.textures=[];
   this.renderer=new THREE.WebGLRenderer({alpha:false,antialias:true,powerPreference:'low-power'});
   this.renderer.setPixelRatio(Math.min(devicePixelRatio||1,1.6));
-  this.renderer.shadowMap.enabled=true;this.renderer.shadowMap.type=THREE.PCFSoftShadowMap;this.renderer.shadowMap.autoUpdate=false;this.renderer.shadowMap.needsUpdate=true;
   this.renderer.outputColorSpace=THREE.SRGBColorSpace;this.renderer.toneMapping=THREE.ACESFilmicToneMapping;this.renderer.toneMappingExposure=1.3;
   this.renderer.setClearColor(0x07121b);this.renderer.domElement.className='tide-coast-canvas';this.renderer.domElement.setAttribute('aria-hidden','true');
   this.renderer.domElement.style.cssText='position:absolute;inset:0;width:100%;height:100%;pointer-events:none;opacity:0;';
@@ -113,12 +112,11 @@ export class TideCoast{
   this.reflectionMatrix=new THREE.Matrix4();this.sunDirection=new THREE.Vector3(-.35,.6,-.8).normalize();
   this.scene.add(new THREE.HemisphereLight(0xb1c9d4,0x1b252d,1.2));
   const sunlight=new THREE.DirectionalLight(0xffedcf,2.1);sunlight.position.copy(this.sunDirection).multiplyScalar(20);this.scene.add(sunlight);
-  sunlight.castShadow=true;sunlight.shadow.mapSize.set(1024,1024);Object.assign(sunlight.shadow.camera,{left:-11,right:11,top:15,bottom:-15,near:.5,far:60});sunlight.shadow.bias=-.0003;sunlight.shadow.normalBias=.025;
   this.ready=this.load().catch(error=>{this.dispose();throw error;});
  }
  async load(){
   const loader=new THREE.TextureLoader();
-  const loaded=await Promise.allSettled(['assets/tides/shore-rock.webp','assets/tides/shore-water.webp'].map(path=>new Promise((resolve,reject)=>{
+  const loaded=await Promise.allSettled(['assets/tides/shore-sand.webp','assets/tides/shore-water.webp'].map(path=>new Promise((resolve,reject)=>{
    let settled=false;const timeout=setTimeout(()=>{settled=true;reject(new Error('Coastal texture timed out'));},20000);
    loader.load(path,texture=>{if(settled){texture.dispose();return;}settled=true;clearTimeout(timeout);resolve(texture);},undefined,error=>{if(settled)return;settled=true;clearTimeout(timeout);reject(error);});
   })));
@@ -126,42 +124,35 @@ export class TideCoast{
   const error=loaded.find(result=>result.status==='rejected');
   if(error){this.textures.forEach(texture=>texture.dispose());throw error.reason;}
   if(this.disposed||this.lost){this.textures.forEach(texture=>texture.dispose());throw new Error('Coast unavailable while loading');}
-  const [rock,water]=loaded.map(result=>result.value);
-  rock.colorSpace=THREE.SRGBColorSpace;rock.wrapS=rock.wrapT=THREE.MirroredRepeatWrapping;rock.anisotropy=Math.min(this.renderer.capabilities.getMaxAnisotropy(),8);
+  const [sand,water]=loaded.map(result=>result.value);
+  sand.colorSpace=THREE.SRGBColorSpace;sand.wrapS=sand.wrapT=THREE.MirroredRepeatWrapping;sand.anisotropy=Math.min(this.renderer.capabilities.getMaxAnisotropy(),8);
   water.wrapS=water.wrapT=THREE.MirroredRepeatWrapping;water.anisotropy=Math.min(this.renderer.capabilities.getMaxAnisotropy(),4);
   const terrainGeometry=new THREE.PlaneGeometry(32,52,180,220);terrainGeometry.rotateX(-Math.PI/2);terrainGeometry.translate(0,0,-4);
   const positions=terrainGeometry.attributes.position,uv=terrainGeometry.attributes.uv;
   for(let i=0;i<positions.count;i++){const x=positions.getX(i),z=positions.getZ(i);positions.setY(i,terrainHeight(x,z));uv.setXY(i,x*.16,z*.12);}
   terrainGeometry.computeVertexNormals();
-  this.terrainMaterial=new THREE.MeshStandardMaterial({map:rock,bumpMap:rock,bumpScale:.06,roughness:.9,metalness:0,color:0xd2d7d5});
-  this.terrainUniforms={waterHeight:{value:-.8},highHeight:{value:.8},coastRock:{value:rock}};
+  this.terrainMaterial=new THREE.MeshStandardMaterial({map:sand,bumpMap:sand,bumpScale:.02,roughness:.97,metalness:0,color:0xf0e4d3});
+  this.terrainUniforms={waterHeight:{value:-.8},highHeight:{value:.8},coastSand:{value:sand}};
   this.terrainMaterial.onBeforeCompile=shader=>{
    Object.assign(shader.uniforms,this.terrainUniforms);
    shader.vertexShader='varying vec3 coastPosition,coastNormal;\n'+shader.vertexShader.replace('#include <worldpos_vertex>','#include <worldpos_vertex>\n coastPosition=(modelMatrix*vec4(transformed,1.)).xyz;coastNormal=normalize(mat3(modelMatrix)*normal);');
-   shader.fragmentShader=`varying vec3 coastPosition,coastNormal;uniform float waterHeight,highHeight;uniform sampler2D coastRock;
-    vec3 rockAt(vec3 p){
+   shader.fragmentShader=`varying vec3 coastPosition,coastNormal;uniform float waterHeight,highHeight;uniform sampler2D coastSand;
+    vec3 sandAt(vec3 p){
      vec3 w=pow(abs(normalize(coastNormal)),vec3(4.));w/=max(w.x+w.y+w.z,.001);
-     return texture2D(coastRock,p.zy*vec2(.30,.40)).rgb*w.x+texture2D(coastRock,p.xz*vec2(.26,.28)).rgb*w.y+texture2D(coastRock,p.xy*vec2(.30,.40)).rgb*w.z;
+     return texture2D(coastSand,p.zy*vec2(.28,.28)).rgb*w.x+texture2D(coastSand,p.xz*vec2(.24,.25)).rgb*w.y+texture2D(coastSand,p.xy*vec2(.28,.28)).rgb*w.z;
     }
    `+shader.fragmentShader;
-   shader.fragmentShader=shader.fragmentShader.replace('#include <map_fragment>',`vec3 rockColor=rockAt(coastPosition);float coastDetail=dot(rockColor,vec3(.3333));diffuseColor.rgb*=rockColor;
-    float wet=1.-smoothstep(waterHeight+.04,highHeight+.18,coastPosition.y);
-    diffuseColor.rgb*=mix(1.,.51,wet);`);
-   shader.fragmentShader=shader.fragmentShader.replace('#include <roughnessmap_fragment>','#include <roughnessmap_fragment>\n roughnessFactor=mix(roughnessFactor,.54,wet);');
-   shader.fragmentShader=shader.fragmentShader.replace('#include <normal_fragment_maps>','normal=perturbNormalArb(-vViewPosition,normal,vec2(dFdx(coastDetail),dFdy(coastDetail))*.075,faceDirection);');
+   shader.fragmentShader=shader.fragmentShader.replace('#include <map_fragment>',`vec3 sandColor=sandAt(coastPosition);float coastDetail=dot(sandColor,vec3(.3333));diffuseColor.rgb*=sandColor;
+    float wet=1.-smoothstep(waterHeight+.025,highHeight+.16,coastPosition.y);
+    diffuseColor.rgb*=mix(vec3(1.),vec3(.48,.52,.53),wet);`);
+   shader.fragmentShader=shader.fragmentShader.replace('#include <roughnessmap_fragment>','#include <roughnessmap_fragment>\n roughnessFactor=mix(roughnessFactor,.50,wet);');
+   shader.fragmentShader=shader.fragmentShader.replace('#include <normal_fragment_maps>','normal=perturbNormalArb(-vViewPosition,normal,vec2(dFdx(coastDetail),dFdy(coastDetail))*.025,faceDirection);');
   };
   this.terrain=new THREE.Mesh(terrainGeometry,this.terrainMaterial);this.terrain.receiveShadow=true;this.scene.add(this.terrain);
   const distantGeometry=new THREE.PlaneGeometry(32,100,64,120);distantGeometry.rotateX(-Math.PI/2);distantGeometry.translate(0,0,-80);
   const distantPositions=distantGeometry.attributes.position;
   for(let i=0;i<distantPositions.count;i++)distantPositions.setY(i,terrainHeight(distantPositions.getX(i),distantPositions.getZ(i)));
   distantGeometry.computeVertexNormals();this.scene.add(new THREE.Mesh(distantGeometry,this.terrainMaterial));
-  // A few weathered outcrops break the continuous shelf silhouette. Their
-  // positions avoid the labelled reference transect at z=0.
-  for(const [x,z,r]of[[4.35,4.8,.92],[5.2,4.1,.57],[3.9,-3.2,.39],[5.1,-7.8,.83],[4.1,-15,.56],[5.3,-17.5,1.08]]){
-   const geometry=new THREE.DodecahedronGeometry(r,1),p=geometry.attributes.position;
-   for(let i=0;i<p.count;i++){const px=p.getX(i),py=p.getY(i),pz=p.getZ(i),rough=1+(noise2(px*4+z,pz*4+x)-.5)*.23;p.setXYZ(i,px*rough*1.2,py*rough*.64,pz*rough);}
-   geometry.computeVertexNormals();const stone=new THREE.Mesh(geometry,this.terrainMaterial);stone.position.set(x,terrainHeight(x,z)+r*.12,z);stone.rotation.y=z*.34;stone.castShadow=true;stone.receiveShadow=true;this.scene.add(stone);
-  }
   const size=256,heights=new Uint8Array(size*size*4);
   for(let z=0;z<size;z++)for(let x=0;x<size;x++){
    const height=terrainHeight(x/(size-1)*32-16,z/(size-1)*52-30),value=Math.round(clamp((height+4)/8,0,1)*255),i=(z*size+x)*4;
@@ -180,8 +171,8 @@ export class TideCoast{
   // The coast keeps its scale and focal transect in portrait; only the open sea
   // is cropped away. Controls and annotations are overlaid by TideShore.
   const portrait=width/height<1.7;
-  this.target.set(portrait?.5:-.5,-.3,-3.5);
-  this.camera.position.set(portrait?.5:-.5,8.6,14.5);this.camera.lookAt(this.target);this.camera.updateProjectionMatrix();this.camera.updateMatrixWorld();
+  this.target.set(portrait?1.15:-.5,-.3,-3.5);
+  this.camera.position.set(portrait?1.15:-.5,8.6,14.5);this.camera.lookAt(this.target);this.camera.updateProjectionMatrix();this.camera.updateMatrixWorld();
   const scale=Math.min(1,640/width);this.reflectionTarget.setSize(Math.max(128,Math.round(width*scale)),Math.max(128,Math.round(height*scale)));
  }
  projectLevel(y){

@@ -1,9 +1,10 @@
-import { addCelestialSky } from './sky-scene.js?v=d734cfc91590';
+import { CLOSE_MOON_DISTANCE_RATIO, MAX_TIDE_RANGE } from './tide-constants.js?v=338159787581';
+import { addCelestialSky } from './sky-scene.js?v=338159787581';
 import * as THREE from './vendor/three.module.js';
 import { OrbitControls } from './vendor/OrbitControls.js';
-import { WORLDS } from './worlds.js?v=d734cfc91590';
-import { MOONS, FAMILIES, moonPosition } from './moons.js?v=d734cfc91590';
-import { AnchoredLabels } from './orbit-labels.js?v=d734cfc91590';
+import { WORLDS } from './worlds.js?v=338159787581';
+import { MOONS, FAMILIES, moonPosition } from './moons.js?v=338159787581';
+import { AnchoredLabels } from './orbit-labels.js?v=338159787581';
 const $=id=>document.getElementById(id),TAU=Math.PI*2;
 const reduced=matchMedia('(prefers-reduced-motion: reduce)');
 const CAMERA_DURATION=.75;
@@ -56,7 +57,7 @@ function earthAtmosphere(geometry,sunDirection){
 }
 export class MoonSystem {
  constructor(){
-  this.active=false;this.days=0;this.playing=!reduced.matches;this.parent='';this.items={};this.textures=new Map();this.imageLoads=[];this.tideMode=false;this.solarEnabled=true;this.solarMix=1;this.solarFlight=null;this.tideAttempts=0;this.request=0;this.dirty=true;this.modelDirty=true;
+  this.active=false;this.days=0;this.playing=!reduced.matches;this.parent='';this.items={};this.textures=new Map();this.imageLoads=[];this.tideMode=false;this.solarEnabled=true;this.solarMix=1;this.solarFlight=null;this.moonDistanceRatio=1;this.lunarFlight=null;this.tideAttempts=0;this.request=0;this.dirty=true;this.modelDirty=true;
   this.renderer=new THREE.WebGLRenderer({canvas:$('moonCanvas'),antialias:true});this.renderer.setPixelRatio(Math.min(devicePixelRatio,2));this.renderer.setClearColor(0x030507);this.renderer.outputColorSpace=THREE.SRGBColorSpace;this.renderer.toneMapping=THREE.ACESFilmicToneMapping;this.renderer.toneMappingExposure=1.1;
   this.scene=new THREE.Scene();this.sky=addCelestialSky(this.scene);this.camera=new THREE.PerspectiveCamera(38,1,.03,500);this.camera.position.set(0,17,25);this.controls=new OrbitControls(this.camera,$('moonCanvas'));this.controls.enableDamping=true;this.controls.enablePan=false;this.controls.minDistance=4;this.controls.maxDistance=90;this.controls.maxPolarAngle=Math.PI*.9;this.controls.target.set(0,0,0);this.controls.addEventListener('start',()=>{this.flight=null;});this.controls.addEventListener('change',()=>{this.dirty=true;});
   this.ambientLight=new THREE.AmbientLight(0x73879a,.34);this.sunlight=new THREE.DirectionalLight(0xffedcf,2.9);this.sunlight.position.set(-8,5,7);this.sunDirection=this.sunlight.position.clone().normalize();this.earthSunDirection=this.sunDirection.clone();this.tideNormal=new THREE.Vector3(0,Math.cos(.09),Math.sin(.09));this.tideSunDirection=this.sunDirection.clone().addScaledVector(this.tideNormal,-this.sunDirection.dot(this.tideNormal)).normalize();this.scene.add(this.ambientLight,this.sunlight);this.group=new THREE.Group();this.scene.add(this.group);this.sphere=new THREE.SphereGeometry(1,64,40);this.loader=new THREE.TextureLoader();this.labels=[];
@@ -75,7 +76,7 @@ export class MoonSystem {
   for(const button of document.querySelectorAll('[data-tide-angle]'))button.onclick=()=>this.tidePreset(Number(button.dataset.tideAngle));
   $('moonFocus').onchange=e=>this.select(e.target.value);
   $('moonRetry').onclick=()=>{if(document.activeElement===$('moonRetry'))$('moonCanvas').focus({preventScroll:true});this.retryImages();};
-  $('moonPlay').onclick=()=>{this.cancelCheckpoint();if(this.days>=this.span){this.days=0;this.modelDirty=true;}this.playing=!this.playing;this.updateUI();};$('moonDay').oninput=e=>{this.cancelCheckpoint();this.days=Number(e.target.value)/1000*this.span;this.playing=false;this.modelDirty=true;if(this.tideMode)this.updateTideState(true);this.updateUI();};$('moonPerspective').onclick=()=>this.setView(false);$('moonTop').onclick=()=>this.setView(true);$('moonReset').onclick=()=>{this.cancelTideDrag();this.cancelCheckpoint();this.solarEnabled=true;this.settleSolar();this.days=0;this.playing=!reduced.matches;this.tideInspect=false;this.resetTideChallenge();this.tideShore?.reset();this.tideGuide?.selectStep(0);if(this.tideMode)this.updateTideState(true);this.select(FAMILIES[this.parent][0]);this.setView(false);this.updateUI();};
+  $('moonPlay').onclick=()=>{this.cancelCheckpoint();if(this.days>=this.span){this.days=0;this.modelDirty=true;}this.playing=!this.playing;this.updateUI();};$('moonDay').oninput=e=>{this.cancelCheckpoint();this.days=Number(e.target.value)/1000*this.span;this.playing=false;this.modelDirty=true;if(this.tideMode)this.updateTideState(true);this.updateUI();};$('moonPerspective').onclick=()=>this.setView(false);$('moonTop').onclick=()=>this.setView(true);$('moonReset').onclick=()=>{this.cancelTideDrag();this.cancelCheckpoint();this.solarEnabled=true;this.settleSolar();this.setTideDistance(1);this.days=0;this.playing=!reduced.matches;this.tideInspect=false;this.resetTideChallenge();this.tideShore?.reset();this.tideGuide?.selectStep(0);if(this.tideMode)this.updateTideState(true);this.select(FAMILIES[this.parent][0]);this.setView(false);this.updateUI();};
   for(const button of document.querySelectorAll('[data-moon-checkpoint]'))button.onclick=()=>this.checkpoint(Number(button.dataset.moonCheckpoint));
   const canvas=$('moonCanvas');
   canvas.addEventListener('pointerdown',e=>this.beginTideDrag(e),true);
@@ -95,7 +96,7 @@ export class MoonSystem {
    if(body?.userData.id)location.hash='#'+body.userData.id;
   });
   canvas.onkeydown=e=>{if(!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','+','=','-'].includes(e.key))return;e.preventDefault();this.flight=null;const s=new THREE.Spherical().setFromVector3(this.camera.position);if(e.key==='ArrowLeft')s.theta-=.12;if(e.key==='ArrowRight')s.theta+=.12;if(e.key==='ArrowUp')s.phi=Math.max(.05,s.phi-.1);if(e.key==='ArrowDown')s.phi=Math.min(Math.PI*.9,s.phi+.1);if(['+','='].includes(e.key))s.radius=Math.max(4,s.radius*.85);if(e.key==='-')s.radius=Math.min(90,s.radius/.85);this.camera.position.setFromSpherical(s);this.controls.update();};
-  reduced.addEventListener('change',e=>{if(e.matches){this.playing=false;if(this.timeFlight)this.finishCheckpoint();if(this.solarFlight){this.settleSolar(true);this.updateTideState(true);}this.dirty=true;this.updateUI();}});
+  reduced.addEventListener('change',e=>{if(e.matches){this.playing=false;if(this.timeFlight)this.finishCheckpoint();if(this.solarFlight){this.settleSolar(true);this.updateTideState(true);}if(this.lunarFlight){this.setTideDistance(this.lunarFlight.end);this.lunarFlight=null;this.updateTideState(true);}this.dirty=true;this.updateUI();}});
   this.observer=new ResizeObserver(()=>this.resize());this.observer.observe($('moonStage'));
   this.labelObserver=new ResizeObserver(()=>this.measureLabelBounds());for(const el of $('moonStage').querySelectorAll('.orbit-toolbar,.orbit-key'))this.labelObserver.observe(el);
   this.arrivalObserver=new ResizeObserver(()=>this.fitEarthStage());for(const el of [$('moonConsole'),$('moonSystemView').querySelector('.orrery-heading'),$('moonSystemView').querySelector('.neighbourhood-nav'),document.querySelector('.topbar')])this.arrivalObserver.observe(el);
@@ -105,7 +106,7 @@ export class MoonSystem {
   if(this.parent!=='earth')return;
   this.sunDirection.copy(this.tideMode?this.tideSunDirection:this.earthSunDirection);if(this.tideMode)this.sunlight.position.copy(this.sunDirection).multiplyScalar(12);else this.sunlight.position.set(-8,5,7);
   this.maxRadius=this.tideMode?TIDE_ORBIT_RADIUS:4.6;this.span=this.tideMode?MOONS.moon.period:28;const item=this.items.moon;
-  if(item){item.r=this.maxRadius;item.phase=this.tideMode?0:1.1;const p=item.orbit.geometry.attributes.position;for(let n=0;n<p.count;n++){const a=n/(p.count-1)*TAU;p.setXYZ(n,Math.cos(a)*item.r,Math.sin(a)*item.r*Math.sin(item.inclination),-Math.sin(a)*item.r*Math.cos(item.inclination));}p.needsUpdate=true;item.orbit.geometry.computeBoundingSphere();item.orbit.material.opacity=this.tideMode?.2:.65;}
+  if(item){item.r=this.maxRadius*(this.tideMode?this.moonDistanceRatio:1);item.phase=this.tideMode?0:1.1;const p=item.orbit.geometry.attributes.position;for(let n=0;n<p.count;n++){const a=n/(p.count-1)*TAU;p.setXYZ(n,Math.cos(a)*item.r,Math.sin(a)*item.r*Math.sin(item.inclination),-Math.sin(a)*item.r*Math.cos(item.inclination));}p.needsUpdate=true;item.orbit.geometry.computeBoundingSphere();item.orbit.material.opacity=this.tideMode?.2:.65;}
   $('moonSystemTitle').textContent=this.tideMode?'Ocean tides.':'Earth & the Moon.';
   $('moonSystemEyebrow').textContent=this.tideMode?'EARTH + MOON + SUN':'OUR NEAREST NEIGHBOUR';
   $('moonSystemIntro').textContent=this.tideMode?'Move the Moon. Watch both bulges.':'One orbit. One turn. The same face.';
@@ -118,7 +119,7 @@ export class MoonSystem {
   if(this.tideOcean){this.tideOcean.object.visible=true;this.setTideReady(true);return;}
   $('tideStatus').textContent='Preparing the ocean…';$('tideRetry').hidden=true;this.setTideReady(false);
   try{
-   this.tideImport||=import('./tides.js?v=d734cfc91590'+(this.tideAttempts?'&retry='+this.tideAttempts:'')).catch(error=>{this.tideImport=null;this.tideAttempts++;throw error;});
+   this.tideImport||=import('./tides.js?v=338159787581'+(this.tideAttempts?'&retry='+this.tideAttempts:'')).catch(error=>{this.tideImport=null;this.tideAttempts++;throw error;});
    const {TideOcean}=await this.tideImport;
    if(!this.tideOcean){this.tideOcean=new TideOcean({radius:1.3,sunDirection:this.sunDirection,orbitNormal:this.tideNormal,exaggeration:.24,opacity:.11});this.scene.add(this.tideOcean.object);}
    this.tideOcean.object.visible=this.active&&this.parent==='earth'&&this.tideMode;
@@ -138,8 +139,8 @@ export class MoonSystem {
   $('tideLearningNotice').hidden=false;$('tideLearningStatus').textContent='Preparing the coastal view…';$('tideLearningRetry').hidden=true;
   const suffix=this.learningAttempts?'&retry='+this.learningAttempts:'';
   this.learningPromise=Promise.allSettled([
-   (async()=>{if(this.tideGuide)return;const {TideGuide}=await import('./tide-guide.js?v=d734cfc91590'+suffix);if(!this.active||!this.tideMode)return;this.tideGuide=new TideGuide($('tideGuide'),{onCompare:degrees=>this.tidePreset(degrees)});})(),
-   (async()=>{if(this.tideShore)return;const {TideShore}=await import('./tide-shore.js?v=d734cfc91590'+suffix);if(!this.active||!this.tideMode)return;this.tideShore=new TideShore($('tideShore'));})()
+   (async()=>{if(this.tideGuide)return;const {TideGuide}=await import('./tide-guide.js?v=338159787581'+suffix);if(!this.active||!this.tideMode)return;this.tideGuide=new TideGuide($('tideGuide'),{onCompare:degrees=>this.tideComparison(degrees)});})(),
+   (async()=>{if(this.tideShore)return;const {TideShore}=await import('./tide-shore.js?v=338159787581'+suffix);if(!this.active||!this.tideMode)return;this.tideShore=new TideShore($('tideShore'),{onScenario:kind=>this.tideScenario(kind)});})()
   ]);
   const results=await this.learningPromise;this.learningPromise=null;
   const failed=results.some(result=>result.status==='rejected');
@@ -149,7 +150,7 @@ export class MoonSystem {
   if(this.active&&this.tideMode){this.updateTideState(true);$('moonSystemView').dataset.learningReady=String(!!this.tideGuide&&!!this.tideShore);}
  }
  tideLearningState(){
-  return {range:this.tideData?.range??1,solarMix:this.solarMix,moonAngle:(this.items.moon?.phase??0)+this.days/MOONS.moon.period*TAU,sunAngle:Math.atan2(-this.tideSunDirection.z/Math.cos(.09),this.tideSunDirection.x)};
+  return {range:this.tideData?.range??1,solarMix:this.solarMix,moonDistanceRatio:this.moonDistanceRatio,lunarWeight:1/this.moonDistanceRatio**3,transitioning:!!(this.timeFlight||this.solarFlight||this.lunarFlight),moonAngle:(this.items.moon?.phase??0)+this.days/MOONS.moon.period*TAU,sunAngle:Math.atan2(-this.tideSunDirection.z/Math.cos(.09),this.tideSunDirection.x)};
  }
  resetTideChallenge(){
   this.tideChallenge={active:false,found:new Set()};$('tideDiscovery').dataset.found='0';$('tideChallengeCount').textContent='0 / 2';$('tideChallengeStart').textContent='Try it';$('tideChallengeCheck').hidden=true;
@@ -162,7 +163,7 @@ export class MoonSystem {
  checkTideChallenge(){
   if(!this.tideMode||!this.tideOcean||!this.tideChallenge.active)return;
   const status=$('tideChallengeStatus');
-  if(this.playing||this.timeFlight||this.solarFlight||this.tideDrag){status.textContent='Pause the Moon in the position you want to check.';return;}
+  if(this.playing||this.timeFlight||this.solarFlight||this.lunarFlight||this.tideDrag){status.textContent='Pause the Moon in the position you want to check.';return;}
   if(this.solarMix<.99){status.textContent='Turn on the Sun’s pull to find the two biggest tides.';return;}
   const state=this.tideLearningState(),alignment=Math.cos(state.moonAngle-state.sunAngle);
   if(Math.abs(alignment)<Math.cos(Math.PI/18)){status.textContent='The change can be bigger. Try lining up the Sun, Earth and Moon.';return;}
@@ -201,19 +202,50 @@ export class MoonSystem {
    const item=this.items.moon,angle=item.phase+this.days/MOONS.moon.period*TAU;
    this.tideDirection||=new THREE.Vector3();direction=this.tideDirection.set(Math.cos(angle),Math.sin(angle)*Math.sin(item.inclination),-Math.sin(angle)*Math.cos(item.inclination));
   }
-  this.tideData=this.tideOcean.setState({moonDirection:direction,sunDirection:this.sunDirection,solarEnabled:this.solarEnabled,solarMix:this.solarMix,time:this.days*3,animated:this.playing&&!reduced.matches});
+  this.tideData=this.tideOcean.setState({moonDirection:direction,sunDirection:this.sunDirection,solarEnabled:this.solarEnabled,solarMix:this.solarMix,moonDistanceRatio:this.moonDistanceRatio,time:this.days*3,animated:this.playing&&!reduced.matches});
   this.updateTideReading();
   const state=this.tideLearningState();this.tideGuide?.setState(state);this.tideShore?.setState(state);
   if(this.solarFeedbackPending){
    this.solarFeedbackPending=false;
-   $('tideFeedback').textContent=this.solarMix===0?'Moon only: the range stays the same around the orbit.':this.tideData.range>1.02?'Here, the Sun makes the rise and fall bigger.':this.tideData.range<.98?'Here, the Sun makes the rise and fall smaller.':'Here, the rise and fall is nearly the same.';
+   $('tideFeedback').textContent=this.solarMix===0?'Moon only: the range stays the same around the orbit.':this.tideData.range>this.tideData.lunarWeight+.02?'Here, the Sun makes the rise and fall bigger.':this.tideData.range<this.tideData.lunarWeight-.02?'Here, the Sun makes the rise and fall smaller.':'Here, the rise and fall is nearly the same.';
   }
  }
  updateTideReading(){
   if(!this.tideData)return;const range=this.tideData.range;
-  $('tideMeter').style.setProperty('--tide-range',Math.min(100,range/1.46*100).toFixed(1)+'%');
-  $('tideStrength').textContent=this.solarMix===0&&!this.solarFlight?'Moon only':range>1.39?'Large':range<.63?'Small':'Between';
-  $('tideStrength').setAttribute('aria-label','Ideal tide range, '+range.toFixed(2)+' times the Moon-only range');
+  $('tideMeter').style.setProperty('--tide-range',Math.min(100,range/MAX_TIDE_RANGE*100).toFixed(1)+'%');
+  $('tideStrength').textContent=this.solarMix===0&&!this.solarFlight?'Moon only':range>1.5?'Extra high':range>1.39?'Large':range<.63?'Small':'Between';
+  $('tideStrength').setAttribute('aria-label','Ideal tide range, '+range.toFixed(2)+' times the mean-distance Moon-only range');
+ }
+ setTideDistance(ratio){
+  this.moonDistanceRatio=ratio;
+  if(this.tideMode&&this.parent==='earth'&&this.items.moon){
+   const item=this.items.moon;item.r=TIDE_ORBIT_RADIUS*ratio;
+   const positions=item.orbit.geometry.attributes.position;
+   for(let i=0;i<positions.count;i++){const a=i/(positions.count-1)*TAU;positions.setXYZ(i,Math.cos(a)*item.r,Math.sin(a)*item.r*Math.sin(item.inclination),-Math.sin(a)*item.r*Math.cos(item.inclination));}
+   positions.needsUpdate=true;item.orbit.geometry.computeBoundingSphere();
+  }
+  this.modelDirty=true;this.dirty=true;
+ }
+ advanceLunar(dt){
+  if(!this.lunarFlight)return false;
+  const trip=this.lunarFlight;trip.t+=dt;const t=Math.min(1,trip.t/CHECKPOINT_DURATION),e=t*t*(3-2*t);
+  this.setTideDistance(trip.start+(trip.end-trip.start)*e);
+  if(t===1){this.setTideDistance(trip.end);this.lunarFlight=null;}
+  return true;
+ }
+ moveTideDistance(target){
+  if(reduced.matches||Math.abs(target-this.moonDistanceRatio)<1e-9){this.setTideDistance(target);this.lunarFlight=null;}
+  else this.lunarFlight={start:this.moonDistanceRatio,end:target,t:0};
+ }
+ tideComparison(degrees){
+  this.tidePreset(degrees);this.moveTideDistance(1);this.updateTideState(true);this.updateUI();
+ }
+ tideScenario(kind){
+  if(!this.tideMode||!this.tideOcean||!['neap','spring','king'].includes(kind))return;
+  this.cancelTideDrag();this.solarEnabled=true;this.settleSolar();
+  this.tidePreset(kind==='neap'?90:0);
+  this.moveTideDistance(kind==='king'?CLOSE_MOON_DISTANCE_RATIO:1);
+  this.updateTideState(true);this.updateUI();
  }
  tidePreset(degrees){
   if(!this.tideMode||!this.tideOcean)return;this.cancelCheckpoint();this.playing=false;this.tidePresetAngle=degrees;
@@ -357,7 +389,7 @@ export class MoonSystem {
   const height=Math.max(phone?300:280,Math.min(phone?480:this.tideMode?780:620,innerHeight-top-reserve));
   if(Math.abs(stage.getBoundingClientRect().height-height)>1)stage.style.height=height+'px';
  }
- cancelCheckpoint(){this.timeFlight=null;this.checkpointTarget=null;this.tidePresetAngle=null;$('moonCheckpointStatus').textContent='The pointer turns with the Moon.';if($('tideFeedback'))$('tideFeedback').textContent='Move the Moon. Compare the daily change.';}
+ cancelCheckpoint(){this.timeFlight=null;this.lunarFlight=null;this.checkpointTarget=null;this.tidePresetAngle=null;$('moonCheckpointStatus').textContent='The pointer turns with the Moon.';if($('tideFeedback'))$('tideFeedback').textContent='Move the Moon. Compare the daily change.';}
  checkpoint(fraction){
   if(!this.active||this.parent!=='earth'||!this.items.moon)return;
   this.cancelCheckpoint();this.playing=false;this.checkpointTarget=fraction;
@@ -416,7 +448,7 @@ export class MoonSystem {
  hide(){this.cancelTideDrag();this.cancelCheckpoint();this.settleSolar();this.active=false;this.playing=false;this.tideGuide?.setActive(false);this.tideShore?.setActive(false);$('moonFaceGuide').setAttribute('hidden','');this.updateUI();}
  updateUI(){
   $('moonPlay').textContent=this.tideMode?(this.playing?'Ⅱ Pause':'▶ Play'):(this.playing?'Ⅱ Pause orbits':'▶ Play orbits');$('moonPlay').setAttribute('aria-pressed',String(this.playing));$('moonDay').value=Math.round(this.days/this.span*1000);$('moonDay').setAttribute('aria-valuetext',this.days.toFixed(1)+' Earth days');$('moonTime').textContent=this.tideMode?'Move the Moon':'Day '+this.days.toFixed(1);$('moonTimeSpan').textContent=this.tideMode?'ABOUT 27 DAYS':this.span+' EARTH DAYS';
-  if(this.tideMode){$('tideInspect').setAttribute('aria-pressed',String(this.tideInspect));$('tideInspect').textContent=this.tideInspect?'Whole orbit':'Inspect water';$('moonGestureKey').textContent=this.tideInspect?'CLOSE VIEW · MOVE THE MOON WITH THE SLIDER':'DRAG THE MOON · DRAG SPACE TO TURN';const angle=this.days===this.span?360:(((this.items.moon.phase+this.days/MOONS.moon.period*TAU)*180/Math.PI)%360+360)%360;$('moonDay').value=Math.round(angle/360*1000);$('moonDay').setAttribute('aria-valuetext',Math.round(angle)+' degrees around the model orbit');$('tideSun').setAttribute('aria-pressed',String(this.solarEnabled));$('tideSun').querySelector('span').textContent=this.solarEnabled?'On':'Off';for(const button of document.querySelectorAll('[data-tide-angle]')){if(!this.timeFlight&&Number(button.dataset.tideAngle)===this.tidePresetAngle)button.setAttribute('aria-current','step');else button.removeAttribute('aria-current');}}
+  if(this.tideMode){const distanceKey=$('tideDistanceKey');if(distanceKey){distanceKey.hidden=this.moonDistanceRatio>.9999&&!this.lunarFlight;distanceKey.textContent=this.lunarFlight?'Moon distance changing':'Closer Moon · stronger tides';}$('tideInspect').setAttribute('aria-pressed',String(this.tideInspect));$('tideInspect').textContent=this.tideInspect?'Whole orbit':'Inspect water';$('moonGestureKey').textContent=this.tideInspect?'CLOSE VIEW · MOVE THE MOON WITH THE SLIDER':'DRAG THE MOON · DRAG SPACE TO TURN';const angle=this.days===this.span?360:(((this.items.moon.phase+this.days/MOONS.moon.period*TAU)*180/Math.PI)%360+360)%360;$('moonDay').value=Math.round(angle/360*1000);$('moonDay').setAttribute('aria-valuetext',Math.round(angle)+' degrees around the model orbit');$('tideSun').setAttribute('aria-pressed',String(this.solarEnabled));$('tideSun').querySelector('span').textContent=this.solarEnabled?'On':'Off';for(const button of document.querySelectorAll('[data-tide-angle]')){if(!this.timeFlight&&Number(button.dataset.tideAngle)===this.tidePresetAngle)button.setAttribute('aria-current','step');else button.removeAttribute('aria-current');}}
   if(this.parent==='earth'){
    const progress=this.days/MOONS.moon.period,near=value=>Math.abs(progress-value)<.0001;
    const value=near(.25)?'¼':near(.5)?'½':near(1)?'1':near(0)?'0':progress.toFixed(2);
@@ -439,15 +471,15 @@ export class MoonSystem {
   return this.days!==previousDays;
  }
  advanceOffscreen(dt,now){
-  if(!this.active||!this.parent||(!this.playing&&!this.timeFlight&&!this.solarFlight))return;
-  const timeChanged=this.advanceTime(dt),solarChanged=this.advanceSolar(dt);
+  if(!this.active||!this.parent||(!this.playing&&!this.timeFlight&&!this.solarFlight&&!this.lunarFlight))return;
+  const timeChanged=this.advanceTime(dt),solarChanged=this.advanceSolar(dt),lunarChanged=this.advanceLunar(dt);
   if(timeChanged)this.modelDirty=true;
-  if(this.tideMode&&(timeChanged||solarChanged))this.updateTideState(true);
+  if(this.tideMode&&(timeChanged||solarChanged||lunarChanged))this.updateTideState(true);
   if(!this.playing||!this.lastRead||now-this.lastRead>100){this.updateUI();this.lastRead=now;}
  }
  frame(dt,now){
   if(!this.active||!this.parent)return;
-  const wasPlaying=this.playing,timeChanged=this.advanceTime(dt);this.advanceSolar(dt);
+  const wasPlaying=this.playing,timeChanged=this.advanceTime(dt);this.advanceSolar(dt);this.advanceLunar(dt);
   if(wasPlaying&&!this.playing){this.updateUI();this.lastRead=now;}
   const positionsChanged=this.modelDirty||timeChanged;
   if(positionsChanged){

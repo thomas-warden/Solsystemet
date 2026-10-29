@@ -1,9 +1,10 @@
 import * as THREE from './vendor/three.module.js';
+import { SOLAR_TIDE_RATIO, CLOSE_MOON_DISTANCE_RATIO, MAX_LUNAR_WEIGHT, MAX_TIDE_RANGE } from './tide-constants.js?v=338159787581';
+export { SOLAR_TIDE_RATIO } from './tide-constants.js?v=338159787581';
 
-// Equilibrium forcing on an ideal global ocean: P2(n·Moon) + q P2(n·Sun).
+// Equilibrium forcing on an ideal global ocean: w P2(n·Moon) + q P2(n·Sun).
 // Displacement, ripple scale and optical appearance are deliberately exaggerated.
 // This is neither a coastal forecast nor a volume-conserving fluid simulation.
-export const SOLAR_TIDE_RATIO = 0.46;
 
 function unit(vector, name) {
   if (!vector || ![vector.x, vector.y, vector.z].every(Number.isFinite)) {
@@ -23,19 +24,33 @@ function solarWeight(mix) {
   return SOLAR_TIDE_RATIO * mix;
 }
 
+function validateLunarWeight(weight) {
+  if (!Number.isFinite(weight) || weight < 1 || weight > MAX_LUNAR_WEIGHT) {
+    throw new RangeError(`lunarWeight must be finite and between 1 and ${MAX_LUNAR_WEIGHT}.`);
+  }
+  return weight;
+}
+
+function lunarWeightAtDistance(ratio) {
+  if (!Number.isFinite(ratio) || ratio < CLOSE_MOON_DISTANCE_RATIO || ratio > 1) {
+    throw new RangeError(`moonDistanceRatio must be finite and between ${CLOSE_MOON_DISTANCE_RATIO} and 1.`);
+  }
+  return 1 / ratio ** 3;
+}
+
 // Directions are unit vectors. Returned gradient is tangent to the unit sphere.
 export function tidalField(direction, moonDirection, sunDirection, solarEnabled = false,
-  solarMix = solarEnabled ? 1 : 0) {
+  solarMix = solarEnabled ? 1 : 0, lunarWeight = 1) {
   const n = unit(direction, 'direction'), moon = unit(moonDirection, 'moonDirection');
-  const sun = unit(sunDirection, 'sunDirection'), q = solarWeight(solarMix);
+  const sun = unit(sunDirection, 'sunDirection'), q = solarWeight(solarMix), w = validateLunarWeight(lunarWeight);
   const m = n.dot(moon), s = n.dot(sun);
-  const gradient = moon.multiplyScalar(3 * m).addScaledVector(sun, 3 * q * s)
-    .addScaledVector(n, -3 * (m * m + q * s * s));
-  return { potential: p2(m) + q * p2(s), gradient };
+  const gradient = moon.multiplyScalar(3 * w * m).addScaledVector(sun, 3 * q * s)
+    .addScaledVector(n, -3 * (w * m * m + q * s * s));
+  return { potential: w * p2(m) + q * p2(s), gradient };
 }
 
 const vertexShader = `
-  uniform float radius, exaggeration, baseline, solarWeight;
+  uniform float radius, exaggeration, baseline, solarWeight, lunarWeight;
   uniform vec3 moonDirection, sunDirection;
   varying vec3 sphereDirection, worldPosition, oceanCenter;
   varying float forcing;
@@ -43,7 +58,7 @@ const vertexShader = `
     vec3 n = normalize(position);
     sphereDirection = normalize(mat3(modelMatrix) * n);
     float m = dot(sphereDirection, moonDirection), s = dot(sphereDirection, sunDirection);
-    forcing = .5 * (3. * m * m - 1.) + solarWeight * .5 * (3. * s * s - 1.);
+    forcing = lunarWeight * .5 * (3. * m * m - 1.) + solarWeight * .5 * (3. * s * s - 1.);
     float distance = radius * (baseline + exaggeration * forcing);
     vec4 world = modelMatrix * vec4(n * distance, 1.);
     worldPosition = world.xyz;
@@ -53,7 +68,7 @@ const vertexShader = `
 `;
 
 const fragmentShader = `
-  uniform float radius, exaggeration, baseline, solarWeight, time, opacity, rimPass;
+  uniform float radius, exaggeration, baseline, solarWeight, lunarWeight, time, opacity, rimPass;
   uniform vec3 moonDirection, sunDirection, highDirection;
   varying vec3 sphereDirection, worldPosition, oceanCenter;
   varying float forcing;
@@ -69,10 +84,10 @@ const fragmentShader = `
   void main() {
     vec3 n = normalize(sphereDirection);
     float m = dot(n, moonDirection), s = dot(n, sunDirection);
-    float height = .5 * (3. * m * m - 1.) + solarWeight * .5 * (3. * s * s - 1.);
+    float height = lunarWeight * .5 * (3. * m * m - 1.) + solarWeight * .5 * (3. * s * s - 1.);
     float distance = baseline + exaggeration * height;
-    vec3 gradient = 3. * (m * moonDirection + solarWeight * s * sunDirection
-      - (m * m + solarWeight * s * s) * n);
+    vec3 gradient = 3. * (lunarWeight * m * moonDirection + solarWeight * s * sunDirection
+      - (lunarWeight * m * m + solarWeight * s * s) * n);
     // Exact normal of the radial quadrupole surface, before tiny optical ripples.
     vec3 normal = normalize(distance * n - exaggeration * gradient);
     // The broad outline follows the analytical surface. Only the water pass
@@ -103,7 +118,7 @@ const fragmentShader = `
       vec3 rimColor = mix(vec3(.09,.43,.55), vec3(.22,.64,.70), cap);
       gl_FragColor = vec4(rimColor, rim * (.44 + cap * .13));
     } else {
-      float crest = clamp((height + .73) / 2.19, 0., 1.);
+      float crest = clamp((height + ${(MAX_TIDE_RANGE / 2).toFixed(12)}) / ${(MAX_TIDE_RANGE * 1.5).toFixed(12)}, 0., 1.);
       // One angular transmission tint keeps the front clear and the grazing
       // water blue. This is an illustrative material, not measured path length.
       float projectedRadius = length(cross(worldPosition - oceanCenter, view));
@@ -149,20 +164,21 @@ export class TideOcean {
     this.moonDirection = new THREE.Vector3(1, 0, 0);
     this.sunDirection = unit(sunDirection, 'sunDirection');
     this.planeNormal = this.orbitNormal.clone();
-    // Keep even the strongest low tide just above the source globe. This offset
-    // is a display convention; the surrounding shell is not the real ocean depth.
-    this.baseline = 1.012 + exaggeration * (1 + SOLAR_TIDE_RATIO) / 2;
+    // Keep even the strongest supported low tide above the source globe. This
+    // fixed display offset never changes during a distance or Sun transition.
+    // The surrounding shell is not the real ocean depth.
+    this.baseline = 1.012 + exaggeration * MAX_TIDE_RANGE / 2;
     this.uniforms = {
       radius: { value: radius }, exaggeration: { value: exaggeration }, baseline: { value: this.baseline },
       moonDirection: { value: this.moonDirection }, sunDirection: { value: this.sunDirection },
       highDirection: { value: new THREE.Vector3(1, 0, 0) },
-      solarWeight: { value: 0 }, time: { value: 0 }, opacity: { value: opacity },
+      solarWeight: { value: 0 }, lunarWeight: { value: 1 }, time: { value: 0 }, opacity: { value: opacity },
     };
     this.object = new THREE.Group();
     this.object.name = 'tide-ocean';
     this.object.raycast = () => {};
     this.geometry = new THREE.SphereGeometry(1, 128, 80);
-    this.geometry.boundingSphere = new THREE.Sphere(new THREE.Vector3(), radius * (this.baseline + exaggeration * 1.46) * 1.003);
+    this.geometry.boundingSphere = new THREE.Sphere(new THREE.Vector3(), radius * (this.baseline + exaggeration * MAX_TIDE_RANGE) * 1.003);
     this.materials = [0, 1].map(rimPass => new THREE.ShaderMaterial({
       vertexShader, fragmentShader, uniforms: { ...this.uniforms, rimPass: { value: rimPass } },
       transparent: true, depthWrite: false, side: THREE.FrontSide,
@@ -181,26 +197,29 @@ export class TideOcean {
   }
 
   // solarMix optionally overrides the boolean target while the caller eases it;
-  // it is a normalized fraction of the fixed .46 solar-to-lunar forcing ratio.
+  // it is a normalized fraction of solar forcing relative to the mean-distance
+  // Moon. The closer Moon strengthens lunar forcing by the inverse cube law.
   setState({ moonDirection = this.moonDirection, sunDirection = this.sunDirection,
-    solarEnabled = false, solarMix = solarEnabled ? 1 : 0, time = 0, animated = false } = {}) {
+    solarEnabled = false, solarMix = solarEnabled ? 1 : 0, moonDistanceRatio = 1,
+    time = 0, animated = false } = {}) {
     if (this.disposed) throw new Error('Cannot update a disposed TideOcean.');
     if (!Number.isFinite(time)) throw new TypeError('time must be finite seconds.');
     const moon = unit(moonDirection, 'moonDirection'), sun = unit(sunDirection, 'sunDirection');
     // The caller may ease the Sun's contribution. The same coefficient drives
     // displacement, normals, extrema and the range reading throughout the fade.
-    const q = solarWeight(solarMix);
+    const q = solarWeight(solarMix), w = lunarWeightAtDistance(moonDistanceRatio);
     const nextTime = animated ? time : this.uniforms.time.value;
     const changed = !this.state || this.moonDirection.distanceToSquared(moon) > 1e-20
       || this.sunDirection.distanceToSquared(sun) > 1e-20 || q !== this.uniforms.solarWeight.value
+      || w !== this.uniforms.lunarWeight.value
       || nextTime !== this.uniforms.time.value;
     this.moonDirection.copy(moon); this.sunDirection.copy(sun);
-    this.uniforms.solarWeight.value = q; this.uniforms.time.value = nextTime;
+    this.uniforms.solarWeight.value = q; this.uniforms.lunarWeight.value = w; this.uniforms.time.value = nextTime;
 
-    // Eigenvalues of mmᵀ + q ssᵀ. q<1 keeps the major axis unique, even at neap.
+    // Eigenvalues of w mmᵀ + q ssᵀ. w>q keeps the major axis unique at neap.
     const cosine = THREE.MathUtils.clamp(moon.dot(sun), -1, 1);
-    const range = Math.sqrt((1 - q) ** 2 + 4 * q * cosine * cosine);
-    const major = (1 + q + range) / 2, minor = (1 + q - range) / 2;
+    const range = Math.sqrt((w - q) ** 2 + 4 * w * q * cosine * cosine);
+    const major = (w + q + range) / 2, minor = (w + q - range) / 2;
     const high = moon.clone().multiplyScalar(major - q).addScaledVector(sun, q * cosine).normalize();
     this.uniforms.highDirection.value.copy(high);
     const plane = new THREE.Vector3().crossVectors(moon, sun);
@@ -218,12 +237,14 @@ export class TideOcean {
     }
     this.planeNormal.copy(plane);
     const low = new THREE.Vector3().crossVectors(plane, high).normalize();
-    const maximum = 1.5 * major - .5 * (1 + q), minimum = -.5 * (1 + q);
-    const planeMinimum = 1.5 * minor - .5 * (1 + q);
+    const maximum = 1.5 * major - .5 * (w + q), minimum = -.5 * (w + q);
+    const planeMinimum = 1.5 * minor - .5 * (w + q);
     this.state = {
-      changed, solarMix,
-      // In-plane range relative to Moon alone: 1 / 1.46 / .54. This is the
+      changed, solarMix, moonDistanceRatio, lunarWeight: w,
+      // In-plane range relative to the mean-distance Moon alone. This is the
       // spring-neap display value, not global max-minus-min across the sphere.
+      // Strength preserves the mean-distance spring reference (1.46), so the
+      // illustrative closer-Moon example can have strength greater than one.
       range, strength: range / (1 + SOLAR_TIDE_RATIO),
       globalRange: maximum - minimum, maximum, minimum, planeMinimum,
       highDirections: [high, high.clone().negate()],
@@ -242,7 +263,7 @@ export class TideOcean {
   sample(direction) {
     const n = unit(direction, 'direction');
     const field = tidalField(n, this.moonDirection, this.sunDirection, true,
-      this.uniforms.solarWeight.value / SOLAR_TIDE_RATIO);
+      this.uniforms.solarWeight.value / SOLAR_TIDE_RATIO, this.uniforms.lunarWeight.value);
     const scale = this.baseline + this.exaggeration * field.potential;
     return { potential: field.potential, radius: this.radius * scale,
       normal: n.multiplyScalar(scale).addScaledVector(field.gradient, -this.exaggeration).normalize() };

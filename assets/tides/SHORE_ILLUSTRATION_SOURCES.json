@@ -2,7 +2,7 @@
   "created": "2026-10-27",
   "file": "shore-rock.webp",
   "purpose": "Original imagined coastal rock material for the Ocean tides shore. This is illustrative material, not a photograph of a real coast or geological measurement.",
-  "production": "AI-generated original rock material using OpenAI image generation; then resized to 1152 × 768 and encoded as WebP quality 82. Used on the authored 3D terrain and clipped to the simpler SVG coastal profile when detailed rendering is unavailable.",
+  "production": "AI-generated original rock material using OpenAI image generation; resized to 1152 × 768 and encoded as WebP quality 82. Previously used on authored 3D terrain and the SVG rocky profile; replaced by shore-sand.webp on 29 October 2026.",
   "source_original": "/workspace/generated_images/exec-5e306b08-7387-4571-a47d-9d8c981b3620.png",
   "dimensions": [
     1152,
@@ -11,8 +11,8 @@
   "bytes": 297190,
   "sha256": "0ba28288af5fa98bbcb2e2d2111a60ee0f10f40dd385907cf74935b5291ea4e6",
   "other_assets": "The small Earth globe reuses earth.webp and its existing NASA/Solar System Scope credits in ILLUSTRATION_SOURCES.json.",
-  "limits": "The mean coastal water level uses two sinusoidal high/low tides per illustrative lunar day. Its amplitude tracks the shared model range. The terrain is imagined; geometric ripples, reflections, foam and wet-rock appearance are visual approximations. These effects do not alter the tide calculation and do not constitute a fluid model or real coastal forecast. Real timing, number of daily tides and heights vary by coast.",
-  "updated": "2026-10-28",
+  "limits": "The mean beach water level uses two sinusoidal high/low tides per illustrative lunar day, with amplitude linked to the shared global tide range. Scenario presets compare the same high-water phase. The closer-Moon example uses an illustrative 0.95 mean-distance ratio and inverse-cube lunar forcing, not a date-specific perigee or real coastal forecast. The terrain is imagined; small waves, reflections, foam and wet sand are visual approximations that do not alter the tide calculation. Real daily tide patterns, heights and timings depend on location and weather.",
+  "updated": "2026-10-29",
   "water_material": {
     "created": "2026-10-28",
     "file": "shore-water.webp",
@@ -26,5 +26,21 @@
     "bytes": 337282,
     "sha256": "bf466124068724a3563279c5c45a2ffef6b3a5d04f6d1407f1c79044c41d4de5",
     "provenance": "Generated for this project; no external photograph was used as an input."
+  },
+  "status": "Retired material: shore-rock.webp belongs to the earlier rocky scene and is not used by the current sandy beach.",
+  "sand_material": {
+    "created": "2026-10-29",
+    "file": "shore-sand.webp",
+    "status": "Active material for the detailed 3D beach and simpler SVG fallback.",
+    "purpose": "Original imagined fine beach sand material. This is generated illustration, not a photograph, geological sample or survey of a real beach.",
+    "production": "AI-generated original sand material using OpenAI image generation; encoded as WebP quality 85 without resizing. Mapped onto an authored beach shape; wetness, lighting and water are separate rendered layers.",
+    "source_original": "/workspace/generated_images/exec-24aaad98-a853-4d25-ab8b-d3a71838253c.png",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "bytes": 639926,
+    "sha256": "5dcecddecf0d7c03f3ccb3bfcd4fb2e558bf678bfe653383c7090cf62667a780",
+    "provenance": "Generated for this project; supplies visual material rather than measured scientific data."
   }
 }
