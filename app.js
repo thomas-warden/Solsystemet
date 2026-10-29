@@ -1,15 +1,16 @@
-import { createMissions } from './missions.js?v=338159787581';
-import { PlanetRenderer } from './renderer.js?v=338159787581';
-import { FAMILIES } from './moons.js?v=338159787581';
-import { resolveRoute, renderFamilyNavigation, renderMoonShelf, renderMoonSystemNavigation } from './navigation.js?v=338159787581';
-import { ORDER, WORLDS } from './worlds.js?v=338159787581';
+import { CITIES } from './cities.js?v=ee3f09657be8';
+import { createMissions } from './missions.js?v=ee3f09657be8';
+import { PlanetRenderer } from './renderer.js?v=ee3f09657be8';
+import { FAMILIES } from './moons.js?v=ee3f09657be8';
+import { resolveRoute, renderFamilyNavigation, renderMoonShelf, renderMoonSystemNavigation } from './navigation.js?v=ee3f09657be8';
+import { ORDER, WORLDS } from './worlds.js?v=ee3f09657be8';
 const $=id=>document.getElementById(id),root=$('atlas'),canvas=$('universe');
 $('planetNav').innerHTML=ORDER.map(id=>`<button data-world="${id}" type="button"><i style="background:${WORLDS[id].color}"></i>${WORLDS[id].title}</button>`).join('');
 $('worldCards').innerHTML=ORDER.map(id=>`<button data-world="${id}"><small>${WORLDS[id].number}</small><strong>${WORLDS[id].title}</strong></button>`).join('');
 let orrery,orreryPromise,orreryAttempt=0,moonSystem,moonPromise,beltFlight,beltPromise,view='planet',moonTarget='',stories,extraStories={},orreryAvailability='loading';
 function loadOrrery(){
  // Browsers cache failed module downloads, so a retry needs a fresh URL.
- return orreryPromise||=import('./orrery.js?v=338159787581'+(orreryAttempt?'&retry='+orreryAttempt:'')).then(({Orrery})=>new Orrery()).catch(error=>{orreryPromise=null;orreryAttempt++;throw error;});
+ return orreryPromise||=import('./orrery.js?v=ee3f09657be8'+(orreryAttempt?'&retry='+orreryAttempt:'')).then(({Orrery})=>new Orrery()).catch(error=>{orreryPromise=null;orreryAttempt++;throw error;});
 }
 fetch('assets/research/planet-stories-and-orbits.json').then(r=>r.json()).then(data=>{stories=data.planets;showStories();}).catch(()=>{});
 fetch('assets/research/extra-planet-stories.json').then(r=>r.json()).then(data=>{extraStories=data.planets||data;showStories();}).catch(()=>{});
@@ -22,7 +23,7 @@ async function showMoonSystem(parent,selected,experiment){
  moonTarget=parent+'/'+(selected||'')+'/'+(experiment||'orbits');const target=moonTarget;renderMoonSystemNavigation(parent,selected);$('moonDiscoveries').hidden=true;
  view='moons';beltFlight?.hide();$('beltView').hidden=true;window.scrollTo(0,0);root.classList.remove('cinema');orrery?.hide();$('main').hidden=true;$('fieldStories').hidden=true;$('orreryView').hidden=true;$('moonSystemView').hidden=false;root.dataset.view='moons';
  document.querySelector('button[data-view="orrery"]').setAttribute('aria-pressed','false');document.querySelectorAll('button[data-world]').forEach(b=>{b.classList.remove('is-active');b.setAttribute('aria-pressed','false');});
- try{moonPromise||=import('./moon-system.js?v=338159787581').then(({MoonSystem})=>new MoonSystem());moonSystem=await moonPromise;if(view==='moons'&&moonTarget===target)await moonSystem.show(parent,selected,experiment);}catch(e){$('moonLoadNotice').hidden=false;$('moonStatus').textContent='This moving view could not start. Open a moon below.';$('moonRetry').hidden=true;console.error(e);}
+ try{moonPromise||=import('./moon-system.js?v=ee3f09657be8').then(({MoonSystem})=>new MoonSystem());moonSystem=await moonPromise;if(view==='moons'&&moonTarget===target)await moonSystem.show(parent,selected,experiment);}catch(e){$('moonLoadNotice').hidden=false;$('moonStatus').textContent='This moving view could not start. Open a moon below.';$('moonRetry').hidden=true;console.error(e);}
 }
 async function showOrrery(selected){$('moonDiscoveries').hidden=true;document.title='The solar system — Solsystemet';beltFlight?.hide();$('beltView').hidden=true;moonSystem?.hide();$('moonSystemView').hidden=true;view='orrery';orreryAvailability='loading';window.scrollTo(0,0);root.classList.remove('cinema');$('cinemaButton').setAttribute('aria-pressed','false');$('cinemaButton').textContent='View only ⤢';$('main').hidden=true;$('fieldStories').hidden=true;$('orreryView').hidden=false;root.dataset.view='orrery';document.querySelector('button[data-view="orrery"]').setAttribute('aria-pressed','true');document.querySelectorAll('button[data-world]').forEach(b=>{b.classList.remove('is-active');b.setAttribute('aria-pressed','false');});
  document.querySelectorAll('#orreryView button,#orreryView input,#orreryView select').forEach(el=>el.disabled=true);
@@ -34,7 +35,7 @@ async function showBeltEntry(){
  $('beltView').hidden=false;root.dataset.view='belt';
  document.querySelector('button[data-view="orrery"]').setAttribute('aria-pressed','false');
  document.querySelectorAll('button[data-world]').forEach(b=>{b.classList.remove('is-active');b.setAttribute('aria-pressed','false');});
- try{beltPromise||=import('./belt.js?v=338159787581').then(({BeltFlight})=>new BeltFlight());beltFlight=await beltPromise;if(view==='belt')beltFlight.show();}
+ try{beltPromise||=import('./belt.js?v=ee3f09657be8').then(({BeltFlight})=>new BeltFlight());beltFlight=await beltPromise;if(view==='belt')beltFlight.show();}
  catch(e){$('beltStatus').textContent='The flight could not start on this device. You can still explore the stories below.';$('beltPlay').disabled=true;$('beltSpeed').disabled=true;console.error(e);}
 }
 $('locateBelt').onclick=()=>navigate('orrery/belt');
@@ -43,10 +44,12 @@ fetch('assets/research/moon-stories.json').then(r=>r.json()).then(data=>{
 }).catch(()=>{$('beltEntryStories').textContent='Discover more about these small worlds in the NASA sources linked in Field notes.';});
 const reduced=matchMedia('(prefers-reduced-motion: reduce)');
 const profiles=WORLDS;
-const cities={'abu-dhabi':{name:'Abu Dhabi',lon:54.37,lat:24.45},stockholm:{name:'Stockholm',lon:18.06,lat:59.33},tokyo:{name:'Tokyo',lon:139.69,lat:35.68},'new-york':{name:'New York',lon:-74.01,lat:40.71},quito:{name:'Quito',lon:-78.47,lat:-.18}};
-const state={world:'earth',earthViewYaw:0,otherSpin:0,moonTilt:0,lightPhase:.943,axisTilt:98,titanSurface:false,venusEnhanced:true,venusSurface:false,earthProgress:.3,jupiterSpin:2.224,saturnSpin:.4,angle:24,renderAngle:24,spin:0,time:0,clouds:true,lights:true,zoom:0,storm:false,compare:false,particles:false,speed:1,running:!reduced.matches,city:'abu-dhabi'};
+const cities=CITIES;
+$('citySelect').replaceChildren(...Object.values(cities).map(city=>{const option=document.createElement('option');option.value=city.id;option.textContent=city.name;return option;}));
+const state={world:'earth',earthViewYaw:0,earthViewPitch:0,earthCityZoom:0,otherSpin:0,moonTilt:0,lightPhase:.943,axisTilt:98,titanSurface:false,venusEnhanced:true,venusSurface:false,earthProgress:.3,jupiterSpin:2.224,saturnSpin:.4,angle:24,renderAngle:24,spin:0,time:0,clouds:true,lights:true,zoom:0,storm:false,compare:false,particles:false,speed:1,running:!reduced.matches,city:'abu-dhabi'};
 let renderer,ready=false,last=0,lastReadout=0,drag=null,venusRequest=0,titanRequest=0,lastPlanetFrame='',rendererFailure='',earthInput=null;
 const releaseMotion={x:0,y:0};
+let cityExplorer,cityModulePromise,cityModuleAttempt=0,cityVisitRequest=0,cityFlight=null,citySnapshot=null,cityRevealing=false,cityCaption='';
 const sceneVisibility=new WeakMap();
 const sceneObserver=new IntersectionObserver(entries=>{for(const entry of entries)sceneVisibility.set(entry.target,entry.isIntersecting);},{threshold:0});
 for(const el of document.querySelectorAll('canvas'))sceneObserver.observe(el);
@@ -55,8 +58,10 @@ const wrap=v=>((v%1)+1)%1;
 function toast(text){$('toast').textContent=text;$('toast').classList.add('show');clearTimeout(toast.timer);toast.timer=setTimeout(()=>$('toast').classList.remove('show'),3500);}
 function setRunning(value){releaseMotion.x=releaseMotion.y=0;state.running=value;updateReadouts();}
 function setSunriseView(active){
- const yaw=active?-Math.PI*.8:0;if(state.earthViewYaw!==yaw){state.earthViewYaw=yaw;lastPlanetFrame='';updateReadouts();}
- if(state.world==='earth')$('sceneCaption').textContent=active?'EARTH / WATCHING THE DAWN SIDE':profiles.earth.caption;
+ const yaw=active?-Math.PI*.8:0,caption=active?'EARTH / WATCHING THE DAWN SIDE':profiles.earth.caption;
+ if(citySnapshot){citySnapshot.earthViewYaw=yaw;cityCaption=caption;return;}
+ if(state.earthViewYaw!==yaw){state.earthViewYaw=yaw;lastPlanetFrame='';updateReadouts();}
+ if(state.world==='earth')$('sceneCaption').textContent=caption;
 }
 function captureSunrise(from,to){
  // Locate the actual night-to-day crossing along the user's forward time input.
@@ -87,16 +92,77 @@ function updateReadouts(){
  const turn=Math.abs(state.otherSpin-Math.PI*2)<1e-6?360:Math.round(wrap(state.otherSpin/(Math.PI*2))*360);$('uranusSpin').value=turn;$('spinReading').textContent=turn+'°';
  $('particleInsight').hidden=state.world!=='saturn'||!state.particles;
  for(const [id,a] of [['saturnTop',55],['saturnEdge',0],['saturnBelow',-35]])$(id).classList.toggle('is-active',state.angle===a);
- positionCity(n);
+ positionCity(n);syncCityControls();
 }
 function positionCity(n){
  const c=cities[state.city],lat=c.lat*Math.PI/180,lon=c.lon*Math.PI/180-(state.earthProgress*Math.PI*2-1.3);
  n=n||[Math.cos(lat)*Math.sin(lon),Math.sin(lat),Math.cos(lat)*Math.cos(lon)];
  const yaw=state.earthViewYaw,cameraX=Math.cos(yaw)*n[0]-Math.sin(yaw)*n[2],cameraZ=Math.sin(yaw)*n[0]+Math.cos(yaw)*n[2];
- const a=.15,r=-.12;const y=Math.cos(a)*n[1]-Math.sin(a)*cameraZ,z=Math.sin(a)*n[1]+Math.cos(a)*cameraZ;const x=Math.cos(r)*cameraX-Math.sin(r)*y,yy=Math.sin(r)*cameraX+Math.cos(r)*y;
- const rect=canvas.getBoundingClientRect(),half=1.13,aspect=rect.width/rect.height;
- $('cityMarker').hidden=state.world!=='earth'||z<.12||!ready;
+ const a=.15+state.earthViewPitch,r=-.12;const y=Math.cos(a)*n[1]-Math.sin(a)*cameraZ,z=Math.sin(a)*n[1]+Math.cos(a)*cameraZ;const x=Math.cos(r)*cameraX-Math.sin(r)*y,yy=Math.sin(r)*cameraX+Math.cos(r)*y;
+ const rect=canvas.getBoundingClientRect(),half=1.13*(1-.85*state.earthCityZoom),aspect=rect.width/rect.height;
+ $('cityMarker').hidden=state.world!=='earth'||z<.12||!ready||!!cityExplorer?.active;
  $('cityMarker').style.left=(.5+x/(2*half*aspect))*rect.width+'px';$('cityMarker').style.top=(.5-yy/(2*half))*rect.height+'px';$('cityMarkerName').textContent=c.name;
+}
+function syncCityControls(){
+ const travelling=!!cityFlight||cityRevealing,open=!!cityExplorer?.active;
+ const button=$('cityVisit');if(button){button.disabled=travelling;button.setAttribute('aria-expanded',String(open));button.setAttribute('aria-busy',String(travelling));button.textContent=travelling?'Travelling…':'Explore city ↗';}
+ if(state.world==='earth'){
+  for(const id of ['earthRotation','cloudToggle','lightsToggle','playButton'])$(id).disabled=!ready||travelling||open;
+  $('citySelect').disabled=false;
+ }
+}
+function closeCity({focus=true}={}){
+ cityVisitRequest++;
+ if(cityFlight){cityFlight.resolve(false);cityFlight=null;}
+ cityRevealing=false;cityExplorer?.close({notify:false});
+ if(citySnapshot){const saved=citySnapshot;citySnapshot=null;Object.assign(state,saved);if(reduced.matches)state.running=false;lastPlanetFrame='';$('sceneCaption').textContent=cityCaption;}
+ if($('scene'))delete $('scene').dataset.cityFlight;
+ updateReadouts();
+ if(focus&&view==='planet'&&state.world==='earth')$('cityVisit')?.focus({preventScroll:true});
+}
+function settleCityFlight(){
+ if(!cityFlight)return;
+ const flight=cityFlight;Object.assign(state,flight.end);cityFlight=null;lastPlanetFrame='';$('sceneCaption').textContent='EARTH / OPENING '+cities[state.city].name.toUpperCase();updateReadouts();flight.resolve(true);
+}
+function advanceCityFlight(dt){
+ if(!cityFlight)return;
+ if(reduced.matches){settleCityFlight();return;}
+ const flight=cityFlight;flight.elapsed+=dt;const t=Math.min(1,flight.elapsed/1.65),ease=x=>x*x*(3-2*x);
+ const orientation=ease(Math.min(1,t/.7)),zoom=ease(Math.max(0,(t-.3)/.7));
+ state.earthViewYaw=flight.start.earthViewYaw+(flight.end.earthViewYaw-flight.start.earthViewYaw)*orientation;
+ state.earthViewPitch=flight.start.earthViewPitch+(flight.end.earthViewPitch-flight.start.earthViewPitch)*orientation;
+ state.earthCityZoom=flight.start.earthCityZoom+(flight.end.earthCityZoom-flight.start.earthCityZoom)*zoom;
+ positionCity();
+ if(t===1)settleCityFlight();
+}
+function flyToCity(city){
+ // Match the shader's inverse camera transform; the model's time stays fixed.
+ const spin=state.earthProgress*Math.PI*2-1.3,longitude=city.lon*Math.PI/180-spin;
+ const yaw=state.earthViewYaw+Math.atan2(Math.sin(longitude-state.earthViewYaw),Math.cos(longitude-state.earthViewYaw));
+ const end={earthViewYaw:yaw,earthViewPitch:city.lat*Math.PI/180-.15,earthCityZoom:1};
+ if(reduced.matches||!ready){Object.assign(state,end);lastPlanetFrame='';updateReadouts();return Promise.resolve(true);}
+ return new Promise(resolve=>{cityFlight={start:{earthViewYaw:state.earthViewYaw,earthViewPitch:state.earthViewPitch,earthCityZoom:state.earthCityZoom},end,elapsed:0,resolve};});
+}
+async function visitCity(){
+ if(view!=='planet'||state.world!=='earth')return;
+ const city=cities[state.city];if(!city)return;
+ if(cityExplorer?.active){await cityExplorer.open(city);return;}
+ const request=++cityVisitRequest;
+ if(cityFlight){cityFlight.resolve(false);cityFlight=null;}
+ if(!citySnapshot){citySnapshot={earthViewYaw:state.earthViewYaw,earthViewPitch:state.earthViewPitch,earthCityZoom:state.earthCityZoom,running:state.running};cityCaption=$('sceneCaption').textContent;}
+ cityRevealing=true;drag=null;setRunning(false);$('sceneCaption').textContent='EARTH / FLYING TO '+city.name.toUpperCase();$('scene').dataset.cityFlight='true';$('scene').scrollIntoView({block:'center',behavior:'instant'});
+ cityModulePromise||=new Promise((resolve,reject)=>{const timeout=setTimeout(()=>reject(new Error('City view timed out')),20000);import('./city-explorer.js?v=ee3f09657be8'+(cityModuleAttempt?'&retry='+cityModuleAttempt:'')).then(module=>{clearTimeout(timeout);resolve(module);},error=>{clearTimeout(timeout);reject(error);});}).catch(error=>{cityModulePromise=null;cityModuleAttempt++;throw error;});
+ try{
+  const [module,arrived]=await Promise.all([cityModulePromise,flyToCity(city)]);
+  if(!arrived||request!==cityVisitRequest||view!=='planet'||state.world!=='earth')return;
+  cityRevealing=false;delete $('scene').dataset.cityFlight;
+  // Notify the existing city/mission listeners without opening the map twice.
+  cityExplorer||=new module.CityExplorer($('cityExplorer'),{onClose:()=>closeCity(),onSelect:selected=>{if(!cities[selected.id])return;$('citySelect').value=selected.id;$('citySelect').dispatchEvent(new CustomEvent('change',{bubbles:true,detail:{fromCityExplorer:true}}));}});
+  const opening=cityExplorer.open(city);updateReadouts();await opening;
+ }catch(error){
+  if(request!==cityVisitRequest)return;
+  closeCity({focus:false});toast('The city view could not load. Choose Explore city to try again.');
+ }finally{if(request===cityVisitRequest){cityRevealing=false;syncCityControls();}}
 }
 function positionComparison(){
  const half=1.13+(.64-1.13)*state.zoom,r=canvas.getBoundingClientRect();
@@ -132,8 +198,9 @@ async function applyRoute(path){
  if(renderer)await renderer.setWorld(world);else unavailable(rendererFailure||'Interactive graphics are unavailable on this device. You can explore the still views and stories.');
 }
 function unavailable(message){
- rendererFailure=message;ready=false;root.classList.add('no-webgl');$('scene').classList.remove('is-loading');$('scene').setAttribute('aria-busy','false');$('fallbackPlanet').hidden=false;$('fallbackPlanet').alt=profiles[state.world].title+' illustration; interactive rendering is unavailable.';$('assetStatus').textContent='Still illustration';$('cityMarker').hidden=true;
+ rendererFailure=message;ready=false;settleCityFlight();root.classList.add('no-webgl');$('scene').classList.remove('is-loading');$('scene').setAttribute('aria-busy','false');$('fallbackPlanet').hidden=false;$('fallbackPlanet').alt=profiles[state.world].title+' illustration; interactive rendering is unavailable.';$('assetStatus').textContent='Still illustration';$('cityMarker').hidden=true;
  document.querySelectorAll('.instrument input,.instrument select,.instrument button,#playButton').forEach(el=>el.disabled=true);
+ if(state.world==='earth'){if($('cityVisit'))$('cityVisit').disabled=false;$('citySelect').disabled=false;}
  console.error('Solsystemet:',message);toast(message);
 }
 try{renderer=new PlanetRenderer(canvas,()=>{ready=true;lastPlanetFrame='';$('scene').classList.remove('is-loading');$('scene').setAttribute('aria-busy','false');root.classList.remove('no-webgl');$('fallbackPlanet').hidden=true;$('assetStatus').textContent='';document.querySelectorAll('.instrument input,.instrument select,.instrument button,#playButton').forEach(el=>el.disabled=false);updateReadouts();updateVenusView();updateTitanView();},unavailable);}catch(e){unavailable(e.message);}
@@ -197,7 +264,8 @@ $('titanNorth').onclick=()=>{
 };
 $('sunAngle').oninput=e=>{state.lightPhase=Number(e.target.value)*Math.PI/180;updateReadouts();};
 $('axisTilt').oninput=e=>{state.axisTilt=Number(e.target.value);updateReadouts();};
-$('citySelect').onchange=e=>{state.city=e.target.value;updateReadouts();};
+$('citySelect').onchange=e=>{state.city=e.target.value;updateReadouts();if(!e.detail?.fromCityExplorer&&(cityExplorer?.active||cityFlight||cityRevealing))visitCity();};
+if($('cityVisit'))$('cityVisit').onclick=()=>visitCity();
 $('earthRotation').oninput=e=>{const from=(1-state.earthProgress)*1000,to=Number(e.target.value);earthInput={from,to,wasDaylight:$('dayStatus').textContent==='Daylight'};state.earthProgress=1-to/1000;setRunning(false);};
 $('cloudToggle').onchange=e=>state.clouds=e.target.checked;$('lightsToggle').onchange=e=>state.lights=e.target.checked;
 $('jupiterTime').oninput=e=>{state.speed=1+Number(e.target.value)*.1;updateReadouts();};
@@ -207,20 +275,20 @@ $('stormButton').onclick=()=>{state.storm=!state.storm;if(state.storm)state.jupi
 $('earthCompare').onclick=()=>{state.compare=!state.compare;if(state.compare){state.storm=true;state.jupiterSpin=2.224;state.running=false;}updateReadouts();};
 $('particleButton').onclick=()=>{state.particles=!state.particles;if(state.particles){state.running=true;}updateReadouts();};
 $('playButton').onclick=()=>setRunning(!state.running);
-$('resetButton').onclick=()=>{venusRequest++;titanRequest++;$('titanViewStatus').textContent='';releaseMotion.x=releaseMotion.y=0;Object.assign(state,{earthProgress:.3,jupiterSpin:2.224,saturnSpin:.4,otherSpin:state.world==='mars'?3.9:state.world==='mimas'?.9:0,moonTilt:0,lightPhase:.943,axisTilt:98,titanSurface:false,venusEnhanced:true,venusSurface:false,angle:24,storm:false,zoom:0,compare:false,particles:false,speed:1,running:!reduced.matches,time:0,clouds:true,lights:true});$('cloudToggle').checked=true;$('lightsToggle').checked=true;$('jupiterTime').value=0;$('sunAngle').value=54;$('axisTilt').value=98;$('titanSurface').disabled=!ready;$('sceneCaption').textContent=profiles[state.world].caption;$('modelNote').textContent=profiles[state.world].note;if($('venusSurface'))$('venusSurface').disabled=!ready;updateReadouts();updateVenusView();updateTitanView();};
+$('resetButton').onclick=()=>{closeCity({focus:false});venusRequest++;titanRequest++;$('titanViewStatus').textContent='';releaseMotion.x=releaseMotion.y=0;Object.assign(state,{earthProgress:.3,jupiterSpin:2.224,saturnSpin:.4,otherSpin:state.world==='mars'?3.9:state.world==='mimas'?.9:0,moonTilt:0,lightPhase:.943,axisTilt:98,titanSurface:false,venusEnhanced:true,venusSurface:false,angle:24,storm:false,zoom:0,compare:false,particles:false,speed:1,running:!reduced.matches,time:0,clouds:true,lights:true});$('cloudToggle').checked=true;$('lightsToggle').checked=true;$('jupiterTime').value=0;$('sunAngle').value=54;$('axisTilt').value=98;$('titanSurface').disabled=!ready;$('sceneCaption').textContent=profiles[state.world].caption;$('modelNote').textContent=profiles[state.world].note;if($('venusSurface'))$('venusSurface').disabled=!ready;updateReadouts();updateVenusView();updateTitanView();};
 $('cinemaButton').onclick=()=>setCinema(!root.classList.contains('cinema'));
 $('aboutButton').onclick=()=>{$('aboutPanel').showModal();$('aboutButton').setAttribute('aria-expanded','true');};
 $('closeAbout').onclick=()=>$('aboutPanel').close();$('aboutPanel').onclose=()=>{$('aboutButton').setAttribute('aria-expanded','false');$('aboutButton').focus();};
 $('aboutPanel').onclick=e=>{if(e.target===$('aboutPanel')){const r=$('aboutPanel').getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)$('aboutPanel').close();}};
 $('lowPower').onchange=e=>{if(renderer){renderer.quality=e.target.checked?.6:1;renderer.resize();}};
-window.addEventListener('keydown',e=>{if(e.key==='Escape'&&root.classList.contains('belt-cinema'))beltFlight?.toggleCinema();if(e.key==='Escape'&&root.classList.contains('cinema'))$('cinemaButton').click();});
-reduced.addEventListener('change',e=>{if(e.matches){state.running=false;updateReadouts();}});
+window.addEventListener('keydown',e=>{if(e.key==='Escape'&&(cityFlight||cityRevealing||cityExplorer?.active)){e.preventDefault();closeCity();return;}if(e.key==='Escape'&&root.classList.contains('belt-cinema'))beltFlight?.toggleCinema();if(e.key==='Escape'&&root.classList.contains('cinema'))$('cinemaButton').click();});
+reduced.addEventListener('change',e=>{if(e.matches){state.running=false;settleCityFlight();updateReadouts();}});
 function move(dx,dy){if(state.world==='earth')state.earthProgress=wrap(state.earthProgress-dx/900);else if(state.world==='jupiter'){state.jupiterSpin-=dx*.008;state.storm=false;state.compare=false;}else if(state.world==='saturn')state.angle=Math.max(-70,Math.min(70,state.angle-dy*.25));else{state.otherSpin-=dx*.008;if(profiles[state.world].parent)state.moonTilt=Math.max(-75,Math.min(75,state.moonTilt-dy*.25));}state.running=false;updateReadouts();}
-canvas.onpointerdown=e=>{releaseMotion.x=releaseMotion.y=0;drag={x:e.clientX,y:e.clientY,vx:0,vy:0,time:e.timeStamp};canvas.setPointerCapture(e.pointerId);};
+canvas.onpointerdown=e=>{if(cityFlight||cityRevealing)closeCity({focus:false});releaseMotion.x=releaseMotion.y=0;drag={x:e.clientX,y:e.clientY,vx:0,vy:0,time:e.timeStamp};canvas.setPointerCapture(e.pointerId);};
 canvas.onpointermove=e=>{if(drag){const dx=e.clientX-drag.x,dy=e.clientY-drag.y,seconds=Math.max(.008,(e.timeStamp-drag.time)/1000);move(dx,dy);drag={x:e.clientX,y:e.clientY,vx:Math.max(-700,Math.min(700,dx/seconds)),vy:Math.max(-700,Math.min(700,dy/seconds)),time:e.timeStamp};}};
 canvas.onpointerup=e=>{if(drag&&!reduced.matches&&e.timeStamp-drag.time<90){releaseMotion.x=drag.vx;releaseMotion.y=drag.vy;}drag=null;};
 canvas.onpointercancel=()=>{drag=null;releaseMotion.x=releaseMotion.y=0;};
-canvas.onkeydown=e=>{if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)){e.preventDefault();releaseMotion.x=releaseMotion.y=0;move(e.key==='ArrowLeft'?-20:e.key==='ArrowRight'?20:0,e.key==='ArrowUp'?-20:e.key==='ArrowDown'?20:0);}};
+canvas.onkeydown=e=>{if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)){e.preventDefault();if(cityFlight||cityRevealing)closeCity({focus:false});releaseMotion.x=releaseMotion.y=0;move(e.key==='ArrowLeft'?-20:e.key==='ArrowRight'?20:0,e.key==='ArrowUp'?-20:e.key==='ArrowDown'?20:0);}};
 window.addEventListener('hashchange',()=>switchWorld(location.hash.slice(1)));
 
 // Reuse the same orbital renderer on the welcome page and the full model.
@@ -263,7 +331,7 @@ async function showHome(jumpToMissions=false){
 }
 let routeRequest=0;
 async function switchWorld(path){
- const request=++routeRequest;venusRequest++;releaseMotion.x=releaseMotion.y=0;drag=null;setCinema(false);root.classList.remove('belt-cinema');
+ const request=++routeRequest;closeCity({focus:false});venusRequest++;releaseMotion.x=releaseMotion.y=0;drag=null;setCinema(false);root.classList.remove('belt-cinema');
  $('homeView').hidden=true;stageAnchor.after($('orreryStage'));
  await applyRoute(path);
  if(request!==routeRequest)return;
@@ -278,13 +346,14 @@ const missions=createMissions({navigate,setSunriseView,captureSunrise,readState:
 let lastMissionRead=0,lastReduced=reduced.matches;
 function frame(ts){
  // Some browsers delay media-query change events; also observe the preference at frame boundaries.
- if(reduced.matches&&!lastReduced){setRunning(false);for(const scene of [orrery,moonSystem,beltFlight])if(scene){scene.playing=false;scene.updateUI();}}
+ if(reduced.matches&&!lastReduced){setRunning(false);settleCityFlight();for(const scene of [orrery,moonSystem,beltFlight])if(scene){scene.playing=false;scene.updateUI();}}
  lastReduced=reduced.matches;
  const dt=Math.min((ts-last)/1000||.016,.05);last=ts;
+ if(!document.hidden&&cityFlight&&view==='planet'){if(ready)advanceCityFlight(dt);else settleCityFlight();}
  if(!document.hidden&&view==='belt'&&beltFlight&&isSceneVisible('beltCanvas'))beltFlight.frame(dt);
  if(!document.hidden&&view==='moons'&&moonSystem){if(isSceneVisible('moonCanvas'))moonSystem.frame(dt,ts);else moonSystem.advanceOffscreen?.(dt,ts);}
  if(!document.hidden&&(view==='orrery'||view==='home')&&orrery){if(isSceneVisible('orreryCanvas'))orrery.frame(dt,ts);else orrery.advanceOffscreen?.(dt,ts);}
- if(!document.hidden&&ready&&view==='planet'&&isSceneVisible('universe')){
+ if(!document.hidden&&ready&&view==='planet'&&isSceneVisible('universe')&&!cityExplorer?.active){
   if(!drag&&(Math.abs(releaseMotion.x)>.5||Math.abs(releaseMotion.y)>.5)){
    if(reduced.matches){releaseMotion.x=releaseMotion.y=0;}else{move(releaseMotion.x*dt,releaseMotion.y*dt);const decay=Math.exp(-dt*9);releaseMotion.x*=decay;releaseMotion.y*=decay;}
   }
@@ -296,11 +365,11 @@ function frame(ts){
   if(Math.abs(state.zoom-(state.storm?1:0))<.00005)state.zoom=state.storm?1:0;
   if(Math.abs(state.renderAngle-state.angle)<.001)state.renderAngle=state.angle;
   const renderState={...state,angle:profiles[state.world].parent?state.moonTilt:state.renderAngle};
-  const signature=[state.world,state.spin,state.time,renderState.angle,state.lightPhase,state.axisTilt,state.clouds,state.lights,state.zoom,state.compare,state.particles,state.speed,state.titanSurface,state.earthViewYaw,state.venusEnhanced,state.venusSurface,canvas.width,canvas.height,renderer.revision].join('|');
+  const signature=[state.world,state.spin,state.time,renderState.angle,state.lightPhase,state.axisTilt,state.clouds,state.lights,state.zoom,state.compare,state.particles,state.speed,state.titanSurface,state.earthViewYaw,state.earthViewPitch,state.earthCityZoom,state.venusEnhanced,state.venusSurface,canvas.width,canvas.height,renderer.revision].join('|');
   if(signature!==lastPlanetFrame){renderer.render(renderState);lastPlanetFrame=signature;}
-  if(ts-lastReadout>100&&(state.running||drag||Math.abs(releaseMotion.x)>.5||Math.abs(releaseMotion.y)>.5)){updateReadouts();lastReadout=ts;}
+  if(ts-lastReadout>100&&(state.running||cityFlight||drag||Math.abs(releaseMotion.x)>.5||Math.abs(releaseMotion.y)>.5)){updateReadouts();lastReadout=ts;}
  }
- if(ts-lastMissionRead>150){missions.tick();if(view==='home'&&orrery){$('homeMotion').setAttribute('aria-pressed',String(orrery.playing));$('homeMotion').textContent=orrery.playing?'Ⅱ Pause':'▶ Play';}lastMissionRead=ts;}
+ if(ts-lastMissionRead>150){if(!cityFlight&&!cityRevealing&&!cityExplorer?.active)missions.tick();if(view==='home'&&orrery){$('homeMotion').setAttribute('aria-pressed',String(orrery.playing));$('homeMotion').textContent=orrery.playing?'Ⅱ Pause':'▶ Play';}lastMissionRead=ts;}
  requestAnimationFrame(frame);
 }
 switchWorld(location.hash.slice(1)||'explore');requestAnimationFrame(frame);

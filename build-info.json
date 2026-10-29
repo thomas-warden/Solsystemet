@@ -1,5 +1,7 @@
 {
-  "source_commit": "3381597875811b93091ce68e374d674de32d8c4e",
-  "built_at": "2026-10-29T08:11:55.885753+00:00",
-  "description": "Sandy beach with neap, spring and closer-Moon king tide comparisons"
+  "source_commit": "ee3f09657be80aae7b69ff5f9995863c564d2544",
+  "asset_revision": "ee3f09657be8",
+  "built_at": "2026-10-29T08:50:02.832513+00:00",
+  "description": "Earth city flights, current weather and configurable Google satellite imagery",
+  "google_maps_configured": false
 }

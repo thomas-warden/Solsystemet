@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-title" content="Solsystemet">
 <link rel="apple-touch-icon" sizes="180x180" href="assets/icons/solsystemet-180-v1.png">
 <link rel="icon" type="image/png" sizes="32x32" href="assets/icons/solsystemet-32-v1.png">
-<title>Solsystemet — Living worlds</title><link rel="stylesheet" href="style.css?v=338159787581">
+<title>Solsystemet — Living worlds</title><link rel="stylesheet" href="style.css?v=ee3f09657be8">
 </head>
 <body>
 <div id="atlas" class="atlas" data-world="earth">
@@ -36,6 +36,7 @@
 </section>
 <section class="observation" aria-label="Interactive planet">
 <div class="scene" id="scene">
+<section id="cityExplorer" class="city-explorer" aria-label="Explore a city and its current weather" hidden></section>
 <canvas id="universe" aria-label="Interactive Earth. Drag to turn the planet." tabindex="0"></canvas>
 <button id="missionScenePlay" class="mission-scene-play" type="button" aria-pressed="true" hidden>Ⅱ Pause</button>
 <figure id="europaCutaway" class="europa-cutaway" hidden aria-labelledby="europaCutawayCaption">
@@ -58,7 +59,7 @@
 </div>
 <aside class="instrument" aria-label="Scientific controls">
 <div id="earthInstrument" class="instrument-body earth-controls">
-<div class="control-group"><label for="citySelect">CHOOSE A CITY</label><select id="citySelect"><option value="abu-dhabi">Abu Dhabi</option><option value="stockholm">Stockholm</option><option value="tokyo">Tokyo</option><option value="new-york">New York</option><option value="quito">Quito</option></select></div>
+<div class="control-group"><label for="citySelect">CHOOSE A CITY</label><select id="citySelect"><option value="abu-dhabi">Abu Dhabi</option><option value="stockholm">Stockholm</option><option value="tokyo">Tokyo</option><option value="new-york">New York</option><option value="quito">Quito</option></select><button id="cityVisit" class="city-visit" type="button">Explore city ↗</button></div>
 <div class="reading"><span id="solarClock">09:30</span><small>LOCAL SOLAR TIME</small><strong id="dayStatus">Daylight</strong></div>
 <div class="control-group rotation-control"><label for="earthRotation">MOVE TIME FORWARD →</label><input id="earthRotation" type="range" min="0" max="1000" value="300" aria-label="Rotate the Earth through one solar day"><div class="range-caption"><span>0h</span><span>12h</span><span>24h</span></div></div>
 <div class="toggle-row"><label><input id="cloudToggle" type="checkbox" checked>CLOUDS</label><label><input id="lightsToggle" type="checkbox" checked>NIGHT LIGHTS</label></div>
@@ -171,5 +172,5 @@
 <div id="routeAnnouncement" class="sr-only" role="status"></div>
 <div id="missionAnnouncement" class="sr-only" role="status"></div>
 <div id="toast" class="toast" role="status"></div>
-</div><script type="module" src="app.js?v=338159787581"></script>
+</div><script type="module" src="app.js?v=ee3f09657be8"></script>
 </body></html>
