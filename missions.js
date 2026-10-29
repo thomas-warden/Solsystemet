@@ -134,7 +134,7 @@ export function createMissions({navigate,readState,setSunriseView=()=>{},capture
  };
  iceShell.onpointercancel=cancelIceDrag;iceShell.onlostpointercapture=cancelIceDrag;
  iceShell.onkeydown=e=>{if(canLiftIce()&&(e.key==='Enter'||e.key===' ')){e.preventDefault();liftIce();}};
- $('citySelect').addEventListener('change',()=>{if(active?.id==='sunrise'&&!finished&&step>0){step=0;sunriseSeen=false;observed='';feedback='Ready? Choose Use this city.';renderGuide({focus:true,fit:true});}});
+ $('citySelect').addEventListener('change',event=>{if(active?.id==='sunrise'&&!finished&&step>0){step=0;sunriseSeen=false;observed='';feedback='Ready? Choose Use this city.';const stayInCity=event.detail?.fromCityExplorer;renderGuide({focus:!stayInCity,fit:!stayInCity});}});
  // Only a deliberate slider input advances sunrise; animation alone never earns it.
  $('earthRotation').addEventListener('input',()=>{
   if(active?.id!=='sunrise'||!canAdvance())return;const s=readState(),input=s.earthInput;

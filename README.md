@@ -29,6 +29,7 @@ Open http://127.0.0.1:8087/. No package install or compilation is required. Serv
 ## Explore
 
 - Start with **Catch a sunrise**, directly on the welcome page.
+- On Earth, choose **Explore city** to fly toward one of eight cities and open its satellite/weather view: Abu Dhabi, Stockholm, Tokyo, New York, Quito, Birmingham (United Kingdom), Wellington (New Zealand) and Melbourne (Australia). Embedded Google satellite imagery needs the browser-key setup below; the city-specific Google Maps link and current weather work without that key.
 - Drag or use keyboard controls to inspect planets and moons. Every scene starts moving on arrival/reset unless reduced motion is requested. Pause remains available.
 - Venus offers ordinary clouds, enhanced cloud patterns and a labelled Magellan radar reconstruction. A drawn surface marker helps show its backward rotation.
 - Titan offers orange haze and a labelled surface reconstruction, with a northern-lakes viewpoint. The optional surface image can retry without interrupting the haze view.
@@ -67,6 +68,7 @@ node tests/tide-learning.cjs
 node tests/tide-realism.cjs
 node tests/tide-scenarios.cjs
 node tests/mission-ice-drag.cjs
+node tests/city-explorer.cjs
 ~~~
 
 BASE_URL overrides the site address; BROWSER_BIN defaults to /usr/bin/chromium. TEST_ARTIFACTS chooses the screenshot directory, defaulting to /tmp/solsystemet-regression.
@@ -83,11 +85,16 @@ Image recovery checks simulate failed Moon/cloud downloads, retry and revisit, p
 
 Tide checks cover the quadrupole model, opposite bulges, aligned/right-angle range, the Sun toggle, manipulation, motion preferences and scene lifecycle. The coastal checks cover the linked daily water level, detailed-scene loading and retry, stationary access, and phone layouts. Scenario checks compare neap, spring and closer-Moon high tides through the shared model. Europa's ice check exercises direct drag and keyboard control, including deliberate completion and retained evidence. Mercury checks require an ungraded prediction before the race and compare it with the observed counters.
 
+City checks use explicit provider fixtures to cover globe travel, city selection, return navigation, phone/reduced-motion layouts, weather timestamps, failed or stale requests and missing/rejected map configuration. They do not verify a real Google key or imagery. Run `python3 tests/build-site-config.py` to check the required-key gate and cache invalidation when only the browser configuration changes; this check needs no running server.
+
 ## Runtime structure
 
 - index.html, style.css, app.js: interface, routing, input and animation coordination.
 - missions.js: activities, illustrated discoveries and badges.
 - renderer.js: analytic WebGL2 planets and texture allocation.
+- cities.js: eight representative city centres and their IANA civil-time zones.
+- city-explorer.js: Google satellite view, external map fallback and Open-Meteo current weather.
+- site-config.js: empty public browser configuration; the export builder injects a restricted Google Maps browser key when supplied.
 - worlds.js, moons.js: world profiles and orbital models.
 - orrery.js, moon-system.js, belt.js: Three.js scenes.
 - tides.js: exaggerated ocean, tide forcing and relative range calculation.
@@ -110,13 +117,30 @@ After committing source changes:
 python3 scripts/build-site.py --output /tmp/solsystemet-site
 ~~~
 
-The output contains the runtime site, .nojekyll and build-info.json with its source revision. Module/style version parameters use that revision so a deployment loads a coherent set of files. The script refuses to overwrite an existing directory or label uncommitted source as a committed build. Publish the output at the configured GitHub Pages branch root.
+The output contains the runtime site, .nojekyll and build-info.json. The build record identifies `source_commit`, `asset_revision` and `google_maps_configured`, without recording the key itself. Module/style version parameters use the asset revision throughout the import chain: the committed source revision plus a key hash when configured. Changing the key therefore invalidates cached modules even when the source commit stays the same. The script refuses to overwrite an existing directory or label uncommitted source as a committed build. Publish the output at the configured GitHub Pages branch root.
+
+### Enable the embedded city satellite view
+
+1. In a Google Cloud project, enable billing and the **Maps JavaScript API**, then create a browser API key. See [Google's setup instructions](https://developers.google.com/maps/documentation/javascript/get-api-key).
+2. Restrict the key to **Websites**, allowing `https://thomas-warden.github.io/*`, and restrict its APIs to **Maps JavaScript API** only. Use the host-wide pattern because cross-origin referrers can omit the repository path. See [Google's key restrictions](https://developers.google.com/maps/api-security-best-practices).
+3. Add the key to the cloud environment's variables sidebar as `GOOGLE_MAPS_BROWSER_KEY`. Do not paste its value into chat or commit it to source. This is a public browser key that appears in the exported `site-config.js`, protected by the restrictions above; do not supply a server key.
+4. With that variable available to the build process and source changes committed, export to a new directory:
+
+~~~sh
+python3 scripts/build-site.py --require-google-maps --output /tmp/solsystemet-city-site
+~~~
+
+Publish this output to GitHub Pages. Adding or rotating the environment variable requires a fresh export and deployment, even with no source changes. `--require-google-maps` prevents an accidentally unconfigured export. With no key and without that flag, the ordinary export still provides weather and an external Google Maps satellite link; it does not embed imagery. A configured map uses the official Maps JavaScript API with its provider attribution, not extracted Google Earth images.
+
+The city footer links to the public [city services terms and privacy notice](sources.html#city-services), which describes direct provider requests, browser storage and the applicable Google policies. Keep this notice and the map's provider attribution available when deploying.
 
 ## Scientific limits
 
 Imagery comes from historical observations, composites and labelled reconstructions. Cloud drift, camera travel and animation rates are illustrative. Venus's cloud movement differs from the solid planet's 243-Earth-day turn; its radar colours are simulated and its marker is drawn. Europa's cutaway depicts an inferred ocean without claiming measured layer thickness or a live view.
 
 The solar-system model uses fixed NASA/JPL orbital elements and relative periods; starting positions are illustrative rather than today's sky. Body sizes and readable orbital spacing are exaggerated. Moon paths are simplified circular models with stated inclinations and tidal locking. The Earth–Moon neighbourhood preserves the bodies' diameter ratio, compresses their separation, omits daily Earth rotation and uses fixed illustrative sunlight rather than a lunar-phase calendar. Earth local solar time in the close-up is not civil clock time, and its model has no seasons.
+
+The city view uses representative city-centre coordinates, historical Google satellite/aerial imagery and an actual local civil clock. Open-Meteo current conditions are based on 15-minute weather-model data, separate from the globe's simulated solar-time slider. The active, visible city panel checks for updates every ten minutes, caches recent responses, labels stale data and offers Refresh after a failure. Unix timestamps are formatted in each city's time zone; temperature and wind use °C and km/h. [City imagery, weather attribution and service terms](https://thomas-warden.github.io/Solsystemet/sources.html#cities).
 
 Ocean tides uses an ideal global-ocean quadrupole model. At mean distances, the lunar and solar forcing weights are 1 and 0.46; the relative range is 1 for Moon only, 1.46 when aligned and 0.54 at right angles. The “king tide” example holds the Moon 5% closer, increasing its forcing by inverse distance cubed and giving an aligned range of about 1.62635. This illustrates a perigean spring tide; “king tide” is an informal name, not a universal height threshold. The Sun remains at its mean distance, and the held-distance circular display is not an elliptical lunar ephemeris.
 
