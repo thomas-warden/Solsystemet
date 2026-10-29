@@ -446,6 +446,14 @@ h1[tabindex="-1"]:focus,h2[tabindex="-1"]:focus{outline:none}
 .tide-shore-heading{display:flex;justify-content:space-between;align-items:end;gap:24px;margin-bottom:22px}
 .tide-shore-heading h2{font:400 clamp(32px,3.2vw,46px)/1.1 'Instrument Serif',Georgia,serif;color:var(--white);margin:10px 0 0}
 .tide-shore-heading>p{font-size:13px;line-height:1.6;color:#a8bbc3;margin:0;max-width:30em}
+.tide-shore-comparison{margin:0 0 20px;max-width:calc(100% - 238px)}
+.tide-shore-presets{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:10px}
+.tide-shore-presets button{display:grid;justify-items:center;align-content:start;gap:3px;min-width:0;min-height:104px;padding:5px 10px 12px;border:1px solid #8da9b237;border-radius:3px;background:#09131c80;color:#dce4e2;transition:background .2s,border-color .2s}
+.tide-shore-presets button[aria-pressed=true]{border-color:#dfc38a;background:#1d221dd9;color:#f0dbb6}
+.tide-shore-presets button:hover{border-color:#c8b88a}.tide-shore-presets button:focus-visible{outline:2px solid #9ed5df;outline-offset:3px}
+.tide-shore-presets svg{display:block;width:126px;max-width:100%;height:45px}
+.tide-shore-presets span{font-size:14px;line-height:1.3}.tide-shore-presets small{font-size:10px;line-height:1.5;color:#9eb8c3;text-align:center}
+.tide-shore-cause{min-height:64px;margin-top:12px}.tide-shore-cause p{font-size:13px;line-height:1.5;color:#c0d0d5;margin:0}.tide-shore-cause p+p{font-size:11px;color:#8fa7b2;margin-top:5px}
 .tide-shore-body{display:grid;grid-template-columns:minmax(0,1fr) 210px;gap:28px;align-items:center}
 .tide-shore-scene{position:relative;min-width:0;height:clamp(280px,30vw,420px);overflow:hidden;border:1px solid #8da9b21f;border-radius:3px}
 .tide-shore-art{display:block;width:100%;height:100%}
@@ -479,6 +487,8 @@ h1[tabindex="-1"]:focus,h2[tabindex="-1"]:focus{outline:none}
  .tide-shore{padding-top:22px;margin-top:14px}
  .tide-shore-heading{display:block;margin-bottom:16px}.tide-shore-heading h2{font-size:35px}.tide-shore-heading>p{font-size:12px;margin-top:12px}.tide-shore-heading>p br{display:none}
  .tide-shore-body{grid-template-columns:1fr;gap:12px}
+ .tide-shore-comparison{max-width:none;margin-bottom:14px}.tide-shore-presets{gap:6px}.tide-shore-presets button{min-height:103px;padding:5px 5px 10px}.tide-shore-presets span{font-size:12px}.tide-shore-presets small{font-size:9px}.tide-shore-presets svg{height:41px}
+ .tide-shore-cause{min-height:60px}.tide-shore-cause p{font-size:12px}.tide-shore-cause p+p{font-size:10px}
  .tide-shore-scene{height:260px}
  .tide-shore-marker{font-size:20px}
  .tide-shore-clock{grid-template-columns:110px minmax(0,1fr);gap:4px 14px}
@@ -488,4 +498,4 @@ h1[tabindex="-1"]:focus,h2[tabindex="-1"]:focus{outline:none}
  .tide-shore-clock-controls label{font-size:11px}.tide-shore-clock-controls output{font-size:9px}
  .tide-shore-water-state{left:14px;top:13px}.tide-shore-art-note{font-size:8px;left:14px;bottom:10px}
 }
-@media(max-width:360px){.tide-shore-heading h2{font-size:31px}.tide-shore-scene{height:240px}.tide-shore-clock{grid-template-columns:90px minmax(0,1fr);gap:4px 9px}.tide-shore-orbit{width:110px}.tide-shore-day-key{font-size:7px}}
+@media(max-width:360px){.tide-shore-cause{min-height:80px}.tide-shore-heading h2{font-size:31px}.tide-shore-scene{height:240px}.tide-shore-clock{grid-template-columns:90px minmax(0,1fr);gap:4px 9px}.tide-shore-orbit{width:110px}.tide-shore-day-key{font-size:7px}}

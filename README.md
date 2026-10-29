@@ -65,6 +65,7 @@ node tests/tide-math.mjs
 node tests/tide-experiment.cjs
 node tests/tide-learning.cjs
 node tests/tide-realism.cjs
+node tests/tide-scenarios.cjs
 node tests/mission-ice-drag.cjs
 ~~~
 
@@ -80,7 +81,7 @@ The observation checks reject backward sunset and passive dawn as sunrise eviden
 
 Image recovery checks simulate failed Moon/cloud downloads, retry and revisit, preserved clock/camera state, and late responses after changing families. Wide Mercury layout checks use native keyboard focus through the race, answer feedback and completion, then verify that closing the mission restores the full exploration controls.
 
-Tide checks cover the quadrupole model, opposite bulges, aligned/right-angle range, the Sun toggle, manipulation, motion preferences and scene lifecycle. The coastal checks cover the linked daily water level, detailed-scene loading and retry, stationary access, and phone layouts. Europa's ice check exercises direct drag and keyboard control, including deliberate completion and retained evidence. Mercury checks require an ungraded prediction before the race and compare it with the observed counters.
+Tide checks cover the quadrupole model, opposite bulges, aligned/right-angle range, the Sun toggle, manipulation, motion preferences and scene lifecycle. The coastal checks cover the linked daily water level, detailed-scene loading and retry, stationary access, and phone layouts. Scenario checks compare neap, spring and closer-Moon high tides through the shared model. Europa's ice check exercises direct drag and keyboard control, including deliberate completion and retained evidence. Mercury checks require an ungraded prediction before the race and compare it with the observed counters.
 
 ## Runtime structure
 
@@ -90,8 +91,9 @@ Tide checks cover the quadrupole model, opposite bulges, aligned/right-angle ran
 - worlds.js, moons.js: world profiles and orbital models.
 - orrery.js, moon-system.js, belt.js: Three.js scenes.
 - tides.js: exaggerated ocean, tide forcing and relative range calculation.
+- tide-constants.js: shared mean-Sun and closer-Moon forcing constants.
 - tide-shore.js: coastal day clock, linked tidal range, labels and illustrated fallback.
-- tide-coast.js: optional 3D shore with textured terrain, reflected water and a mean water plane driven by that clock.
+- tide-coast.js: optional sandy 3D beach with reflected water, wet sand and a mean water plane driven by that clock.
 - tide-guide.js: uneven-pull replay and live fixed-scale alignment comparison.
 - orbit-labels.js: shared planet-attached labels, collision fades and accessible hit targets.
 - navigation.js, sky.js, sky-scene.js: shared navigation and sky.
@@ -116,6 +118,8 @@ Imagery comes from historical observations, composites and labelled reconstructi
 
 The solar-system model uses fixed NASA/JPL orbital elements and relative periods; starting positions are illustrative rather than today's sky. Body sizes and readable orbital spacing are exaggerated. Moon paths are simplified circular models with stated inclinations and tidal locking. The Earth–Moon neighbourhood preserves the bodies' diameter ratio, compresses their separation, omits daily Earth rotation and uses fixed illustrative sunlight rather than a lunar-phase calendar. Earth local solar time in the close-up is not civil clock time, and its model has no seasons.
 
-Ocean tides uses an ideal global-ocean quadrupole model. The Sun contributes 0.46 times the Moon's forcing; the relative range in their shared plane is 1 for Moon only, 1.46 when aligned and 0.54 at right angles. The water shell and its height are greatly exaggerated, and the compressed display distance does not change the forcing. The separate shoreline clock illustrates two ideal highs and lows per lunar day (about 24 h 50 min), with amplitude linked to the global range. Its imagined terrain and generated materials are illustrative; small waves, reflections, foam and wetness do not alter the tide calculation. The global tide calculation omits Earth's daily spin, tidal lag and the effects of coasts, basins and weather; its Sun direction is fixed. It is not a local tide forecast or a volume-conserving fluid simulation. [Sources and model details](https://thomas-warden.github.io/Solsystemet/sources.html#tides).
+Ocean tides uses an ideal global-ocean quadrupole model. At mean distances, the lunar and solar forcing weights are 1 and 0.46; the relative range is 1 for Moon only, 1.46 when aligned and 0.54 at right angles. The “king tide” example holds the Moon 5% closer, increasing its forcing by inverse distance cubed and giving an aligned range of about 1.62635. This illustrates a perigean spring tide; “king tide” is an informal name, not a universal height threshold. The Sun remains at its mean distance, and the held-distance circular display is not an elliptical lunar ephemeris.
+
+The globe, guide and sandy beach share the same forcing. The water shell and its height are greatly exaggerated, and display compression does not set the physical distance ratio. A separate beach clock shows two ideal highs and lows per lunar day (about 24 h 50 min); presets pause at the same high-water phase for comparison. Imagined terrain and generated materials are illustrative, and optical waves, reflections, foam and wetness do not alter the tide calculation. The global model omits Earth's daily spin, tidal lag and the effects of coasts, basins and weather. It is not a local tide forecast or a volume-conserving fluid simulation. [Sources and model details](https://thomas-warden.github.io/Solsystemet/sources.html#tides).
 
 The asteroid flight compresses distances and illustrates shapes and occasional collisions; the real belt is mostly empty space. The catalogue-based sky is brightened for visibility. Atmospheres, rings and shadows are real-time approximations. Source manifests and font/Three.js licenses are bundled with the site.

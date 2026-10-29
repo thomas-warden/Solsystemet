@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { Vector3, Raycaster } from '../vendor/three.module.js';
 import { TideOcean, tidalField, SOLAR_TIDE_RATIO } from '../tides.js';
+import { CLOSE_MOON_DISTANCE_RATIO, MAX_LUNAR_WEIGHT, MAX_TIDE_RANGE } from '../tide-constants.js';
 
 const close = (actual, expected, message, tolerance = 1e-10) =>
   assert.ok(Math.abs(actual - expected) < tolerance, `${message}: ${actual} versus ${expected}`);
@@ -73,15 +74,78 @@ for (const mix of [NaN, Infinity, -Infinity, -.01, 1.01, null, '0.5']) {
 }
 console.log('PASS fractional Sun endpoints, intermediate surface/readout agreement and input validation');
 
+const closeSpring = ocean.setState({ moonDirection: moon, sunDirection: moon,
+  solarEnabled: true, moonDistanceRatio: CLOSE_MOON_DISTANCE_RATIO });
+close(closeSpring.lunarWeight, 1 / CLOSE_MOON_DISTANCE_RATIO ** 3, 'Closer lunar forcing follows inverse-cube distance');
+close(closeSpring.range, MAX_TIDE_RANGE, 'Closer-Moon aligned range adds fixed solar forcing');
+assert(closeSpring.range > spring.range && closeSpring.highRadius > spring.highRadius,
+  'The closer Moon raises the actual aligned water surface, not only its label');
+close(ocean.uniforms.solarWeight.value, SOLAR_TIDE_RATIO, 'Moving the Moon does not strengthen the Sun');
+close(ocean.setState({ moonDirection: moon, sunDirection: moon.clone().negate(),
+  solarEnabled: true, moonDistanceRatio: CLOSE_MOON_DISTANCE_RATIO }).range, closeSpring.range,
+  'Both closer-Moon alignments reinforce the ideal tide equally');
+close(ocean.setState({ moonDirection: moon, sunDirection: sun,
+  solarEnabled: true, moonDistanceRatio: CLOSE_MOON_DISTANCE_RATIO }).range,
+  MAX_LUNAR_WEIGHT - SOLAR_TIDE_RATIO, 'Closer-Moon quadrature still subtracts the fixed solar contribution');
+
+let previousCloseRange = 0;
+for (let step = 0; step <= 20; step++) {
+  const moonDistanceRatio = 1 - step / 20 * (1 - CLOSE_MOON_DISTANCE_RATIO), w = 1 / moonDistanceRatio ** 3;
+  for (const solarMix of [0, .5, 1]) {
+    const q = SOLAR_TIDE_RATIO * solarMix;
+    for (const degree of [0, 30, 65, 90, 180]) {
+      const angle = degree * Math.PI / 180, direction = new Vector3(Math.cos(angle), 0, Math.sin(angle));
+      const state = ocean.setState({ moonDirection: direction, sunDirection: moon, solarMix, moonDistanceRatio });
+      close(state.range, Math.sqrt((w - q) ** 2 + 4 * w * q * Math.cos(angle) ** 2),
+        'Distance transitions use the weighted tidal eigenvalue range');
+      close(state.moonDistanceRatio, moonDistanceRatio, 'State retains the selected distance');
+      close(state.lunarWeight, w, 'State retains the actual lunar forcing');
+      close(ocean.uniforms.lunarWeight.value, w, 'Shader receives that same forcing');
+      close(ocean.baseline, baseline, 'Closer-Moon transitions preserve the fixed display baseline');
+      close(ocean.uniforms.baseline.value, baseline, 'Shader baseline also remains fixed');
+      assert(state.minimumRadius > ocean.radius, 'Earth stays inside even the strongest low-tide surface');
+      assert(state.highRadius < ocean.geometry.boundingSphere.radius,
+        'The enlarged high-water surface stays inside its culling bounds');
+      const high = ocean.sample(state.highDirections[0]), low = ocean.sample(state.lowDirections[0]);
+      close((high.potential - low.potential) / 1.5, state.range, 'Weighted extrema match the actual surface');
+      close(high.radius, state.highRadius, 'Weighted high cue touches the actual water');
+      close(low.radius, state.lowRadius, 'Weighted low cue touches the actual water');
+      const testDirection = new Vector3(.2, .6, .7).normalize();
+      const lunar = tidalField(testDirection, direction, moon);
+      const solar = tidalField(testDirection, moon, direction);
+      const combined = tidalField(testDirection, direction, moon, false, solarMix, w);
+      close(combined.potential, w * lunar.potential + q * solar.potential,
+        'Sampled potential is the sum of separately weighted Moon and Sun terms');
+      close(ocean.sample(testDirection).potential, combined.potential, 'CPU sample uses current distance forcing');
+    }
+  }
+  const state = ocean.setState({ moonDirection: moon, sunDirection: moon, solarMix: 1, moonDistanceRatio });
+  assert(state.range > previousCloseRange, 'Approaching Moon increases the aligned range continuously');
+  previousCloseRange = state.range;
+}
+ocean.setState({ moonDirection: moon, sunDirection: sun, moonDistanceRatio: CLOSE_MOON_DISTANCE_RATIO });
+assert.equal(ocean.setState({ moonDirection: moon, sunDirection: sun, moonDistanceRatio: CLOSE_MOON_DISTANCE_RATIO }).changed, false);
+assert.equal(ocean.setState({ moonDirection: moon, sunDirection: sun, moonDistanceRatio: 1 }).changed, true);
+close(ocean.setState({ moonDirection: moon, sunDirection: moon, solarMix: 1 }).range, 1.46,
+  'Mean-distance default restores the existing spring reference');
+for (const ratio of [NaN, Infinity, CLOSE_MOON_DISTANCE_RATIO - .001, 1.001, null, '0.97']) {
+  assert.throws(() => ocean.setState({ moonDistanceRatio: ratio }), /moonDistanceRatio.*finite.*between/);
+}
+for (const weight of [NaN, Infinity, .999, MAX_LUNAR_WEIGHT + .001, null, '1.1']) {
+  assert.throws(() => tidalField(moon, moon, sun, false, 0, weight), /lunarWeight.*finite.*between/);
+}
+console.log('PASS closer-Moon inverse-cube forcing, weighted extrema, fixed baseline, bounds and transitions');
+
 let worstNormal = 0, worstRange = 0;
+for (const moonDistanceRatio of [1, (1 + CLOSE_MOON_DISTANCE_RATIO) / 2, CLOSE_MOON_DISTANCE_RATIO])
 for (const solarMix of [0, .25, .5, 1]) for (let degree = 0; degree <= 360; degree += 5) {
   const a = degree * Math.PI / 180;
   const direction = new Vector3(Math.cos(a), 0, Math.sin(a));
-  const state = ocean.setState({ moonDirection: direction, sunDirection: sun, solarMix });
+  const state = ocean.setState({ moonDirection: direction, sunDirection: sun, solarMix, moonDistanceRatio });
   const high = ocean.sample(state.highDirections[0]), low = ocean.sample(state.lowDirections[0]);
   worstRange = Math.max(worstRange, Math.abs((high.potential - low.potential) / 1.5 - state.range));
   for (const n of [new Vector3(.2, .6, .7).normalize(), direction, north, state.highDirections[0]]) {
-    const field = tidalField(n, direction, sun, true, solarMix);
+    const field = tidalField(n, direction, sun, true, solarMix, state.lunarWeight);
     close(field.gradient.dot(n), 0, 'Spherical gradient is tangent');
     const tangent = new Vector3().crossVectors(n, Math.abs(n.y) < .8 ? north : moon).normalize();
     const otherTangent = new Vector3().crossVectors(n, tangent).normalize();
