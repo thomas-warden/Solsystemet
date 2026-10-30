@@ -143,7 +143,7 @@ async function checkFit(page, activeControl, scene = '#scene') {
     for (const viewport of viewports) {
       await page.setViewportSize(viewport);
       await start(page, 'sunrise');
-      await checkFit(page, '#citySelect');
+      await checkFit(page, '#citySelectTrigger');
       await page.locator('#missionAction').click();
       await checkFit(page, '#earthRotation');
       await screenshot(page, `sunrise-${viewport.width}x${viewport.height}`);

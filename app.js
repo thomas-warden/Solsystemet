@@ -1,3 +1,4 @@
+import { attachCityPicker } from './city-picker.js?v=20261030';
 import { CITY_STORIES } from './city-stories.js?v=20261030';
 import { CITIES } from './cities.js?v=20261029';
 import { createMissions } from './missions.js?v=20261014missions';
@@ -50,6 +51,7 @@ const reduced=matchMedia('(prefers-reduced-motion: reduce)');
 const profiles=WORLDS;
 const cities=CITIES;
 $('citySelect').replaceChildren(...Object.values(cities).map(city=>{const option=document.createElement('option');option.value=city.id;option.textContent=city.name;return option;}));
+const earthCityPicker=attachCityPicker($('citySelect'));
 const state={world:'earth',earthViewYaw:0,earthViewPitch:0,earthCityZoom:0,otherSpin:0,moonTilt:0,lightPhase:.943,axisTilt:98,titanSurface:false,venusEnhanced:true,venusSurface:false,earthProgress:.3,jupiterSpin:2.224,saturnSpin:.4,angle:24,renderAngle:24,spin:0,time:0,clouds:true,lights:true,zoom:0,storm:false,compare:false,particles:false,speed:1,running:!reduced.matches,city:'abu-dhabi'};
 let renderer,ready=false,last=0,lastReadout=0,drag=null,venusRequest=0,titanRequest=0,lastPlanetFrame='',rendererFailure='',earthInput=null;
 const releaseMotion={x:0,y:0};
@@ -108,6 +110,7 @@ function positionCity(n){
  $('cityMarker').style.left=(.5+x/(2*half*aspect))*rect.width+'px';$('cityMarker').style.top=(.5-yy/(2*half))*rect.height+'px';$('cityMarkerName').textContent=c.name;
 }
 function syncCityControls(){
+ earthCityPicker.sync();
  const travelling=!!cityFlight||cityRevealing,open=!!cityExplorer?.active;
  const button=$('cityVisit');if(button){button.disabled=travelling;button.setAttribute('aria-expanded',String(open));button.setAttribute('aria-busy',String(travelling));button.textContent=travelling?'Travelling…':'Visit';}
  if(state.world==='earth'){
@@ -268,7 +271,7 @@ $('titanNorth').onclick=()=>{
 };
 $('sunAngle').oninput=e=>{state.lightPhase=Number(e.target.value)*Math.PI/180;updateReadouts();};
 $('axisTilt').oninput=e=>{state.axisTilt=Number(e.target.value);updateReadouts();};
-$('citySelect').onchange=e=>{state.city=e.target.value;updateReadouts();showStories();if(!e.detail?.fromCityExplorer&&(cityExplorer?.active||cityFlight||cityRevealing))visitCity();};
+$('citySelect').onchange=e=>{earthCityPicker.sync();state.city=e.target.value;updateReadouts();showStories();if(!e.detail?.fromCityExplorer&&(cityExplorer?.active||cityFlight||cityRevealing))visitCity();};
 if($('cityVisit'))$('cityVisit').onclick=()=>visitCity();
 $('earthRotation').oninput=e=>{const from=(1-state.earthProgress)*1000,to=Number(e.target.value);earthInput={from,to,wasDaylight:$('dayStatus').textContent==='Daylight'};state.earthProgress=1-to/1000;setRunning(false);};
 $('cloudToggle').onchange=e=>state.clouds=e.target.checked;$('lightsToggle').onchange=e=>state.lights=e.target.checked;

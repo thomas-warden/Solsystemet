@@ -40,11 +40,11 @@ async function oceanVisible(page) {
     const phone = await newPage(browser, { viewport: { width: 390, height: 844 } });
     page = phone.page;
     await start(page, 'sunrise');
-    await page.locator('#citySelect').focus();
-    await page.locator('#citySelect').selectOption('stockholm');
+    await page.locator('#citySelectTrigger').click();
+    await page.keyboard.press('Home');await page.keyboard.press('ArrowDown');await page.keyboard.press('Enter');
     assert.equal(await step(page), '0', 'changing the city must leave time to confirm the choice');
-    assert.equal(await page.evaluate(() => document.activeElement.id), 'citySelect');
-    await page.locator('#citySelect').selectOption('abu-dhabi');
+    assert.equal(await page.evaluate(() => document.activeElement.id), 'citySelectTrigger');
+    await page.locator('#citySelectTrigger').click();await page.keyboard.press('Home');await page.keyboard.press('Enter');
     await page.locator('#missionAction').click();
     await waitStep(page, 1);
     assert.equal(await page.evaluate(() => document.activeElement.id), 'earthRotation');

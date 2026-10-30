@@ -68,7 +68,7 @@ function markup(id){return `
 <div class="tide-shore-clock-controls"><button type="button" data-shore-play class="play-action" aria-pressed="false">▶ Watch a day</button><label for="${id}Day"><span>Turn Earth</span><output data-shore-clock-reading>Start</output></label><input id="${id}Day" data-shore-day type="range" min="0" max="1000" step="1" value="0" aria-label="Turn Earth through one ideal tide day"/><div class="tide-shore-day-key"><span>START</span><span>ONE TIDE DAY</span></div></div>
 <p class="tide-shore-day-note">This clock turns Earth.<br> The Moon’s orbit above sets the size.</p>
 </div></div>
-<p class="tide-shore-limit">Two highs in an ideal tide day (about 24 h 50 min). Real shores have different timing and heights. <a href="sources.html#tides" target="_blank" rel="noopener">How this model works ↗</a></p>`;}
+<p class="tide-shore-limit">Two highs in an ideal tide day. <a href="sources.html#tides" target="_blank" rel="noopener">How this model works ↗</a></p>`;}
 
 export class TideShore{
  constructor(host,{onScenario}={}){

@@ -54,7 +54,7 @@ const { assert, launch, newPage, visit, ready, inViewport, screenshot, assertCle
     await page.keyboard.press('Escape');
     assert.equal(await page.locator('#atlas').evaluate(element => element.classList.contains('cinema')), false);
     assert.equal(await pauseButtons.count(), 1);
-    await inViewport(page, ['#missionGuide', '#scene', '#citySelect'], 'mission after leaving View only');
+    await inViewport(page, ['#missionGuide', '#scene', '#citySelectTrigger'], 'mission after leaving View only');
     assertClean(result);
     console.log('PASS mission View only uses a single pause control and Escape restores the guided view');
   } catch (error) {

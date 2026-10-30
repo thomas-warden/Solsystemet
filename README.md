@@ -29,7 +29,7 @@ Open http://127.0.0.1:8087/. No package install or compilation is required. Serv
 ## Explore
 
 - Start with **Catch a sunrise**, directly on the welcome page.
-- On Earth, choose **Explore city** to fly toward one of eight cities and open its satellite/weather view: Abu Dhabi, Stockholm, Tokyo, New York, Quito, Birmingham (United Kingdom), Wellington (New Zealand) and Melbourne (Australia). Embedded Google satellite imagery needs the browser-key setup below; the city-specific Google Maps link and current weather work without that key.
+- On Earth, choose **Visit** to fly toward one of fifteen cities and open its satellite/weather view: Abu Dhabi, Stockholm, Tokyo, New York, Quito, Birmingham (United Kingdom), Wellington (New Zealand), Melbourne (Australia), Cape Town, Nairobi, Cairo, Rio de Janeiro, Amsterdam, Copenhagen and Auckland. Embedded Google satellite imagery needs the browser-key setup below; the city-specific Google Maps link and current weather work without that key.
 - Drag or use keyboard controls to inspect planets and moons. Every scene starts moving on arrival/reset unless reduced motion is requested. Pause remains available.
 - Venus offers ordinary clouds, enhanced cloud patterns and a labelled Magellan radar reconstruction. A drawn surface marker helps show its backward rotation.
 - Titan offers orange haze and a labelled surface reconstruction, with a northern-lakes viewpoint. The optional surface image can retry without interrupting the haze view.
@@ -92,7 +92,7 @@ City checks use explicit provider fixtures to cover globe travel, city selection
 - index.html, style.css, app.js: interface, routing, input and animation coordination.
 - missions.js: activities, illustrated discoveries and badges.
 - renderer.js: analytic WebGL2 planets and texture allocation.
-- cities.js: eight representative city centres and their IANA civil-time zones.
+- cities.js: fifteen representative city centres and their IANA civil-time zones.
 - city-explorer.js: Google satellite view, external map fallback and Open-Meteo current weather.
 - site-config.js: empty public browser configuration; the export builder injects a restricted Google Maps browser key when supplied.
 - worlds.js, moons.js: world profiles and orbital models.
@@ -119,7 +119,7 @@ python3 scripts/build-site.py --output /tmp/solsystemet-site
 
 The output contains the runtime site, .nojekyll and build-info.json. The build record identifies `source_commit`, `asset_revision` and `google_maps_configured`, without recording the key itself. Module/style version parameters use the asset revision throughout the import chain: the committed source revision plus a key hash when configured. Changing the key therefore invalidates cached modules even when the source commit stays the same. The script refuses to overwrite an existing directory or label uncommitted source as a committed build. Publish the output at the configured GitHub Pages branch root.
 
-The city explorer opens as a full-width atlas with a serif place heading, geographic coordinates, an unobstructed Google map and current weather. Each of the eight cities has two sourced stories in **Imagine that**; returning restores Earth’s stories. `city-stories.js` contains the original copy and source links. `CITY_ART_DIRECTION.md` and `CITY_ATLAS_REVIEW.md` record the redesign and browser review.
+The city explorer opens as a full-width atlas with a serif place heading, geographic coordinates, an unobstructed Google map and current weather. Each of the fifteen cities has two sourced stories in **Imagine that**; returning restores Earth’s stories. `city-stories.js` contains the original copy and source links. `CITY_ART_DIRECTION.md` and `CITY_ATLAS_REVIEW.md` record the redesign and browser review.
 
 ### Enable the embedded city satellite view
 
@@ -151,3 +151,5 @@ The globe, guide and sandy beach share the same forcing. The water shell and its
 The asteroid flight compresses distances and illustrates shapes and occasional collisions; the real belt is mostly empty space. The catalogue-based sky is brightened for visibility. Atmospheres, rings and shadows are real-time approximations. Source manifests and font/Three.js licenses are bundled with the site.
 
 City discovery stories cover distinct natural-world phenomena: climate, geology, rivers, coasts and landforms. The weather compass points towards the source of the wind and labels it “From”. See [city nature review](CITY_NATURE_REVIEW.md).
+
+The city wheel uses native momentum scrolling with centred snap positions, fading perspective and explicit Choose/Cancel actions. Arrow keys, Home/End, Page Up/Down and initial-letter navigation work in the list; Escape cancels without leaving the city. Reduced motion removes the perspective and smooth programmatic scrolling. Long model and service notes are collected in the footer.

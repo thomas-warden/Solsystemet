@@ -71,7 +71,7 @@ function clean(result, expected=[]) {
 }
 async function capture(page,name) {fs.mkdirSync(output,{recursive:true});await page.screenshot({path:path.join(output,name+'.png')});}
 async function openCity(page,id,{map='ready'}={}) {
-  await page.locator('#citySelect').selectOption(id);await page.locator('#cityVisit').click();
+  await page.locator('#citySelect').selectOption(id,{force:true});await page.locator('#cityVisit').click();
   await page.waitForFunction(id=>window.__cityTest.instance()?.active&&document.querySelector('#cityExplorer').dataset.city===id,id);
   await page.waitForFunction(state=>document.querySelector('#cityExplorer').dataset.mapState===state,map);
   await page.waitForFunction(()=>['ready','stale','error'].includes(document.querySelector('#cityExplorer').dataset.weatherState));
@@ -83,7 +83,7 @@ async function flights(browser) {
   await visit(page,'earth');
   assert.equal(result.mapRequests,0,'No map service before deliberate visit');
   assert.equal(result.weatherRequests.length,0,'No city weather before deliberate visit');
-  assert.equal(await page.locator('#citySelect option').count(),8);
+  assert.equal(await page.locator('#citySelect option').count(),15);
   assert.equal(await page.evaluate(()=>window.__cityTest.read().running),true,'Earth starts with its default motion');
   await page.locator('#playButton').click();
   for(const id of ['birmingham','wellington','melbourne']) {
@@ -98,7 +98,7 @@ async function flights(browser) {
     const renders=await page.evaluate(()=>window.__cityPlanetRenders);await page.waitForTimeout(250);
     assert.equal(await page.evaluate(()=>window.__cityPlanetRenders),renders,'Hidden globe stops rendering under the city');
     assert(await page.locator('[data-city-weather-updated]').textContent().then(text=>/Updated.*local/.test(text)));
-    assert.match(await page.locator('.city-explorer-note').textContent(),/actual local time|model clock/);
+    assert.match(await page.locator('.exhibit-model-notes').textContent(),/actual local time|model clock/);
     assert.equal(result.weatherRequests.at(-1).timeformat,'unixtime');
     await capture(page,'city-'+id);
     await closeCity(page);
@@ -136,8 +136,8 @@ async function weatherRecovery(browser) {
   mode='offline';await page.locator('[data-city-weather-refresh]').click();await page.waitForFunction(()=>document.querySelector('#cityExplorer').dataset.weatherState==='stale');
   assert.equal(await page.locator('[data-city-temperature]').textContent(),'12°','Disconnected refresh keeps the last reading clearly stale');
   mode='valid';await page.locator('[data-city-weather-refresh]').click();await page.waitForFunction(()=>document.querySelector('#cityExplorer').dataset.weatherState==='ready');
-  mode='malformed';await page.locator('[data-city-select]').selectOption('wellington');await page.waitForFunction(()=>document.querySelector('#cityExplorer').dataset.weatherState==='error');assert.equal(await page.locator('[data-city-temperature]').textContent(),'—','Malformed new-city data cannot masquerade as zero weather');assert.equal(await page.locator('[data-wind-needle]').count(),0,'New city cannot retain the previous wind direction');
-  mode='delayed';await page.locator('[data-city-weather-refresh]').click();await page.locator('[data-city-select]').selectOption('melbourne');await page.waitForFunction(()=>document.querySelector('#cityExplorer').dataset.weatherState==='ready');await page.waitForTimeout(800);
+  mode='malformed';await page.locator('[data-city-select]').selectOption('wellington',{force:true});await page.waitForFunction(()=>document.querySelector('#cityExplorer').dataset.weatherState==='error');assert.equal(await page.locator('[data-city-temperature]').textContent(),'—','Malformed new-city data cannot masquerade as zero weather');assert.equal(await page.locator('[data-wind-needle]').count(),0,'New city cannot retain the previous wind direction');
+  mode='delayed';await page.locator('[data-city-weather-refresh]').click();await page.locator('[data-city-select]').selectOption('melbourne',{force:true});await page.waitForFunction(()=>document.querySelector('#cityExplorer').dataset.weatherState==='ready');await page.waitForTimeout(800);
   assert.equal(await page.locator('[data-city-temperature]').textContent(),'21°','Late Wellington response cannot overwrite Melbourne');
   assert.match(await page.locator('[data-city-name]').textContent(),/Melbourne/);
   assert.match(await page.locator('[data-city-country]').textContent(),/Australia/);
@@ -155,7 +155,7 @@ async function weatherTimeout(browser) {
   }}),{page}=result;
   try{
     await visit(page,'earth');await page.clock.install();
-    await page.locator('#citySelect').selectOption('birmingham');await page.locator('#cityVisit').click();
+    await page.locator('#citySelect').selectOption('birmingham',{force:true});await page.locator('#cityVisit').click();
     await page.waitForFunction(()=>window.__cityTest.read().open&&document.querySelector('#cityExplorer').dataset.weatherState==='loading');
     await page.clock.fastForward(12500);
     await page.waitForFunction(()=>document.querySelector('#cityExplorer').dataset.weatherState==='error');
@@ -168,7 +168,7 @@ async function weatherTimeout(browser) {
 }
 async function motionPreference(browser) {
   const result=await create(browser,{reducedMotion:'no-preference'}),{page}=result;await visit(page,'earth');
-  await page.locator('#citySelect').selectOption('wellington');await page.locator('#cityVisit').click();
+  await page.locator('#citySelect').selectOption('wellington',{force:true});await page.locator('#cityVisit').click();
   await page.waitForFunction(()=>window.__cityTest.read().flight&&window.__cityTest.read().earthCityZoom>0);
   await page.emulateMedia({reducedMotion:'reduce'});
   await page.waitForFunction(()=>window.__cityTest.read().open);
@@ -192,7 +192,7 @@ async function mapRecovery(browser) {
 }
 async function cancellation(browser) {
   const result=await create(browser,{mapDelay:450,moduleDelay:500}),{page}=result;await visit(page,'earth');
-  await page.locator('#citySelect').selectOption('melbourne');await page.locator('#cityVisit').click();await page.evaluate(()=>location.hash='venus');await ready(page);await page.waitForTimeout(850);
+  await page.locator('#citySelect').selectOption('melbourne',{force:true});await page.locator('#cityVisit').click();await page.evaluate(()=>location.hash='venus');await ready(page);await page.waitForTimeout(850);
   assert.equal(await page.locator('#cityExplorer').isVisible(),false,'Late city import cannot open over another planet');
   await page.evaluate(()=>location.hash='earth');await ready(page);await page.locator('#cityVisit').click();await page.waitForFunction(()=>window.__cityTest.read().open);await page.evaluate(()=>location.hash='jupiter');await ready(page);await page.waitForTimeout(650);
   assert.equal(await page.locator('#cityExplorer').isVisible(),false,'Late provider response cannot revive a departed city');
@@ -219,8 +219,8 @@ async function stories(browser) {
   const result=await create(browser),{page}=result;await visit(page,'earth');
   const earthStories=await page.locator('#storyGrid h3').allTextContents();
   await openCity(page,'wellington');
-  for(const id of ['wellington','birmingham','melbourne','abu-dhabi','stockholm','tokyo','new-york','quito']){
-    await page.locator('[data-city-select]').selectOption(id);
+  for(const id of ['wellington','birmingham','melbourne','abu-dhabi','stockholm','tokyo','new-york','quito','cape-town','nairobi','cairo','rio-de-janeiro','amsterdam','copenhagen','auckland']){
+    await page.locator('[data-city-select]').selectOption(id,{force:true});
     assert.equal(await page.locator('#storyGrid .story').count(),2,'Two city stories');
     assert.equal(await page.locator('#storyGrid a').count(),2,'Each story links to its source');
     const name=await page.locator('[data-city-name]').textContent();
@@ -230,7 +230,7 @@ async function stories(browser) {
   await page.locator('[data-city-story-link]').click();assert.equal(new URL(page.url()).hash,'#earth','Story link scrolls without changing the app route');
   assert.equal(await page.evaluate(()=>document.activeElement.textContent),'Imagine that.','Story heading receives keyboard focus');
   await closeCity(page);assert.deepEqual(await page.locator('#storyGrid h3').allTextContents(),earthStories,'Earth stories return with Earth');
-  clean(result);await page.close();console.log('PASS all eight sourced city stories, keyboard jump and Earth return');
+  clean(result);await page.close();console.log('PASS all fifteen sourced city stories, keyboard jump and Earth return');
 }
 async function missionCity(browser) {
   const result=await create(browser,{viewport:{width:320,height:720}}),{page}=result;
@@ -248,14 +248,55 @@ async function responsive(browser) {
   for(const viewport of [{width:390,height:844},{width:320,height:720},{width:844,height:390}]) {
     const result=await create(browser,{viewport}),{page}=result;await visit(page,'earth');await openCity(page,'melbourne');
     assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,'City layout fits horizontally');
-    for(const selector of ['[data-city-close]','[data-city-select]','[data-city-weather-refresh]','[data-city-map-reset]','[data-city-zoom-in]','[data-city-zoom-out]','[data-city-story-link]']){
+    for(const selector of ['[data-city-close]','[data-city-picker="cityExplorerSelect"]','[data-city-weather-refresh]','[data-city-map-reset]','[data-city-zoom-in]','[data-city-zoom-out]','[data-city-story-link]']){
       const box=await page.locator(selector).boundingBox();assert(box,selector+' must be visible');assert(box.height>=44&&box.width>=44,`${selector} is a comfortable target (${box.width}×${box.height} at ${viewport.width}px)`);
     }
     const expected=await page.evaluate(()=>new Intl.DateTimeFormat('en-GB',{timeZone:'Australia/Melbourne',hour:'2-digit',minute:'2-digit'}).format(new Date()));assert.equal(await page.locator('[data-city-now]').textContent(),expected,'Local clock uses selected city timezone');
-    await page.locator('[data-city-select]').focus();await page.keyboard.press('Home');await page.keyboard.press('End');await page.keyboard.press('Tab');
+    await page.locator('[data-city-picker="cityExplorerSelect"]').focus();await page.keyboard.press('Enter');await page.keyboard.press('Home');await page.keyboard.press('End');await page.keyboard.press('Escape');assert(await page.locator('#cityExplorer').isVisible(),'Cancelling wheel keeps city open');
     await capture(page,'city-'+viewport.width);
     await page.keyboard.press('Escape');assert.equal(await page.locator('#cityExplorer').isVisible(),false);
     clean(result);await page.close();console.log('PASS city keyboard and responsive layout '+viewport.width+'×'+viewport.height);
   }
 }
-(async()=>{const browser=await launch();try{for(const test of [flights,missingKey,weatherRecovery,weatherTimeout,mapRecovery,cancellation,motionPreference,windCompass,stories,missionCity,responsive])if(!process.env.TEST_CITY_FILTER||test.name.includes(process.env.TEST_CITY_FILTER))await test(browser);}finally{await browser.close();}})().catch(error=>{console.error(safe(error.stack||error));process.exitCode=1;});
+async function cityWheel(browser){
+ const result=await create(browser),{page}=result;await visit(page,'earth');await ready(page);
+ await page.locator('#citySelectTrigger').click();
+ assert.equal(await page.locator('.city-wheel-option').count(),15);
+ await page.keyboard.press('End');await page.keyboard.press('Enter');
+ assert.equal(await page.locator('#citySelect').inputValue(),'auckland');
+ assert.equal(await page.locator('#citySelectTrigger').textContent(),'Auckland');
+ await page.locator('#cityVisit').click();await page.waitForFunction(()=>document.querySelector('#cityExplorer').dataset.weatherState==='ready');
+ const requests=result.weatherRequests.length;
+ await page.locator('#cityExplorerSelectTrigger').click();await page.keyboard.press('Home');await page.keyboard.press('ArrowDown');
+ assert.equal(result.weatherRequests.length,requests,'Browsing does not request weather');
+ await page.keyboard.press('Escape');assert(await page.locator('#cityExplorer').isVisible(),'Escape cancels wheel only');
+ assert.equal(await page.locator('[data-city-name]').textContent(),'Auckland','Cancel preserves city');
+ assert.equal(await page.evaluate(()=>document.activeElement.id),'cityExplorerSelectTrigger');
+ await page.locator('#cityExplorerSelectTrigger').click();await page.keyboard.press('Home');await page.keyboard.press('c');await page.keyboard.press('Enter');
+ await page.waitForFunction(()=>document.querySelector('#cityExplorer').dataset.city==='cape-town');
+ assert.equal(await page.locator('#citySelectTrigger').textContent(),'Cape Town');
+ await page.locator('#cityExplorerSelectTrigger').click();
+ const box=await page.locator('.city-wheel').boundingBox();await page.mouse.move(box.x+box.width/2,box.y+box.height/2);await page.mouse.wheel(0,169);await page.waitForTimeout(800);
+ const snap=await page.locator('.city-wheel').evaluate(w=>({top:w.scrollTop,index:[...w.children].findIndex(o=>o.getAttribute('aria-selected')==='true')}));
+ assert(Math.abs(snap.top-snap.index*52)<1,'Mouse wheel settles on one row');
+ await capture(page,'city-wheel-desktop');await page.keyboard.press('Escape');
+ await page.setViewportSize({width:390,height:844});await page.locator('#cityExplorerSelectTrigger').click();await capture(page,'city-wheel-phone');
+ await page.keyboard.press('End');await page.locator('[data-wheel-choose]').click();assert.equal(await page.locator('[data-city-name]').textContent(),'Auckland');
+ await page.setViewportSize({width:844,height:390});await page.locator('#cityExplorerSelectTrigger').click();await page.keyboard.press('Home');await page.keyboard.press('End');
+ const centred=await page.locator('.city-wheel').evaluate(w=>{const a=w.querySelector('[aria-selected=true]').getBoundingClientRect(),b=w.getBoundingClientRect();return Math.abs((a.top+a.bottom-b.top-b.bottom)/2)});assert(centred<2,'Last city centres in landscape');await page.keyboard.press('Escape');
+ clean(result);await page.close();console.log('PASS wheel keyboard, commit/cancel, request isolation, scroll snapping and phone layouts');
+}
+async function touchWheel(browser){
+ const result=await create(browser,{viewport:{width:390,height:844},reducedMotion:'no-preference'}),{page}=result;
+ await visit(page,'earth');await ready(page);await page.locator('#citySelectTrigger').click();await page.keyboard.press('PageDown');
+ const session=await page.context().newCDPSession(page);await session.send('Emulation.setTouchEmulationEnabled',{enabled:true});await page.waitForTimeout(150);
+ const box=await page.locator('.city-wheel').boundingBox(),x=box.x+box.width/2,y=box.y+box.height*.75;
+ const before=await page.locator('.city-wheel').evaluate(w=>w.scrollTop);
+ await session.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x,y}]});
+ for(let i=1;i<=8;i++){await session.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x,y:y-i*18}]});await page.waitForTimeout(20);}
+ await session.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await page.waitForTimeout(1200);
+ const after=await page.locator('.city-wheel').evaluate(w=>w.scrollTop);assert(after>before,'Touch swipe moves the wheel');assert(Math.abs(after/52-Math.round(after/52))<.02,'Touch scrolling settles on a city');
+ await page.emulateMedia({reducedMotion:'reduce'});await page.waitForFunction(()=>document.querySelector('.city-wheel-option').style.transform==='none');
+ await page.keyboard.press('Escape');assert.equal(await page.locator('.city-wheel-dialog').isVisible(),false);clean(result);await page.close();console.log('PASS emulated touch swipe, snap and live reduced-motion change');
+}
+(async()=>{const browser=await launch();try{for(const test of [cityWheel,touchWheel,flights,missingKey,weatherRecovery,weatherTimeout,mapRecovery,cancellation,motionPreference,windCompass,stories,missionCity,responsive])if(!process.env.TEST_CITY_FILTER||test.name.includes(process.env.TEST_CITY_FILTER))await test(browser);}finally{await browser.close();}})().catch(error=>{console.error(safe(error.stack||error));process.exitCode=1;});

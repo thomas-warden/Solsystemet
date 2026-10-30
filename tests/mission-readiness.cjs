@@ -17,7 +17,8 @@ const { assert, baseURL, launch, newPage, visit, ready, inViewport, screenshot, 
     await requestSeen;
     await page.waitForSelector('#missionLoading');
     assert.equal(await page.locator('#missionAction').isDisabled(), true);
-    assert.equal(await page.locator('#citySelect').isDisabled(), true);
+    assert.equal(await page.locator('#citySelect').isDisabled(), false, 'City exploration remains available while the globe loads');
+    assert.equal(await page.locator('#citySelectTrigger').isDisabled(), false);
     assert.equal(await page.locator('#earthRotation').isDisabled(), true);
     assert.equal(await page.locator('#missionEnd').isDisabled(), false);
     await inViewport(page, ['#missionGuide', '#missionLoading', '#missionEnd'], 'loading mission explains its wait');

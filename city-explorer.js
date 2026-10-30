@@ -1,3 +1,4 @@
+import { attachCityPicker } from './city-picker.js?v=20261030';
 import { CITY_STORIES } from './city-stories.js?v=20261030';
 import { CITIES } from './cities.js?v=20261029';
 import { GOOGLE_MAPS_BROWSER_KEY } from './site-config.js?v=20261029';
@@ -119,9 +120,10 @@ export class CityExplorer {
       <div class="city-heading"><div><span class="eyebrow" data-city-country></span><h1 data-city-name></h1><p data-city-invitation></p></div><div class="city-place-details"><span class="city-coordinates" data-city-coordinates></span><div class="city-now"><span data-city-now>—</span><small>LOCAL TIME NOW</small></div></div></div>
       <div class="city-map-region"><div class="city-map" data-city-map aria-label="Google satellite map"></div><div class="city-map-message" data-city-map-message role="status"><span class="eyebrow">A CLOSER LOOK</span><h2 data-city-map-title>Finding the city…</h2><p data-city-map-copy></p><div class="city-map-actions"><button type="button" data-city-map-retry hidden>Try satellite view again ↻</button><a data-city-external target="_blank" rel="noopener">Open Google satellite map ↗</a></div></div><button type="button" class="city-map-reset" data-city-map-reset hidden>City centre ⌖</button><div class="city-map-zoom" data-city-map-zoom hidden role="group" aria-label="Map zoom"><button type="button" data-city-zoom-in aria-label="Zoom in">+</button><button type="button" data-city-zoom-out aria-label="Zoom out">−</button></div></div>
       <section class="city-weather" aria-label="Current weather"><div class="city-weather-top"><div><span class="eyebrow">UNDER THIS SKY</span><p class="city-weather-location">Current weather</p></div><button type="button" class="city-weather-refresh" data-city-weather-refresh aria-label="Refresh current weather">Refresh ↻</button></div><div class="city-weather-report" data-city-weather-report><div class="city-weather-main"><div class="city-weather-icon" data-city-weather-icon></div><div><strong data-city-temperature>—</strong><span data-city-condition>Fetching current weather…</span></div></div><dl class="city-weather-details"><div><dt>Feels like</dt><dd data-city-feels>—</dd></div><div><dt>Wind</dt><dd class="city-wind" data-city-wind>—</dd></div><div><dt>Humidity</dt><dd data-city-humidity>—</dd></div></dl></div><p class="city-weather-status" data-city-weather-status role="status">Connecting to the weather service…</p><div class="city-weather-foot"><span data-city-weather-updated>Waiting for an update</span><span>Modelled current conditions · <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo ↗</a></span></div></section>
-      <footer class="city-explorer-note">Satellite imagery is not live. Weather uses the actual local time, separate from Earth’s model clock. <a href="sources.html#city-services" target="_blank" rel="noopener">Services &amp; privacy ↗</a></footer>`;
+      `;
     this.nodes=Object.fromEntries(['close','select','name','invitation','coordinates','story-link','now','map','map-message','map-title','map-copy','map-retry','external','map-reset','map-zoom','zoom-in','zoom-out','country','weather-refresh','weather-report','weather-icon','temperature','condition','feels','wind','humidity','weather-status','weather-updated'].map(key=>[key,host.querySelector(`[data-city-${key}]`)]));
     for(const city of Object.values(CITIES)){const option=document.createElement('option');option.value=city.id;option.textContent=city.name;this.nodes.select.append(option);}
+    this.cityPicker=attachCityPicker(this.nodes.select);
     this.listen(this.nodes['story-link'],'click',event=>{event.preventDefault();document.querySelector('#fieldStories').scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth',block:'start'});document.querySelector('#fieldStories h2').focus({preventScroll:true});});
     this.listen(this.nodes.close,'click',()=>this.close({notify:true}));
     this.listen(this.nodes.select,'change',()=>{const city=CITIES[this.nodes.select.value];this.onSelect(city);this.open(city,{focus:false});});
@@ -139,7 +141,7 @@ export class CityExplorer {
     if(this.disposed||!city||!CITIES[city.id])return;
     this.request++;this.active=true;this.city=CITIES[city.id];this.host.hidden=false;
     if(this.scene)this.scene.dataset.cityOpen='true';
-    this.host.dataset.city=this.city.id;this.nodes.select.value=this.city.id;
+    this.host.dataset.city=this.city.id;this.nodes.select.value=this.city.id;this.cityPicker.sync();
     this.nodes.country.textContent=this.city.country;
     this.nodes.name.textContent=this.city.name;
     this.nodes.invitation.textContent=CITY_STORIES[this.city.id].invitation;
