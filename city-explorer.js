@@ -90,7 +90,19 @@ function weatherIcon(kind) {
 }
 
 function number(value, suffix, decimals=0) { return Number.isFinite(value) ? value.toFixed(decimals)+suffix : '—'; }
-function bearing(value) { return Number.isFinite(value)?['N','NE','E','SE','S','SW','W','NW'][Math.round(value/45)%8]:''; }
+function windReading(speed, direction) {
+  const hasSpeed=Number.isFinite(speed)&&speed>=0,calm=hasSpeed&&speed===0;
+  const hasDirection=hasSpeed&&!calm&&Number.isFinite(direction)&&direction>=0&&direction<=360;
+  const angle=hasDirection?direction%360:null;
+  const points=['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'];
+  const names=['north','north-northeast','northeast','east-northeast','east','east-southeast','southeast','south-southeast','south','south-southwest','southwest','west-southwest','west','west-northwest','northwest','north-northwest'];
+  const index=hasDirection?Math.round(angle/22.5)%16:0;
+  const speedText=hasSpeed?(speed>0&&speed<1?'<1 km/h':number(speed,' km/h')):'—';
+  const directionText=hasDirection?'From '+points[index]:calm?'Calm':hasSpeed?'Direction unavailable':'Unavailable';
+  const label=hasDirection?`Wind ${speedText}, from ${names[index]}. Arrow points towards the source of the wind.`:calm?'Calm wind; no direction.':hasSpeed?`Wind ${speedText}; direction unavailable.`:'Wind unavailable.';
+  const needle=hasDirection?`<g data-wind-needle transform="rotate(${angle} 32 32)"><path d="M32 15 38 33 32 29 26 33Z" fill="#e5c88f"/><path d="M32 29V44" stroke="#b9c6ca" stroke-width="1.4"/></g>`:'';
+  return {label,html:`<svg class="wind-compass" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="21" fill="#071017" stroke="#cbb79255"/><path d="M32 11v4m21 17h-4M32 53v-4M11 32h4" stroke="#a6b6bc" stroke-width="1"/><g fill="#a6b6bc" font-family="Arial,sans-serif" font-size="7" text-anchor="middle"><text x="32" y="7">N</text><text x="60" y="34.5">E</text><text x="32" y="62">S</text><text x="4" y="34.5">W</text></g>${needle}<circle cx="32" cy="32" r="2.5" fill="${hasDirection?'#eee2ca':'#64757c'}"/></svg><span class="wind-reading"><span data-wind-speed></span><small data-wind-from></small></span>`,speedText,directionText};
+}
 function formatTime(epoch, city, date=false) {
   return new Intl.DateTimeFormat('en-GB',{timeZone:city.timeZone,hour:'2-digit',minute:'2-digit',...(date?{day:'numeric',month:'short'}:{})}).format(new Date(epoch));
 }
@@ -105,7 +117,7 @@ export class CityExplorer {
     host.innerHTML=`<header class="city-explorer-header"><button type="button" class="city-return" data-city-close>← Earth</button><div class="city-choice"><label for="cityExplorerSelect">EXPLORE A CITY</label><select id="cityExplorerSelect" data-city-select></select></div><a class="city-story-link" href="#fieldStories" data-city-story-link>Imagine that ↓</a></header>
       <div class="city-heading"><div><span class="eyebrow" data-city-country></span><h1 data-city-name></h1><p data-city-invitation></p></div><div class="city-place-details"><span class="city-coordinates" data-city-coordinates></span><div class="city-now"><span data-city-now>—</span><small>LOCAL TIME NOW</small></div></div></div>
       <div class="city-map-region"><div class="city-map" data-city-map aria-label="Google satellite map"></div><div class="city-map-message" data-city-map-message role="status"><span class="eyebrow">A CLOSER LOOK</span><h2 data-city-map-title>Finding the city…</h2><p data-city-map-copy></p><div class="city-map-actions"><button type="button" data-city-map-retry hidden>Try satellite view again ↻</button><a data-city-external target="_blank" rel="noopener">Open Google satellite map ↗</a></div></div><button type="button" class="city-map-reset" data-city-map-reset hidden>City centre ⌖</button><div class="city-map-zoom" data-city-map-zoom hidden role="group" aria-label="Map zoom"><button type="button" data-city-zoom-in aria-label="Zoom in">+</button><button type="button" data-city-zoom-out aria-label="Zoom out">−</button></div></div>
-      <section class="city-weather" aria-label="Current weather"><div class="city-weather-top"><div><span class="eyebrow">UNDER THIS SKY</span><p class="city-weather-location">Current weather</p></div><button type="button" class="city-weather-refresh" data-city-weather-refresh aria-label="Refresh current weather">Refresh ↻</button></div><div class="city-weather-report" data-city-weather-report><div class="city-weather-main"><div class="city-weather-icon" data-city-weather-icon></div><div><strong data-city-temperature>—</strong><span data-city-condition>Fetching current weather…</span></div></div><dl class="city-weather-details"><div><dt>Feels like</dt><dd data-city-feels>—</dd></div><div><dt>Wind</dt><dd data-city-wind>—</dd></div><div><dt>Humidity</dt><dd data-city-humidity>—</dd></div></dl></div><p class="city-weather-status" data-city-weather-status role="status">Connecting to the weather service…</p><div class="city-weather-foot"><span data-city-weather-updated>Waiting for an update</span><span>Modelled current conditions · <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo ↗</a></span></div></section>
+      <section class="city-weather" aria-label="Current weather"><div class="city-weather-top"><div><span class="eyebrow">UNDER THIS SKY</span><p class="city-weather-location">Current weather</p></div><button type="button" class="city-weather-refresh" data-city-weather-refresh aria-label="Refresh current weather">Refresh ↻</button></div><div class="city-weather-report" data-city-weather-report><div class="city-weather-main"><div class="city-weather-icon" data-city-weather-icon></div><div><strong data-city-temperature>—</strong><span data-city-condition>Fetching current weather…</span></div></div><dl class="city-weather-details"><div><dt>Feels like</dt><dd data-city-feels>—</dd></div><div><dt>Wind</dt><dd class="city-wind" data-city-wind>—</dd></div><div><dt>Humidity</dt><dd data-city-humidity>—</dd></div></dl></div><p class="city-weather-status" data-city-weather-status role="status">Connecting to the weather service…</p><div class="city-weather-foot"><span data-city-weather-updated>Waiting for an update</span><span>Modelled current conditions · <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo ↗</a></span></div></section>
       <footer class="city-explorer-note">Satellite imagery is not live. Weather uses the actual local time, separate from Earth’s model clock. <a href="sources.html#city-services" target="_blank" rel="noopener">Services &amp; privacy ↗</a></footer>`;
     this.nodes=Object.fromEntries(['close','select','name','invitation','coordinates','story-link','now','map','map-message','map-title','map-copy','map-retry','external','map-reset','map-zoom','zoom-in','zoom-out','country','weather-refresh','weather-report','weather-icon','temperature','condition','feels','wind','humidity','weather-status','weather-updated'].map(key=>[key,host.querySelector(`[data-city-${key}]`)]));
     for(const city of Object.values(CITIES)){const option=document.createElement('option');option.value=city.id;option.textContent=city.name;this.nodes.select.append(option);}
@@ -177,7 +189,7 @@ export class CityExplorer {
     if(cache){this.renderWeather(cache.data);if(!force&&Date.now()-cache.fetchedAt<WEATHER_INTERVAL)return;}
     else {
       delete this.host.dataset.sky;this.nodes.temperature.textContent='—';this.nodes.condition.textContent='Fetching current weather…';
-      for(const key of ['feels','wind','humidity'])this.nodes[key].textContent='—';
+      for(const key of ['feels','humidity'])this.nodes[key].textContent='—';this.renderWind(null,null);
       this.nodes['weather-icon'].innerHTML=weatherIcon('cloud');this.nodes['weather-updated'].textContent='Waiting for an update';
     }
     this.host.dataset.weatherState=cache?'refreshing':'loading';this.nodes['weather-refresh'].disabled=true;
@@ -209,12 +221,13 @@ export class CityExplorer {
     this.nodes.temperature.textContent=number(current.temperature_2m,'°');this.nodes.condition.textContent=description;
     this.nodes['weather-icon'].innerHTML=weatherIcon(icon);
     this.nodes.feels.textContent=number(current.apparent_temperature,'°C');
-    this.nodes.wind.textContent=number(current.wind_speed_10m,' km/h')+(Number.isFinite(current.wind_speed_10m)?' '+bearing(current.wind_direction_10m):'');
+    this.renderWind(current.wind_speed_10m,current.wind_direction_10m);
     this.nodes.humidity.textContent=number(current.relative_humidity_2m,'%');
     this.nodes['weather-updated'].textContent=`Updated ${formatTime(current.time*1000,this.city,true)} local`;
     this.nodes['weather-status'].textContent=stale?'Latest available update; current conditions may have changed.':'';
     this.nodes['weather-refresh'].disabled=false;
   }
+  renderWind(speed,direction){const reading=windReading(speed,direction);this.nodes.wind.innerHTML=reading.html;this.nodes.wind.setAttribute('aria-label',reading.label);this.nodes.wind.title=reading.label;this.nodes.wind.querySelector('[data-wind-speed]').textContent=reading.speedText;this.nodes.wind.querySelector('[data-wind-from]').textContent=reading.directionText;}
   updateClock(){if(this.active&&this.city)this.nodes.now.textContent=formatTime(Date.now(),this.city);}
   clearTimers(){clearTimeout(this.clockTimer);clearTimeout(this.refreshTimer);this.clockTimer=this.refreshTimer=0;}
   schedule(){

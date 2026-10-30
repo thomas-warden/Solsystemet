@@ -136,7 +136,7 @@ async function weatherRecovery(browser) {
   mode='offline';await page.locator('[data-city-weather-refresh]').click();await page.waitForFunction(()=>document.querySelector('#cityExplorer').dataset.weatherState==='stale');
   assert.equal(await page.locator('[data-city-temperature]').textContent(),'12°','Disconnected refresh keeps the last reading clearly stale');
   mode='valid';await page.locator('[data-city-weather-refresh]').click();await page.waitForFunction(()=>document.querySelector('#cityExplorer').dataset.weatherState==='ready');
-  mode='malformed';await page.locator('[data-city-select]').selectOption('wellington');await page.waitForFunction(()=>document.querySelector('#cityExplorer').dataset.weatherState==='error');assert.equal(await page.locator('[data-city-temperature]').textContent(),'—','Malformed new-city data cannot masquerade as zero weather');
+  mode='malformed';await page.locator('[data-city-select]').selectOption('wellington');await page.waitForFunction(()=>document.querySelector('#cityExplorer').dataset.weatherState==='error');assert.equal(await page.locator('[data-city-temperature]').textContent(),'—','Malformed new-city data cannot masquerade as zero weather');assert.equal(await page.locator('[data-wind-needle]').count(),0,'New city cannot retain the previous wind direction');
   mode='delayed';await page.locator('[data-city-weather-refresh]').click();await page.locator('[data-city-select]').selectOption('melbourne');await page.waitForFunction(()=>document.querySelector('#cityExplorer').dataset.weatherState==='ready');await page.waitForTimeout(800);
   assert.equal(await page.locator('[data-city-temperature]').textContent(),'21°','Late Wellington response cannot overwrite Melbourne');
   assert.match(await page.locator('[data-city-name]').textContent(),/Melbourne/);
@@ -198,6 +198,23 @@ async function cancellation(browser) {
   assert.equal(await page.locator('#cityExplorer').isVisible(),false,'Late provider response cannot revive a departed city');
   clean(result);await page.close();console.log('PASS late module/provider navigation cancellation');
 }
+async function windCompass(browser) {
+  const result=await create(browser),{page}=result;await visit(page,'earth');await openCity(page,'wellington');
+  for(const [angle,label,axis,sign]of [[0,'N','y',-1],[90,'E','x',1],[180,'S','y',1],[270,'W','x',-1],[360,'N','y',-1]]){
+    await page.evaluate(direction=>window.__cityTest.instance().renderWeather({time:Date.now()/1000,temperature_2m:10,weather_code:3,is_day:1,wind_speed_10m:39,wind_direction_10m:direction}),angle);
+    assert.equal(await page.locator('[data-wind-from]').textContent(),'From '+label);
+    const tip=await page.locator('[data-wind-needle]').evaluate(g=>{const m=g.getCTM(),a=new DOMPoint(32,15).matrixTransform(m),c=new DOMPoint(32,32).matrixTransform(m);return{x:a.x-c.x,y:a.y-c.y};});
+    assert(tip[axis]*sign>0,'Needle points toward the stated source of the wind');
+    assert(Math.abs(tip[axis==='x'?'y':'x'])<.01,'Cardinal needle stays on its compass axis');
+    assert.match(await page.locator('[data-city-wind]').getAttribute('aria-label'),/from.*Arrow points towards the source/);
+  }
+  for(const [speed,direction,label]of [[0,180,'Calm'],[39,null,'Direction unavailable'],[null,180,'Unavailable'],[39,-1,'Direction unavailable']]){
+    await page.evaluate(([speed,direction])=>window.__cityTest.instance().renderWeather({time:Date.now()/1000,temperature_2m:10,weather_code:3,is_day:1,wind_speed_10m:speed,wind_direction_10m:direction}),[speed,direction]);
+    assert.equal(await page.locator('[data-wind-needle]').count(),0,'Unknown/calm wind cannot keep an old arrow');
+    assert.equal(await page.locator('[data-wind-from]').textContent(),label);
+  }
+  clean(result);await page.close();console.log('PASS wind compass cardinal geometry, FROM meaning, calm and missing readings');
+}
 async function stories(browser) {
   const result=await create(browser),{page}=result;await visit(page,'earth');
   const earthStories=await page.locator('#storyGrid h3').allTextContents();
@@ -241,4 +258,4 @@ async function responsive(browser) {
     clean(result);await page.close();console.log('PASS city keyboard and responsive layout '+viewport.width+'×'+viewport.height);
   }
 }
-(async()=>{const browser=await launch();try{for(const test of [flights,missingKey,weatherRecovery,weatherTimeout,mapRecovery,cancellation,motionPreference,stories,missionCity,responsive])if(!process.env.TEST_CITY_FILTER||test.name.includes(process.env.TEST_CITY_FILTER))await test(browser);}finally{await browser.close();}})().catch(error=>{console.error(safe(error.stack||error));process.exitCode=1;});
+(async()=>{const browser=await launch();try{for(const test of [flights,missingKey,weatherRecovery,weatherTimeout,mapRecovery,cancellation,motionPreference,windCompass,stories,missionCity,responsive])if(!process.env.TEST_CITY_FILTER||test.name.includes(process.env.TEST_CITY_FILTER))await test(browser);}finally{await browser.close();}})().catch(error=>{console.error(safe(error.stack||error));process.exitCode=1;});
