@@ -1,10 +1,10 @@
-import { CLOSE_MOON_DISTANCE_RATIO, MAX_TIDE_RANGE } from './tide-constants.js?v=ee3f09657be8';
-import { addCelestialSky } from './sky-scene.js?v=ee3f09657be8';
+import { CLOSE_MOON_DISTANCE_RATIO, MAX_TIDE_RANGE } from './tide-constants.js?v=ee3f09657be8.9df63c26d4';
+import { addCelestialSky } from './sky-scene.js?v=ee3f09657be8.9df63c26d4';
 import * as THREE from './vendor/three.module.js';
 import { OrbitControls } from './vendor/OrbitControls.js';
-import { WORLDS } from './worlds.js?v=ee3f09657be8';
-import { MOONS, FAMILIES, moonPosition } from './moons.js?v=ee3f09657be8';
-import { AnchoredLabels } from './orbit-labels.js?v=ee3f09657be8';
+import { WORLDS } from './worlds.js?v=ee3f09657be8.9df63c26d4';
+import { MOONS, FAMILIES, moonPosition } from './moons.js?v=ee3f09657be8.9df63c26d4';
+import { AnchoredLabels } from './orbit-labels.js?v=ee3f09657be8.9df63c26d4';
 const $=id=>document.getElementById(id),TAU=Math.PI*2;
 const reduced=matchMedia('(prefers-reduced-motion: reduce)');
 const CAMERA_DURATION=.75;
@@ -119,7 +119,7 @@ export class MoonSystem {
   if(this.tideOcean){this.tideOcean.object.visible=true;this.setTideReady(true);return;}
   $('tideStatus').textContent='Preparing the ocean…';$('tideRetry').hidden=true;this.setTideReady(false);
   try{
-   this.tideImport||=import('./tides.js?v=ee3f09657be8'+(this.tideAttempts?'&retry='+this.tideAttempts:'')).catch(error=>{this.tideImport=null;this.tideAttempts++;throw error;});
+   this.tideImport||=import('./tides.js?v=ee3f09657be8.9df63c26d4'+(this.tideAttempts?'&retry='+this.tideAttempts:'')).catch(error=>{this.tideImport=null;this.tideAttempts++;throw error;});
    const {TideOcean}=await this.tideImport;
    if(!this.tideOcean){this.tideOcean=new TideOcean({radius:1.3,sunDirection:this.sunDirection,orbitNormal:this.tideNormal,exaggeration:.24,opacity:.11});this.scene.add(this.tideOcean.object);}
    this.tideOcean.object.visible=this.active&&this.parent==='earth'&&this.tideMode;
@@ -139,8 +139,8 @@ export class MoonSystem {
   $('tideLearningNotice').hidden=false;$('tideLearningStatus').textContent='Preparing the coastal view…';$('tideLearningRetry').hidden=true;
   const suffix=this.learningAttempts?'&retry='+this.learningAttempts:'';
   this.learningPromise=Promise.allSettled([
-   (async()=>{if(this.tideGuide)return;const {TideGuide}=await import('./tide-guide.js?v=ee3f09657be8'+suffix);if(!this.active||!this.tideMode)return;this.tideGuide=new TideGuide($('tideGuide'),{onCompare:degrees=>this.tideComparison(degrees)});})(),
-   (async()=>{if(this.tideShore)return;const {TideShore}=await import('./tide-shore.js?v=ee3f09657be8'+suffix);if(!this.active||!this.tideMode)return;this.tideShore=new TideShore($('tideShore'),{onScenario:kind=>this.tideScenario(kind)});})()
+   (async()=>{if(this.tideGuide)return;const {TideGuide}=await import('./tide-guide.js?v=ee3f09657be8.9df63c26d4'+suffix);if(!this.active||!this.tideMode)return;this.tideGuide=new TideGuide($('tideGuide'),{onCompare:degrees=>this.tideComparison(degrees)});})(),
+   (async()=>{if(this.tideShore)return;const {TideShore}=await import('./tide-shore.js?v=ee3f09657be8.9df63c26d4'+suffix);if(!this.active||!this.tideMode)return;this.tideShore=new TideShore($('tideShore'),{onScenario:kind=>this.tideScenario(kind)});})()
   ]);
   const results=await this.learningPromise;this.learningPromise=null;
   const failed=results.some(result=>result.status==='rejected');

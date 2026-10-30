@@ -1,7 +1,7 @@
 {
   "source_commit": "ee3f09657be80aae7b69ff5f9995863c564d2544",
-  "asset_revision": "ee3f09657be8",
-  "built_at": "2026-10-29T08:50:02.832513+00:00",
-  "description": "Earth city flights, current weather and configurable Google satellite imagery",
-  "google_maps_configured": false
+  "asset_revision": "ee3f09657be8.9df63c26d4",
+  "built_at": "2026-10-30T08:44:00.865345+00:00",
+  "description": "Solsystemet static site",
+  "google_maps_configured": true
 }
