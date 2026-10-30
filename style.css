@@ -569,3 +569,12 @@ h1[tabindex="-1"]:focus,h2[tabindex="-1"]:focus{outline:none}
 @media(max-width:760px){.city-map-zoom{top:12px;right:12px}}
 
 .mission-active:has(#scene[data-city-open=true]) #fieldStories{display:grid}
+
+/* A meteorological bearing points to where the wind comes FROM. */
+.city-weather-details .city-wind{display:flex;align-items:center;gap:12px;white-space:normal}
+.wind-compass{display:block;flex:none;width:58px;height:58px;overflow:visible}
+.wind-reading{display:flex;flex-direction:column;gap:5px;min-width:0}
+.wind-reading>[data-wind-speed]{white-space:nowrap}
+.wind-reading small{font-size:10px;line-height:1.35;color:#bba985}
+@media(max-width:900px){.city-weather-details{grid-template-columns:minmax(60px,1fr) minmax(140px,1.6fr) minmax(60px,1fr);gap:20px}.wind-compass{width:48px;height:48px}.city-weather-details .city-wind{gap:8px}}
+@media(max-width:760px){.city-weather-details{grid-template-columns:minmax(0,1fr) minmax(0,1.35fr) minmax(0,1fr);gap:16px}.city-weather-details .city-wind{align-items:flex-start;flex-direction:column;gap:8px}.wind-compass{width:54px;height:54px}.wind-reading small{font-size:10px}}

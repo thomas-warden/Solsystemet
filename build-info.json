@@ -1,7 +1,7 @@
 {
-  "source_commit": "0bdabc6723e23b245333762310a0c27c171ee901",
-  "asset_revision": "0bdabc6723e2.9df63c26d4",
-  "built_at": "2026-10-30T09:22:55.973344+00:00",
-  "description": "A full-width city atlas with atmospheric weather and sixteen sourced discoveries",
+  "source_commit": "e6305f546a8d297eac36f896ac5d0acb02aaea7b",
+  "asset_revision": "e6305f546a8d.9df63c26d4",
+  "built_at": "2026-10-30T10:12:57.917570+00:00",
+  "description": "Distinct natural-world city stories and a directional wind compass",
   "google_maps_configured": true
 }

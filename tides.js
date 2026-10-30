@@ -1,6 +1,6 @@
 import * as THREE from './vendor/three.module.js';
-import { SOLAR_TIDE_RATIO, CLOSE_MOON_DISTANCE_RATIO, MAX_LUNAR_WEIGHT, MAX_TIDE_RANGE } from './tide-constants.js?v=0bdabc6723e2.9df63c26d4';
-export { SOLAR_TIDE_RATIO } from './tide-constants.js?v=0bdabc6723e2.9df63c26d4';
+import { SOLAR_TIDE_RATIO, CLOSE_MOON_DISTANCE_RATIO, MAX_LUNAR_WEIGHT, MAX_TIDE_RANGE } from './tide-constants.js?v=e6305f546a8d.9df63c26d4';
+export { SOLAR_TIDE_RATIO } from './tide-constants.js?v=e6305f546a8d.9df63c26d4';
 
 // Equilibrium forcing on an ideal global ocean: w P2(n·Moon) + q P2(n·Sun).
 // Displacement, ripple scale and optical appearance are deliberately exaggerated.
