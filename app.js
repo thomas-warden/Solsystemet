@@ -109,7 +109,7 @@ function positionCity(n){
 }
 function syncCityControls(){
  const travelling=!!cityFlight||cityRevealing,open=!!cityExplorer?.active;
- const button=$('cityVisit');if(button){button.disabled=travelling;button.setAttribute('aria-expanded',String(open));button.setAttribute('aria-busy',String(travelling));button.textContent=travelling?'Travelling…':'Explore city ↗';}
+ const button=$('cityVisit');if(button){button.disabled=travelling;button.setAttribute('aria-expanded',String(open));button.setAttribute('aria-busy',String(travelling));button.textContent=travelling?'Travelling…':'Visit';}
  if(state.world==='earth'){
   for(const id of ['earthRotation','cloudToggle','lightsToggle','playButton'])$(id).disabled=!ready||travelling||open;
   $('citySelect').disabled=false;
