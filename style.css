@@ -603,3 +603,39 @@ h1[tabindex="-1"]:focus,h2[tabindex="-1"]:focus{outline:none}
  #citySelect option:hover,.city-choice select option:hover,#citySelect option:focus,.city-choice select option:focus{background:#cbb79218}
  #citySelect option:checked,.city-choice select option:checked{color:#edd5a5;background:#cbb79210}
 }
+/* A native-scroll city wheel: light catches the centre, edges recede. */
+.city-picker-trigger{display:flex;align-items:center;justify-content:space-between;gap:16px;text-align:left;min-height:48px;min-width:0;padding:12px 15px;border:1px solid #cbb79255;border-radius:8px;background:linear-gradient(#131b1e,#0a1012);font-size:13px;color:#eae6dd;box-shadow:inset 0 1px #ffffff08}
+.city-picker-trigger::after{content:'';flex:none;width:7px;height:7px;border-right:1px solid #cbb792;border-bottom:1px solid #cbb792;transform:rotate(45deg) translateY(-2px)}
+.city-picker-trigger:hover{border-color:#cbb792aa;background:#151f22}
+.city-visit-controls .city-picker-trigger{flex:1;width:0}
+.city-choice .city-picker-trigger{width:230px}
+.city-wheel-dialog{width:min(380px,calc(100vw - 32px));max-height:calc(100dvh - 24px);padding:0;border:1px solid #cbb79266;border-radius:20px;color:#eee9de;background:linear-gradient(145deg,#1b2428,#0a1013 60%);box-shadow:0 30px 100px #000c,inset 0 1px #fff1;overflow:auto}
+.city-wheel-dialog::backdrop{background:#0009;backdrop-filter:blur(8px)}
+.city-wheel-dialog header{display:flex;justify-content:space-between;align-items:center;padding:16px 18px 8px}
+.city-wheel-dialog h2{font:400 26px 'Instrument Serif',Georgia,serif;margin:0}
+.city-wheel-dialog header button{font-size:26px;color:#b7b4aa;width:44px;height:44px}
+.city-wheel-window{position:relative;height:260px;isolation:isolate;margin:0 12px}
+.city-wheel{height:100%;overflow-y:auto;overscroll-behavior:contain;scroll-snap-type:y mandatory;padding:104px 0;scrollbar-width:none;touch-action:pan-y;-webkit-mask-image:linear-gradient(transparent,#000 36%,#000 64%,transparent);mask-image:linear-gradient(transparent,#000 36%,#000 64%,transparent)}
+.city-wheel::-webkit-scrollbar{display:none}
+.city-wheel-option{height:52px;scroll-snap-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;transform-origin:center;backface-visibility:hidden;user-select:none;will-change:transform}
+.city-wheel-option span{font-size:19px;letter-spacing:-.02em;color:#b7c0c1}
+.city-wheel-option small{font-size:9px;letter-spacing:.06em;color:#82959d}
+.city-wheel-option[aria-selected="true"] span{color:#f4e9d1}
+.city-wheel-option[aria-selected="true"] small{color:#c7b88f}
+.city-wheel-band{position:absolute;top:104px;left:0;right:0;height:52px;border-block:1px solid #ddcaa24d;border-radius:5px;background:linear-gradient(#e7d8b70e,#e7d8b704);box-shadow:0 1px #0009,inset 0 1px #fff06;pointer-events:none;z-index:-1}
+.city-wheel-dialog footer{padding:16px 22px 22px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.city-wheel-dialog footer span{font-size:11px;color:#8fa0a7}
+.city-wheel-dialog footer button{min-height:44px;padding:12px 26px;border-radius:22px;background:#e6d6b5;color:#141b1e;font-size:13px}
+@media(max-width:760px){.city-choice .city-picker-trigger{width:100%;font-size:12px;gap:10px;padding-inline:12px}.city-wheel-dialog{margin:auto auto 18px}.city-choice{flex:1}.city-picker-trigger{font-size:12px}}
+@media(max-height:480px){.city-wheel-dialog{max-height:calc(100dvh - 12px)}.city-wheel-dialog header{padding-block:4px}.city-wheel-window{height:156px}.city-wheel{padding-block:52px}.city-wheel-band{top:52px}.city-wheel-dialog footer{padding-block:8px}}
+.small-worlds-nav{justify-content:flex-end}
+.exhibit-footer{margin:0 4%;padding:20px 0 32px;display:flex;align-items:baseline;justify-content:flex-end;flex-wrap:wrap;gap:16px 28px;border-top:1px solid #ffffff12;font-size:10px;color:#86979f}
+.exhibit-footer>a{text-decoration:none;min-height:44px;display:inline-flex;align-items:center}
+.exhibit-footer details{flex-basis:100%;text-align:right}
+.exhibit-footer summary{cursor:pointer;min-height:44px;padding:14px 0;list-style-position:inside}
+.exhibit-model-notes{text-align:left;max-width:850px;margin-left:auto;line-height:1.8;color:#9caeb6}
+.exhibit-model-notes h3{font-size:12px;color:#cbb792;font-weight:400;margin:20px 0 4px}
+.exhibit-model-notes .model-note,.exhibit-model-notes .orbit-model-note{display:block;font-size:11px;margin:10px 0;padding:0;max-width:none;letter-spacing:0;line-height:1.8}
+@media(max-width:760px){.small-worlds-nav{justify-content:flex-start}.exhibit-footer{justify-content:flex-start;gap:8px 22px}.exhibit-footer details{text-align:left}}
+.atlas:not([data-view=planet]) .exhibit-model-notes #modelNote{display:none}
+.mission-active>.exhibit-footer,.atlas[data-view=home]>.exhibit-footer{display:none}

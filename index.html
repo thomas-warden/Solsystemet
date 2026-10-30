@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-title" content="Solsystemet">
 <link rel="apple-touch-icon" sizes="180x180" href="assets/icons/solsystemet-180-v1.png">
 <link rel="icon" type="image/png" sizes="32x32" href="assets/icons/solsystemet-32-v1.png">
-<title>Solsystemet — Living worlds</title><link rel="stylesheet" href="style.css?v=25a4b7bb490d.9df63c26d4">
+<title>Solsystemet — Living worlds</title><link rel="stylesheet" href="style.css?v=2b5e4bf4b624.9df63c26d4">
 </head>
 <body>
 <div id="atlas" class="atlas" data-world="earth">
@@ -80,13 +80,13 @@
 <div id="spinControl" class="control-group" hidden><label for="uranusSpin">TURN ONCE <span id="spinReading">0°</span></label><input id="uranusSpin" type="range" min="0" max="360" value="0" aria-label="Turn Uranus through one rotation"><div class="range-caption"><span>START</span><span>ONE FULL TURN</span></div></div>
 <button id="findOrbit" class="outline-action">Find its orbit ↗</button>
 </div>
-<p id="modelNote" class="model-note">NASA BLUE MARBLE · CLOUD MOVEMENT IS ILLUSTRATIVE</p>
+
 <p id="particleInsight" class="particle-insight" hidden>Inner ice completes an orbit sooner than outer ice. The two markers exaggerate the size of individual particles.</p>
 </aside>
 </section>
 </main>
 <section id="fieldStories" class="field-stories" aria-label="Small stories from a big solar system"><div class="story-intro"><span class="eyebrow">TAKE A THOUGHT HOME</span><h2 tabindex="-1">Imagine that.</h2></div><div id="storyGrid" class="story-grid"></div></section>
-<section id="moonDiscoveries" class="moon-discoveries" aria-labelledby="moonDiscoveriesTitle" hidden><div class="moon-discoveries-heading"><div><span class="eyebrow">SMALL WORLDS / BIG SURPRISES</span><h2 id="moonDiscoveriesTitle"></h2><p id="moonDiscoveriesIntro"></p></div><a id="featuredMoonSystem" href="#jupiter-moons">Explore their orbits ↗</a></div><div id="featuredMoonCards" class="moon-cards"></div></section>
+<section id="moonDiscoveries" class="moon-discoveries" aria-labelledby="moonDiscoveriesTitle" hidden><div class="moon-discoveries-heading"><div><h2 id="moonDiscoveriesTitle"></h2><p id="moonDiscoveriesIntro"></p></div><a id="featuredMoonSystem" href="#jupiter-moons">Explore their orbits ↗</a></div><div id="featuredMoonCards" class="moon-cards"></div></section>
 <section role="main" id="beltView" class="belt-view" hidden aria-labelledby="beltTitle">
 <nav class="neighbourhood-nav" aria-label="Around the asteroid belt"><a href="#orrery">← Whole solar system</a><a href="#mars">Mars ↗</a><a href="#jupiter">Jupiter ↗</a></nav>
 <div class="belt-heading"><div><span class="eyebrow">BETWEEN MARS & JUPITER / SMALL WORLDS</span><h1 id="beltTitle">The asteroid belt<span>.</span></h1></div><div><p class="lead">Leftovers from the making of worlds.</p><p>Drift past vast, fractured rocks. Watch sunlight reveal their craters as each one slowly tumbles. Every so often, two meet — and a few new fragments drift away.</p></div></div>
@@ -97,8 +97,8 @@
 <div id="beltStatus" class="orrery-status" role="status">Preparing the journey…</div>
 </div>
 <div class="belt-console"><button id="beltPlay" class="play-action" aria-pressed="true">Ⅱ Pause flight</button><div class="control-group"><label for="beltSpeed">PACE OF YOUR JOURNEY <span id="beltSpeedLabel">Cruise</span></label><input id="beltSpeed" type="range" min="0.35" max="2.5" step="0.05" value="1" aria-label="Asteroid fly-through speed"><div class="range-caption"><span>DRIFT</span><span>FLY</span></div></div><button id="beltRestart" class="quiet-action">Start again ↺</button><button id="locateBelt" class="outline-action">Find the belt in the solar system ↗</button></div>
-<p class="belt-scale-note">An imagined close-up journey. We have brought the rocks much closer together so you can explore them. <strong>The real belt is mostly empty space.</strong> <a href="sources.html#asteroids" target="_blank" rel="noopener">Field notes ↗</a></p>
-<section class="belt-stories" aria-label="Stories from the asteroid belt"><div class="story-intro"><span class="eyebrow">SMALL WORLDS / BIG SURPRISES</span><h2>Space between<br> the stones.</h2><p>There is much more here than a collection of rocks.</p></div><div id="beltEntryStories" class="story-grid"></div></section>
+<p class="belt-scale-note">Rocks shown closer together. <strong>The real belt is mostly empty space.</strong> <a href="sources.html#asteroids" target="_blank" rel="noopener">Field notes ↗</a></p>
+<section class="belt-stories" aria-label="Stories from the asteroid belt"><div class="story-intro"><h2>Space between<br> the stones.</h2><p>There is much more here than a collection of rocks.</p></div><div id="beltEntryStories" class="story-grid"></div></section>
 </section>
 <section role="main" id="orreryView" class="orrery-view" hidden aria-label="Interactive solar system orrery">
 <div class="orrery-heading"><div><span class="eyebrow">THE SOLAR SYSTEM / IN MOTION</span><h1>One star. Many worlds.</h1></div><p>Every world keeps a different time.<br>Click a planet to visit its world.<br>Count its journeys in the chart below.</p></div>
@@ -117,7 +117,7 @@
 <div id="yearInsight" class="year-insight" aria-live="polite"><span class="eyebrow">TRY THIS</span><p>Watch one Earth year. How many times will Mercury pass the starting line?</p></div>
 <p class="trip-key">COUNT WHOLE TRIPS AROUND THE SUN <span>The circle fills as each world makes its next trip.</span></p>
 <div class="orbit-scoreboard" id="orbitScoreboard" aria-label="Whole trips around the Sun, with progress through the next trip"></div>
-<p class="orbit-model-note">A working model, not today’s sky. Elliptical paths and relative orbital periods follow NASA/JPL data. Planet and Sun sizes are enlarged independently; “Real distances” puts the orbital distances on one scale. <a href="sources.html#orrery" target="_blank">How the model works ↗</a></p>
+
 </section>
 <section role="main" id="moonSystemView" class="moon-system-view" hidden aria-label="Explore a planet and its moons">
 <nav class="neighbourhood-nav" aria-label="Choose a moon system"><a href="#orrery">← Whole solar system</a><a id="moonParentLink" href="#earth">← View Earth</a><a href="#earth-moons">Earth & the Moon</a><a href="#jupiter-moons">Jupiter’s moons</a><a href="#saturn-moons">Saturn’s moons</a></nav>
@@ -159,9 +159,9 @@
 <div id="moonSelection" class="moon-selection"><div><span id="moonSelectedKind" class="eyebrow"></span><h2 id="moonSelectedName"></h2></div><p id="moonSelectedStory"></p><a id="visitMoon" href="#moon">Visit the Moon ↗</a></div>
 <div id="moonCards" class="moon-cards"></div>
 <details id="moonObservationNotes" class="moon-observation-notes" hidden><summary>About the gold pointer & this model</summary><p>The gold pointer is a drawn guide. The Moon turns once per orbit, keeping that side toward Earth. The guide hides when blocked or seen end-on.</p><p>Body sizes are proportional; distance is shortened. Earth’s daily spin is omitted. Sunlight is illustrative, not today’s sky or a phase calendar. <a href="sources.html#earth-moon-lighting" target="_blank" rel="noopener">Sources & model notes ↗</a></p></details>
-<p class="orbit-model-note">A model to explore, not today’s sky. Moon orbits are circular approximations with measured orbital periods. Distances are composed; moon sizes are enlarged. All moon paths use the parent’s equatorial plane except Earth’s Moon and tilted Iapetus. <a href="sources.html#moons" target="_blank">Image credits & model notes ↗</a></p>
+
 </section>
-<footer class="bottom-dock"><span>CONTINUE EXPLORING</span><div id="worldCards" class="world-cards" role="group" aria-label="Go to another world"></div></footer><nav class="small-worlds-nav" aria-label="Explore moons and asteroids"><span>SMALL WORLDS, BIG STORIES</span><a href="#moon">The Moon ↗</a><a href="#jupiter-moons">Jupiter’s moons ↗</a><a href="#saturn-moons">Saturn’s moons ↗</a><a href="#belt">Asteroid belt ↗</a></nav>
+<footer class="bottom-dock"><span>CONTINUE EXPLORING</span><div id="worldCards" class="world-cards" role="group" aria-label="Go to another world"></div></footer><nav class="small-worlds-nav" aria-label="Explore moons and asteroids"><a href="#moon">The Moon ↗</a><a href="#jupiter-moons">Jupiter’s moons ↗</a><a href="#saturn-moons">Saturn’s moons ↗</a><a href="#belt">Asteroid belt ↗</a></nav><footer class="exhibit-footer"><a href="sources.html" target="_blank" rel="noopener">Sources &amp; image credits ↗</a><a href="sources.html#city-services" target="_blank" rel="noopener">Services &amp; privacy ↗</a><details><summary>About the models</summary><div class="exhibit-model-notes"><p id="modelNote" class="model-note">NASA BLUE MARBLE · CLOUD MOVEMENT IS ILLUSTRATIVE</p><h3>Solar system</h3><p class="orbit-model-note">A working model, not today’s sky. Elliptical paths and relative orbital periods follow NASA/JPL data. Planet and Sun sizes are enlarged independently; “Real distances” puts the orbital distances on one scale. <a href="sources.html#orrery" target="_blank">How the model works ↗</a></p><h3>Moon orbits</h3><p class="orbit-model-note">A model to explore, not today’s sky. Moon orbits are circular approximations with measured orbital periods. Distances are composed; moon sizes are enlarged. All moon paths use the parent’s equatorial plane except Earth’s Moon and tilted Iapetus. <a href="sources.html#moons" target="_blank">Image credits & model notes ↗</a></p><h3>Tides &amp; asteroids</h3><p>The beach shows two highs in an ideal tide day of about 24 h 50 min. Real coasts have different timings and heights. <a href="sources.html#tides" target="_blank" rel="noopener">Tide model ↗</a></p><p>The asteroid flight is an imagined close-up journey with the rocks brought closer together. <a href="sources.html#asteroids" target="_blank" rel="noopener">Asteroid model ↗</a></p><h3>City views</h3><p>Satellite imagery is not live. Weather uses the actual local time, separate from Earth’s model clock. Current conditions come from a weather model.</p></div></details></footer>
 <dialog id="aboutPanel" aria-labelledby="aboutTitle"><button id="closeAbout" aria-label="Close field notes">×</button><span class="eyebrow">SOLSYSTEMET / FIELD NOTES</span><h2 id="aboutTitle">Light makes a world.</h2>
 <p>Explore eight planets and twelve moons with sunlight, surface detail and changing perspective. The imagery comes from observations; the movement and lighting are an interactive reconstruction.</p>
 <h3>Earth</h3><p>NASA’s Blue Marble July 2004 surface composite, with a separate cloud layer and city lights. The cloud layer moves independently and casts shadows. Local solar time follows longitude and the same Sun direction used by the renderer; it is not civil clock time. The model has no seasons.</p>
@@ -172,5 +172,5 @@
 <div id="routeAnnouncement" class="sr-only" role="status"></div>
 <div id="missionAnnouncement" class="sr-only" role="status"></div>
 <div id="toast" class="toast" role="status"></div>
-</div><script type="module" src="app.js?v=25a4b7bb490d.9df63c26d4"></script>
+</div><script type="module" src="app.js?v=2b5e4bf4b624.9df63c26d4"></script>
 </body></html>

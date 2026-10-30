@@ -1,4 +1,4 @@
-import { CLOSE_MOON_DISTANCE_RATIO, MAX_TIDE_RANGE } from './tide-constants.js?v=25a4b7bb490d.9df63c26d4';
+import { CLOSE_MOON_DISTANCE_RATIO, MAX_TIDE_RANGE } from './tide-constants.js?v=2b5e4bf4b624.9df63c26d4';
 
 // An explicitly illustrative coast: the lunar-day clock is independent of the
 // Moon's orbital clock. The caller supplies the actual equilibrium tide range.
@@ -68,7 +68,7 @@ function markup(id){return `
 <div class="tide-shore-clock-controls"><button type="button" data-shore-play class="play-action" aria-pressed="false">▶ Watch a day</button><label for="${id}Day"><span>Turn Earth</span><output data-shore-clock-reading>Start</output></label><input id="${id}Day" data-shore-day type="range" min="0" max="1000" step="1" value="0" aria-label="Turn Earth through one ideal tide day"/><div class="tide-shore-day-key"><span>START</span><span>ONE TIDE DAY</span></div></div>
 <p class="tide-shore-day-note">This clock turns Earth.<br> The Moon’s orbit above sets the size.</p>
 </div></div>
-<p class="tide-shore-limit">Two highs in an ideal tide day (about 24 h 50 min). Real shores have different timing and heights. <a href="sources.html#tides" target="_blank" rel="noopener">How this model works ↗</a></p>`;}
+<p class="tide-shore-limit">Two highs in an ideal tide day. <a href="sources.html#tides" target="_blank" rel="noopener">How this model works ↗</a></p>`;}
 
 export class TideShore{
  constructor(host,{onScenario}={}){
@@ -148,7 +148,7 @@ export class TideShore{
   const attempt=++this.coastAttempt;this.nodes.retry.hidden=true;this.host.dataset.detail='loading';
   let candidate;
   this.coastPending=(async()=>{
-   const {TideCoast}=await import('./tide-coast.js?v=25a4b7bb490d.9df63c26d4'+(retry?'&retry='+attempt:''));
+   const {TideCoast}=await import('./tide-coast.js?v=2b5e4bf4b624.9df63c26d4'+(retry?'&retry='+attempt:''));
    if(this.disposed||!this.active)return;
    candidate=new TideCoast(this.scene);await candidate.ready;
    if(this.disposed||!this.active){candidate.dispose();candidate=null;return;}

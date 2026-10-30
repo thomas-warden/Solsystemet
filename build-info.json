@@ -1,7 +1,7 @@
 {
-  "source_commit": "25a4b7bb490de8c4e049d12347cf9cdc5b883fa2",
-  "asset_revision": "25a4b7bb490d.9df63c26d4",
-  "built_at": "2026-10-30T11:44:22.107743+00:00",
-  "description": "Refined city picker, Visit button and larger minimal wind dial",
+  "source_commit": "2b5e4bf4b624895a575ba63c8650339180f7aa11",
+  "asset_revision": "2b5e4bf4b624.9df63c26d4",
+  "built_at": "2026-10-30T12:40:29.786376+00:00",
+  "description": "Apple-inspired city wheel, fifteen cities and consolidated model notes",
   "google_maps_configured": true
 }
