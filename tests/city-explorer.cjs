@@ -19,6 +19,7 @@ function mapsFixture(callback, authFailure = false) {
       }
       setCenter(value){this.center=value;}
       setZoom(value){this.zoom=value;}
+      getZoom(){return this.zoom;}
     }
     window.google={maps:{Map:MapFixture,event:{
       addListenerOnce(map,type,callback){const token=setTimeout(callback,30);return{remove(){clearTimeout(token);}};},
@@ -49,7 +50,8 @@ async function create(browser, { key=true, viewport={width:1385,height:804}, red
     const response=await route.fetch();await route.fulfill({response,body:await response.text()+`\nconst cityOriginalRender=PlanetRenderer.prototype.render;PlanetRenderer.prototype.render=function(...args){window.__cityPlanetRenders=(window.__cityPlanetRenders||0)+1;return cityOriginalRender.apply(this,args);};`});
   });
   await page.route('**/site-config.js*',route=>route.fulfill({contentType:'text/javascript',body:`export const GOOGLE_MAPS_BROWSER_KEY=${JSON.stringify(key?'test-browser-key-not-real':'')};`}));
-  if(moduleDelay)await page.route('**/city-explorer.js*',async route=>{const response=await route.fetch();await sleep(moduleDelay);await route.fulfill({response}).catch(()=>{});});
+  await page.route('**/city-explorer.js*',async route=>{const response=await route.fetch();if(moduleDelay)await sleep(moduleDelay);const body=await response.text()+`
+const testOpenCity=CityExplorer.prototype.open;CityExplorer.prototype.open=function(...args){if(!this.active){const marker=document.querySelector('#cityMarker'),canvas=document.querySelector('#universe').getBoundingClientRect();window.__cityArrival={dx:parseFloat(marker.style.left)-canvas.width/2,dy:parseFloat(marker.style.top)-canvas.height/2};}return testOpenCity.apply(this,args);};`;await route.fulfill({response,body}).catch(()=>{});});
   await page.route('https://maps.googleapis.com/maps/api/js*',async route=>{
     result.mapRequests++;const callback=new URL(route.request().url()).searchParams.get('callback');
     if(mapDelay)await sleep(mapDelay);
@@ -90,7 +92,8 @@ async function flights(browser) {
     const after=await page.evaluate(()=>window.__cityTest.read());
     assert.equal(after.earthProgress,before.earthProgress,'City flight does not change simulated solar time');
     assert.equal(after.earthCityZoom,1,'Actual Earth camera zoom reaches the city');
-    const center=await page.locator('#cityMarker').evaluate(marker=>{const canvas=document.querySelector('#universe').getBoundingClientRect();return{dx:parseFloat(marker.style.left)-canvas.width/2,dy:parseFloat(marker.style.top)-canvas.height/2};});
+    // Measure the visible globe arrival before the atlas changes its container size.
+    const center=await page.evaluate(()=>window.__cityArrival);
     assert(Math.abs(center.dx)<1&&Math.abs(center.dy)<1,`${id} is centred by actual latitude/longitude projection`);
     const renders=await page.evaluate(()=>window.__cityPlanetRenders);await page.waitForTimeout(250);
     assert.equal(await page.evaluate(()=>window.__cityPlanetRenders),renders,'Hidden globe stops rendering under the city');
@@ -136,7 +139,8 @@ async function weatherRecovery(browser) {
   mode='malformed';await page.locator('[data-city-select]').selectOption('wellington');await page.waitForFunction(()=>document.querySelector('#cityExplorer').dataset.weatherState==='error');assert.equal(await page.locator('[data-city-temperature]').textContent(),'—','Malformed new-city data cannot masquerade as zero weather');
   mode='delayed';await page.locator('[data-city-weather-refresh]').click();await page.locator('[data-city-select]').selectOption('melbourne');await page.waitForFunction(()=>document.querySelector('#cityExplorer').dataset.weatherState==='ready');await page.waitForTimeout(800);
   assert.equal(await page.locator('[data-city-temperature]').textContent(),'21°','Late Wellington response cannot overwrite Melbourne');
-  assert.match(await page.locator('[data-city-country]').textContent(),/Melbourne/);
+  assert.match(await page.locator('[data-city-name]').textContent(),/Melbourne/);
+  assert.match(await page.locator('[data-city-country]').textContent(),/Australia/);
   assert.equal(await page.locator('#citySelect').inputValue(),'melbourne','Internal selection remains linked to Earth city selection');
   mode='stale';await page.locator('[data-city-weather-refresh]').click();await page.waitForFunction(()=>document.querySelector('#cityExplorer').dataset.weatherState==='stale');assert.match(await page.locator('[data-city-weather-status]').textContent(),/may have changed/);
   await capture(page,'city-weather-stale');
@@ -194,12 +198,41 @@ async function cancellation(browser) {
   assert.equal(await page.locator('#cityExplorer').isVisible(),false,'Late provider response cannot revive a departed city');
   clean(result);await page.close();console.log('PASS late module/provider navigation cancellation');
 }
+async function stories(browser) {
+  const result=await create(browser),{page}=result;await visit(page,'earth');
+  const earthStories=await page.locator('#storyGrid h3').allTextContents();
+  await openCity(page,'wellington');
+  for(const id of ['wellington','birmingham','melbourne','abu-dhabi','stockholm','tokyo','new-york','quito']){
+    await page.locator('[data-city-select]').selectOption(id);
+    assert.equal(await page.locator('#storyGrid .story').count(),2,'Two city stories');
+    assert.equal(await page.locator('#storyGrid a').count(),2,'Each story links to its source');
+    const name=await page.locator('[data-city-name]').textContent();
+    assert.match(await page.locator('#fieldStories').getAttribute('aria-label'),new RegExp(name));
+    assert((await page.locator('#storyGrid h3').allTextContents()).every(title=>!earthStories.includes(title)),'City selection replaces Earth stories');
+  }
+  await page.locator('[data-city-story-link]').click();assert.equal(new URL(page.url()).hash,'#earth','Story link scrolls without changing the app route');
+  assert.equal(await page.evaluate(()=>document.activeElement.textContent),'Imagine that.','Story heading receives keyboard focus');
+  await closeCity(page);assert.deepEqual(await page.locator('#storyGrid h3').allTextContents(),earthStories,'Earth stories return with Earth');
+  clean(result);await page.close();console.log('PASS all eight sourced city stories, keyboard jump and Earth return');
+}
+async function missionCity(browser) {
+  const result=await create(browser,{viewport:{width:320,height:720}}),{page}=result;
+  await visit(page,'missions');await page.locator('[data-start-mission="sunrise"]').click();await ready(page);await openCity(page,'wellington');
+  assert(await page.locator('[data-city-name]').isVisible(),'City survives the phone mission DOM arrangement');
+  await page.locator('[data-city-zoom-in]').click();assert.equal(await page.evaluate(()=>window.__mapFixture.zoom),15,'Custom map zoom changes provider camera');
+  await page.locator('[data-city-zoom-out]').click();assert.equal(await page.evaluate(()=>window.__mapFixture.zoom),14);
+  await page.locator('[data-city-story-link]').click();assert(await page.locator('#fieldStories').isVisible(),'City stories remain available during a mission');
+  assert.equal(await page.locator('#atlas').getAttribute('data-mission-step'),'0','Exploring facts does not award a mission');
+  await capture(page,'city-mission-stories-320');await closeCity(page);
+  assert(await page.locator('#missionAction').isVisible(),'Return restores mission controls');
+  clean(result);await page.close();console.log('PASS phone mission city, custom zoom, visible stories and deliberate progress');
+}
 async function responsive(browser) {
   for(const viewport of [{width:390,height:844},{width:320,height:720},{width:844,height:390}]) {
     const result=await create(browser,{viewport}),{page}=result;await visit(page,'earth');await openCity(page,'melbourne');
     assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,'City layout fits horizontally');
-    for(const selector of ['[data-city-close]','[data-city-select]','[data-city-weather-refresh]','[data-city-map-reset]']){
-      const box=await page.locator(selector).boundingBox();assert(box.height>=44&&box.width>=44,`${selector} is a comfortable target (${box.width}×${box.height} at ${viewport.width}px)`);
+    for(const selector of ['[data-city-close]','[data-city-select]','[data-city-weather-refresh]','[data-city-map-reset]','[data-city-zoom-in]','[data-city-zoom-out]','[data-city-story-link]']){
+      const box=await page.locator(selector).boundingBox();assert(box,selector+' must be visible');assert(box.height>=44&&box.width>=44,`${selector} is a comfortable target (${box.width}×${box.height} at ${viewport.width}px)`);
     }
     const expected=await page.evaluate(()=>new Intl.DateTimeFormat('en-GB',{timeZone:'Australia/Melbourne',hour:'2-digit',minute:'2-digit'}).format(new Date()));assert.equal(await page.locator('[data-city-now]').textContent(),expected,'Local clock uses selected city timezone');
     await page.locator('[data-city-select]').focus();await page.keyboard.press('Home');await page.keyboard.press('End');await page.keyboard.press('Tab');
@@ -208,4 +241,4 @@ async function responsive(browser) {
     clean(result);await page.close();console.log('PASS city keyboard and responsive layout '+viewport.width+'×'+viewport.height);
   }
 }
-(async()=>{const browser=await launch();try{for(const test of [flights,missingKey,weatherRecovery,weatherTimeout,mapRecovery,cancellation,motionPreference,responsive])if(!process.env.TEST_CITY_FILTER||test.name.includes(process.env.TEST_CITY_FILTER))await test(browser);}finally{await browser.close();}})().catch(error=>{console.error(safe(error.stack||error));process.exitCode=1;});
+(async()=>{const browser=await launch();try{for(const test of [flights,missingKey,weatherRecovery,weatherTimeout,mapRecovery,cancellation,motionPreference,stories,missionCity,responsive])if(!process.env.TEST_CITY_FILTER||test.name.includes(process.env.TEST_CITY_FILTER))await test(browser);}finally{await browser.close();}})().catch(error=>{console.error(safe(error.stack||error));process.exitCode=1;});

@@ -1,3 +1,4 @@
+import { CITY_STORIES } from './city-stories.js?v=20261030';
 import { CITIES } from './cities.js?v=20261029';
 import { createMissions } from './missions.js?v=20261014missions';
 import { PlanetRenderer } from './renderer.js?v=20261014d';
@@ -15,7 +16,10 @@ function loadOrrery(){
 fetch('assets/research/planet-stories-and-orbits.json').then(r=>r.json()).then(data=>{stories=data.planets;showStories();}).catch(()=>{});
 fetch('assets/research/extra-planet-stories.json').then(r=>r.json()).then(data=>{extraStories=data.planets||data;showStories();}).catch(()=>{});
 function showStories(){
- const entries=[...(WORLDS[state.world].stories||stories?.[state.world]?.stories||[]),...(extraStories[state.world]?.stories||extraStories[state.world]||[])];
+ const city=state.world==='earth'&&cityExplorer?.active?cities[state.city]:null;
+ const entries=city?CITY_STORIES[city.id].stories:[...(WORLDS[state.world].stories||stories?.[state.world]?.stories||[]),...(extraStories[state.world]?.stories||extraStories[state.world]||[])];
+ $('fieldStories').setAttribute('aria-label',city?'Stories from '+city.name:'Small stories from a big solar system');
+ $('fieldStories').querySelector('.eyebrow').textContent=city?'TAKE A THOUGHT HOME · '+city.name.toUpperCase():'TAKE A THOUGHT HOME';
  $('storyGrid').replaceChildren();
  for(const story of entries){const el=document.createElement('article');el.className='story';const title=document.createElement('h3'),body=document.createElement('p'),link=document.createElement('a');title.textContent=story.title;body.textContent=story.text;link.href=story.source;link.target='_blank';link.rel='noopener';link.textContent='Field source ↗';el.append(title,body,link);if(story.related){const next=document.createElement('a');next.className='story-next';next.href='#'+story.related;next.textContent=story.action;el.append(next);}$('storyGrid').append(el);}
 }
@@ -114,7 +118,7 @@ function syncCityControls(){
 function closeCity({focus=true}={}){
  cityVisitRequest++;
  if(cityFlight){cityFlight.resolve(false);cityFlight=null;}
- cityRevealing=false;cityExplorer?.close({notify:false});
+ cityRevealing=false;cityExplorer?.close({notify:false});showStories();
  if(citySnapshot){const saved=citySnapshot;citySnapshot=null;Object.assign(state,saved);if(reduced.matches)state.running=false;lastPlanetFrame='';$('sceneCaption').textContent=cityCaption;}
  if($('scene'))delete $('scene').dataset.cityFlight;
  updateReadouts();
@@ -158,7 +162,7 @@ async function visitCity(){
   cityRevealing=false;delete $('scene').dataset.cityFlight;
   // Notify the existing city/mission listeners without opening the map twice.
   cityExplorer||=new module.CityExplorer($('cityExplorer'),{onClose:()=>closeCity(),onSelect:selected=>{if(!cities[selected.id])return;$('citySelect').value=selected.id;$('citySelect').dispatchEvent(new CustomEvent('change',{bubbles:true,detail:{fromCityExplorer:true}}));}});
-  const opening=cityExplorer.open(city);updateReadouts();await opening;
+  const opening=cityExplorer.open(city);updateReadouts();showStories();$('scene').scrollIntoView({block:'start',behavior:'instant'});await opening;
  }catch(error){
   if(request!==cityVisitRequest)return;
   closeCity({focus:false});toast('The city view could not load. Choose Explore city to try again.');
@@ -264,7 +268,7 @@ $('titanNorth').onclick=()=>{
 };
 $('sunAngle').oninput=e=>{state.lightPhase=Number(e.target.value)*Math.PI/180;updateReadouts();};
 $('axisTilt').oninput=e=>{state.axisTilt=Number(e.target.value);updateReadouts();};
-$('citySelect').onchange=e=>{state.city=e.target.value;updateReadouts();if(!e.detail?.fromCityExplorer&&(cityExplorer?.active||cityFlight||cityRevealing))visitCity();};
+$('citySelect').onchange=e=>{state.city=e.target.value;updateReadouts();showStories();if(!e.detail?.fromCityExplorer&&(cityExplorer?.active||cityFlight||cityRevealing))visitCity();};
 if($('cityVisit'))$('cityVisit').onclick=()=>visitCity();
 $('earthRotation').oninput=e=>{const from=(1-state.earthProgress)*1000,to=Number(e.target.value);earthInput={from,to,wasDaylight:$('dayStatus').textContent==='Daylight'};state.earthProgress=1-to/1000;setRunning(false);};
 $('cloudToggle').onchange=e=>state.clouds=e.target.checked;$('lightsToggle').onchange=e=>state.lights=e.target.checked;

@@ -119,6 +119,8 @@ python3 scripts/build-site.py --output /tmp/solsystemet-site
 
 The output contains the runtime site, .nojekyll and build-info.json. The build record identifies `source_commit`, `asset_revision` and `google_maps_configured`, without recording the key itself. Module/style version parameters use the asset revision throughout the import chain: the committed source revision plus a key hash when configured. Changing the key therefore invalidates cached modules even when the source commit stays the same. The script refuses to overwrite an existing directory or label uncommitted source as a committed build. Publish the output at the configured GitHub Pages branch root.
 
+The city explorer opens as a full-width atlas with a serif place heading, geographic coordinates, an unobstructed Google map and current weather. Each of the eight cities has two sourced stories in **Imagine that**; returning restores Earth’s stories. `city-stories.js` contains the original copy and source links. `CITY_ART_DIRECTION.md` and `CITY_ATLAS_REVIEW.md` record the redesign and browser review.
+
 ### Enable the embedded city satellite view
 
 1. In a Google Cloud project, enable billing and the **Maps JavaScript API**, then create a browser API key. See [Google's setup instructions](https://developers.google.com/maps/documentation/javascript/get-api-key).

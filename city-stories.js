@@ -1,0 +1,28 @@
+// Original short-form stories. Source pages checked 30 October 2026.
+// Distinguish city landmarks from wider regions; avoid disputed city rankings.
+export const CITY_STORIES = {
+ 'abu-dhabi': {invitation:'Find the islands where the desert meets the sea.', stories:[
+  {title:'A shower made of sunlight.',text:'At Louvre Abu Dhabi, 7,850 star shapes fit together in a giant roof. Sunshine slips through its layers, scattering a “rain of light” across the spaces below.',source:'https://www.louvreabudhabi.ae/en/about-us/architecture'},
+  {title:'A roof that seems to float.',text:'That silvery dome weighs about 7,500 tonnes. Just four hidden supports hold it up. From below, something enormously heavy seems to hover in the air.',source:'https://www.louvreabudhabi.ae/en/about-us/architecture'}]},
+ stockholm: {invitation:'Follow the waterways between the city’s islands.',stories:[
+  {title:'A ship comes back from the past.',text:'In 1961, the wooden warship Vasa rose from Stockholm’s harbour after almost 333 years underwater. Today you can walk around it inside a museum. Imagine finding a whole ship instead of a single piece of treasure.',source:'https://www.vasamuseet.se/en/explore/vasa-history/salvage/'},
+  {title:'Lift a ship, one little step at a time.',text:'Salvagers moved Vasa into shallower water in 18 stages. Each lift gained less than a metre. Bringing a giant ship back took small steps, strong cables and extraordinary patience.',source:'https://www.vasamuseet.se/en/explore/vasa-history/salvage/'}]},
+ tokyo: {invitation:'Explore a city of rivers, rooftops and remarkable towers.',stories:[
+  {title:'A tower more than half a kilometre tall.',text:'Tokyo Skytree reaches 634 metres into the sky. It sends television and radio signals across the city. A place to look out from is also a place that helps millions of people tune in.',source:'https://en.tokyo-skytree.jp/about/spec/'},
+  {title:'A secret word inside a number.',text:'Skytree’s height is a clue. In Japanese, the sounds of 6, 3 and 4 can suggest “Musashi”, the old name of a region that included this part of Tokyo. Even the tower’s height tells a local story.',source:'https://en.tokyo-skytree.jp/about/spec/'}]},
+ 'new-york': {invitation:'Trace the rivers around Manhattan’s long island.',stories:[
+  {title:'A giant with a very thin skin.',text:'The Statue of Liberty’s copper skin is only about as thick as two US pennies stacked together. A hidden framework supports the huge figure. Something that looks solid can be surprisingly hollow.',source:'https://www.nps.gov/stli/learn/historyculture/statue-statistics.htm'},
+  {title:'Even a statue can sway.',text:'In strong wind, the Statue of Liberty can sway about 8 centimetres, and its torch about 15. A little movement helps this enormous landmark live with the weather.',source:'https://www.nps.gov/stli/learn/historyculture/statue-statistics.htm'}]},
+ quito: {invitation:'Find a city stretched along the slopes of the Andes.',stories:[
+  {title:'An ordinary day, a mountain up.',text:'Quito stands about 2,850 metres above sea level. You can begin a walk through its streets higher than many mountain summits. Here, ordinary city life happens high in the Andes.',source:'https://whc.unesco.org/en/list/2/'},
+  {title:'A volcano for a neighbour.',text:'Quito spreads along the slopes of Pichincha, a volcano. Look at how the streets fit between steep hills. The shape of the land helps decide the shape of the city.',source:'https://whc.unesco.org/en/list/2/'}]},
+ birmingham: {invitation:'Look for the narrow blue threads between the streets.',stories:[
+  {title:'Roads made of water.',text:'The wider Birmingham Canal Navigations network stretches for about 100 miles — roughly 160 kilometres. These waterways connect Birmingham and the Black Country. Look closely: some of the city’s routes are for boats.',source:'https://canalrivertrust.org.uk/canals-and-rivers/birmingham-canal-navigations'},
+  {title:'The canals worked through the night.',text:'Birmingham’s canals once carried so much traffic that gas lamps lit the locks for round-the-clock working. While people slept, boats kept moving through the city’s watery crossroads.',source:'https://canalrivertrust.org.uk/canals-and-rivers/birmingham-canal-navigations'}]},
+ wellington: {invitation:'Follow the harbour to the narrow gap between two islands.',stories:[
+  {title:'A city in the wind’s doorway.',text:'Wellington sits beside Cook Strait, where winds squeeze through the gap between New Zealand’s two main islands and grow stronger. No wonder it is famous as “Windy Wellington”. The landscape helps turn up the breeze.',source:'https://teara.govt.nz/en/wellington-region/page-3'},
+  {title:'A chilly visitor from the south.',text:'Some of Wellington’s coldest winds bring air from the Southern Ocean. A change in wind direction can bring a very different feel to the day. Check the wind reading above: where is today’s air coming from?',source:'https://teara.govt.nz/en/wellington-region/page-3'}]},
+ melbourne: {invitation:'Trace the Yarra through the city towards Port Phillip.',stories:[
+  {title:'A world of plants in one garden.',text:'Melbourne’s Royal Botanic Gardens holds more than 8,500 plant species. Rainforest plants, cacti and towering trees live in the same city garden. A short walk can introduce you to plants from far across the world.',source:'https://www.rbg.vic.gov.au/melbourne-gardens/'},
+  {title:'A little wilderness between the streets.',text:'The Melbourne Gardens covers 38 hectares, with waterbirds nesting around its Ornamental Lake. On the map, look for that green pocket beside the river. A busy city can leave room for other lives.',source:'https://www.rbg.vic.gov.au/melbourne-gardens/'}]},
+};
