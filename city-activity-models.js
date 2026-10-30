@@ -1,0 +1,41 @@
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+export const CITY_ACTIVITIES={
+ 'wellington':{id:'wind',title:'Send wind through the strait.',control:'Turn the wind',ends:['Along the strait','Across the hills'],initial:75,prompt:'Can you find the direction that funnels the air?',discovery:'The gap channels the wind. Air speeds up between the islands.',source:'https://teara.govt.nz/en/wellington-region/page-3'},
+ 'cape-town':{id:'cloud',title:'Make the tablecloth cloud.',control:'Moisture in the air',ends:['Dry air','Moist air'],initial:30,prompt:'Keep the mountain fixed. Can you make a cloud?',discovery:'Moist air rose, cooled and condensed. Sinking air warms and the cloud fades.',source:'https://en.wikipedia.org/wiki/Table_Mountain'},
+ 'abu-dhabi':{id:'mangrove',title:'Let the roots slow the water.',control:'Mangrove cover',ends:['Open shore','Root forest'],initial:15,prompt:'Compare the moving grains with and without roots.',discovery:'Roots slow the flow, giving suspended grains more time to settle.',source:'https://oceanservice.noaa.gov/facts/mangroves.html'},
+ stockholm:{id:'rebound',title:'Lift the weight of the ice.',control:'Move through geological time',ends:['Ice weighs down','Long after melting'],initial:0,prompt:'Does the land stop rising when the ice has gone?',discovery:'The ice has gone, but the land is still rebounding from its weight.',source:'https://en.wikipedia.org/wiki/Post-glacial_rebound'},
+ tokyo:{id:'heat',title:'Which neighbourhood keeps the heat?',control:'Move towards night',ends:['Late afternoon','After midnight'],initial:0,prompt:'Watch the paved and leafy neighbourhoods cool.',discovery:'The paved neighbourhood releases stored heat more slowly after sunset.',source:'https://www.epa.gov/heatislands/learn-about-heat-islands'},
+ 'new-york':{id:'estuary',title:'Turn the river around.',control:'Move through a tidal cycle',ends:['Start','One cycle'],initial:18,prompt:'Find a current towards the sea, then one going inland.',discovery:'The ocean tide can reverse the Hudson’s current. A rising tide drives water inland.',source:'https://en.wikipedia.org/wiki/Hudson_River'},
+ quito:{id:'daylight',title:'Give two cities the same season.',control:'Move through the year',ends:['March','Next March'],initial:0,prompt:'Compare Quito’s daylight with Stockholm’s.',discovery:'Quito stays close to twelve hours. Farther north, Earth’s tilt changes day length much more.',source:'https://www.weather.gov/cle/Seasons'},
+ birmingham:{id:'catchment',title:'Follow a raindrop.',control:'Choose where rain falls',ends:['Left hillside','Right hillside'],initial:12,prompt:'Drop rain on both hills. Where does it gather?',discovery:'Gravity carries water downhill. Small streams join the same larger river.',source:'https://en.wikipedia.org/wiki/River_Rea'},
+ melbourne:{id:'sediment',title:'Make tiny grains gather.',control:'Mix in seawater',ends:['Fresh water','Salty water'],initial:0,prompt:'Can you make the suspended clay settle?',discovery:'Salt helps tiny clay particles gather into larger clumps that settle more readily.',source:'https://en.wikipedia.org/wiki/Yarra_River#Water_colour'},
+ nairobi:{id:'altitude',title:'Climb into cooler air.',control:'Raise the thermometer',ends:['Sea level','Highlands'],initial:0,prompt:'Move the thermometer to Nairobi’s elevation.',discovery:'Air generally cools with height. Elevation helps Nairobi feel cooler than its latitude suggests.',source:'https://en.wikipedia.org/wiki/Nairobi#Climate'},
+ cairo:{id:'delta',title:'Build land with a river.',control:'Advance deposition',ends:['Open water','Growing delta'],initial:0,prompt:'Watch where sediment settles as the river slows.',discovery:'Sediment builds a delta where river flow slows. New deposits can divide the channels.',source:'https://en.wikipedia.org/wiki/Nile_Delta'},
+ 'rio-de-janeiro':{id:'erosion',title:'Leave a mountain standing.',control:'Advance erosion',ends:['Earlier landscape','Much later'],initial:0,prompt:'Which rock survives as the surroundings wear away?',discovery:'More resistant rock remains as surrounding material is removed. The landscape changes unevenly.',source:'https://en.wikipedia.org/wiki/Bornhardt'},
+ amsterdam:{id:'peat',title:'What happens when peat dries?',control:'Lower the water table',ends:['Wet peat','Drained peat'],initial:0,prompt:'Drain the ground, then watch the surface.',discovery:'Drained peat compacts and decomposes. Over time, the land surface falls.',source:'https://en.wikipedia.org/wiki/Subsidence'},
+ copenhagen:{id:'layers',title:'Send water in two directions.',control:'Difference in saltiness',ends:['Similar water','Fresher / saltier'],initial:0,prompt:'Find the water moving below the surface flow.',discovery:'Denser, saltier water can move beneath fresher surface water in the opposite direction.',source:'https://en.wikipedia.org/wiki/%C3%98resund'},
+ auckland:{id:'volcano',title:'Find a new path for magma.',control:'Choose a fracture',ends:['West','East'],initial:15,prompt:'Move the fracture. Does magma always reach the same vent?',discovery:'Magma can rise through different fractures. A volcanic field has many separate vents.',source:'https://en.wikipedia.org/wiki/Auckland_volcanic_field'},
+};
+export const EARTHQUAKE={id:'quake',title:'Move a coastline in a moment.',control:'Build strain along the fault',ends:['Relaxed','Strained'],initial:0,prompt:'Build strain, then release the fault.',discovery:'Fault movement shifted the land and shoreline. Wellington’s coast rose in the 1855 earthquake.',source:'https://teara.govt.nz/en/wellington-region/page-2'};
+export function activityState(id,value,{released=false}={}){
+ const p=clamp(Number(value)/100,0,1);
+ switch(id){
+ case 'wind':return {p,strength:1+.9*Math.cos(p*Math.PI/2)**2,reading:p<.3?'Wind funnels through the gap':'Wind crosses the hills',goal:p<.25};
+ case 'cloud':{const base=125*(20-19*p);return {p,base,cloud:clamp((1086-base)/650,0,1),reading:base>1086?'Air crosses without a cloud':`Cloud base ≈ ${Math.round(base/50)*50} m`,goal:base<650};}
+ case 'mangrove':return {p,speed:1-.7*p,reading:p>.65?'Slower flow · more settling':'Faster flow · grains stay moving',goal:p>.75};
+ case 'rebound':return {p,ice:1-clamp(p*3,0,1),rise:1-Math.exp(-p*2),reading:p<.34?'Ice melts; pressure eases':'Ice gone · land still rising',goal:p>.8};
+ case 'heat':{const h=p*10,urban=22+10*Math.exp(-h/6),green=19+10*Math.exp(-h/2);return {p,urban,green,reading:p<.15?'Both surfaces hold daytime heat':'Paved ground stays warmer',goal:p>.65};}
+ case 'estuary':{const flow=Math.sin(p*Math.PI*2);return {p,flow,reading:Math.abs(flow)<.12?'Slack water':flow>0?'Flood current · towards land':'Ebb current · towards the sea',goal:p>.6&&p<.9};}
+ case 'daylight':{const declination=.4091*Math.sin(p*2*Math.PI),day=lat=>24/Math.PI*Math.acos(clamp(-Math.tan(lat*Math.PI/180)*Math.tan(declination),-1,1));return {p,declination,quito:day(-.1807),stockholm:day(59.3293),reading:`Quito ${day(-.1807).toFixed(1)} h · Stockholm ${day(59.3293).toFixed(1)} h`,goal:Math.abs(day(59.3293)-12)>5};}
+ case 'catchment':return {p,reading:p<.5?'Rain on the left hillside':'Rain on the right hillside',goal:p>.8};
+ case 'sediment':return {p,settling:.12+.8*p,reading:p>.65?'Larger clumps settle':'Tiny grains stay suspended',goal:p>.75};
+ case 'altitude':return {p,height:2500*p,temp:30-6.5*2.5*p,reading:`${Math.round(2500*p)} m · illustrative ${Math.round(30-6.5*2.5*p)}°C`,goal:p>.69&&p<.77};
+ case 'delta':return {p,reading:p>.65?'Deposits divide the channels':'Sediment settles at the river mouth',goal:p>.8};
+ case 'erosion':return {p,reading:p>.65?'Resistant rock stands above the land':'Surrounding material wears away',goal:p>.8};
+ case 'peat':return {p,reading:p>.6?'Lower water table · lower surface':'Wet peat keeps its volume',goal:p>.8};
+ case 'layers':return {p,reading:p>.5?'Surface out · denser water in':'Little density contrast',goal:p>.75};
+ case 'volcano':return {p,reading:p<.33?'Western fracture':p>.66?'Eastern fracture':'Central fracture',goal:p>.8};
+ case 'quake':return {p,released,reading:released?'The fault slipped · coast uplifted':p>.65?'Strain stored along the fault':'Build strain, then release',goal:released&&p>.05};
+ default:throw Error('Unknown city activity');
+ }
+}

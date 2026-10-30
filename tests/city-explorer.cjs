@@ -299,4 +299,5 @@ async function touchWheel(browser){
  await page.emulateMedia({reducedMotion:'reduce'});await page.waitForFunction(()=>document.querySelector('.city-wheel-option').style.transform==='none');
  await page.keyboard.press('Escape');assert.equal(await page.locator('.city-wheel-dialog').isVisible(),false);clean(result);await page.close();console.log('PASS emulated touch swipe, snap and live reduced-motion change');
 }
-(async()=>{const browser=await launch();try{for(const test of [cityWheel,touchWheel,flights,missingKey,weatherRecovery,weatherTimeout,mapRecovery,cancellation,motionPreference,windCompass,stories,missionCity,responsive])if(!process.env.TEST_CITY_FILTER||test.name.includes(process.env.TEST_CITY_FILTER))await test(browser);}finally{await browser.close();}})().catch(error=>{console.error(safe(error.stack||error));process.exitCode=1;});
+module.exports={create,openCity,closeCity,clean,capture};
+if(require.main===module)(async()=>{const browser=await launch();try{for(const test of [cityWheel,touchWheel,flights,missingKey,weatherRecovery,weatherTimeout,mapRecovery,cancellation,motionPreference,windCompass,stories,missionCity,responsive])if(!process.env.TEST_CITY_FILTER||test.name.includes(process.env.TEST_CITY_FILTER))await test(browser);}finally{await browser.close();}})().catch(error=>{console.error(safe(error.stack||error));process.exitCode=1;});
