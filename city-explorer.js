@@ -1,7 +1,8 @@
-import { attachCityPicker } from './city-picker.js?v=2b5e4bf4b624.9df63c26d4';
-import { CITY_STORIES } from './city-stories.js?v=2b5e4bf4b624.9df63c26d4';
-import { CITIES } from './cities.js?v=2b5e4bf4b624.9df63c26d4';
-import { GOOGLE_MAPS_BROWSER_KEY } from './site-config.js?v=2b5e4bf4b624.9df63c26d4';
+import { CityActivities } from './city-activities.js?v=1c9cff8d2ad4.9df63c26d4';
+import { attachCityPicker } from './city-picker.js?v=1c9cff8d2ad4.9df63c26d4';
+import { CITY_STORIES } from './city-stories.js?v=1c9cff8d2ad4.9df63c26d4';
+import { CITIES } from './cities.js?v=1c9cff8d2ad4.9df63c26d4';
+import { GOOGLE_MAPS_BROWSER_KEY } from './site-config.js?v=1c9cff8d2ad4.9df63c26d4';
 
 const WEATHER_INTERVAL = 10 * 60 * 1000;
 const WEATHER_STALE = 90 * 60 * 1000;
@@ -119,8 +120,9 @@ export class CityExplorer {
     host.innerHTML=`<header class="city-explorer-header"><button type="button" class="city-return" data-city-close>← Earth</button><div class="city-choice"><label for="cityExplorerSelect">EXPLORE A CITY</label><select id="cityExplorerSelect" data-city-select></select></div><a class="city-story-link" href="#fieldStories" data-city-story-link>Imagine that ↓</a></header>
       <div class="city-heading"><div><span class="eyebrow" data-city-country></span><h1 data-city-name></h1><p data-city-invitation></p></div><div class="city-place-details"><span class="city-coordinates" data-city-coordinates></span><div class="city-now"><span data-city-now>—</span><small>LOCAL TIME NOW</small></div></div></div>
       <div class="city-map-region"><div class="city-map" data-city-map aria-label="Google satellite map"></div><div class="city-map-message" data-city-map-message role="status"><span class="eyebrow">A CLOSER LOOK</span><h2 data-city-map-title>Finding the city…</h2><p data-city-map-copy></p><div class="city-map-actions"><button type="button" data-city-map-retry hidden>Try satellite view again ↻</button><a data-city-external target="_blank" rel="noopener">Open Google satellite map ↗</a></div></div><button type="button" class="city-map-reset" data-city-map-reset hidden>City centre ⌖</button><div class="city-map-zoom" data-city-map-zoom hidden role="group" aria-label="Map zoom"><button type="button" data-city-zoom-in aria-label="Zoom in">+</button><button type="button" data-city-zoom-out aria-label="Zoom out">−</button></div></div>
-      <section class="city-weather" aria-label="Current weather"><div class="city-weather-top"><div><span class="eyebrow">UNDER THIS SKY</span><p class="city-weather-location">Current weather</p></div><button type="button" class="city-weather-refresh" data-city-weather-refresh aria-label="Refresh current weather">Refresh ↻</button></div><div class="city-weather-report" data-city-weather-report><div class="city-weather-main"><div class="city-weather-icon" data-city-weather-icon></div><div><strong data-city-temperature>—</strong><span data-city-condition>Fetching current weather…</span></div></div><dl class="city-weather-details"><div><dt>Feels like</dt><dd data-city-feels>—</dd></div><div><dt>Wind</dt><dd class="city-wind" data-city-wind>—</dd></div><div><dt>Humidity</dt><dd data-city-humidity>—</dd></div></dl></div><p class="city-weather-status" data-city-weather-status role="status">Connecting to the weather service…</p><div class="city-weather-foot"><span data-city-weather-updated>Waiting for an update</span><span>Modelled current conditions · <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo ↗</a></span></div></section>
+      <section class="city-activities" aria-label="Explore the geography" hidden></section><section class="city-weather" aria-label="Current weather"><div class="city-weather-top"><div><span class="eyebrow">UNDER THIS SKY</span><p class="city-weather-location">Current weather</p></div><button type="button" class="city-weather-refresh" data-city-weather-refresh aria-label="Refresh current weather">Refresh ↻</button></div><div class="city-weather-report" data-city-weather-report><div class="city-weather-main"><div class="city-weather-icon" data-city-weather-icon></div><div><strong data-city-temperature>—</strong><span data-city-condition>Fetching current weather…</span></div></div><dl class="city-weather-details"><div><dt>Feels like</dt><dd data-city-feels>—</dd></div><div><dt>Wind</dt><dd class="city-wind" data-city-wind>—</dd></div><div><dt>Humidity</dt><dd data-city-humidity>—</dd></div></dl></div><p class="city-weather-status" data-city-weather-status role="status">Connecting to the weather service…</p><div class="city-weather-foot"><span data-city-weather-updated>Waiting for an update</span><span>Modelled current conditions · <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo ↗</a></span></div></section>
       `;
+    this.activities=new CityActivities(host.querySelector('.city-activities'));
     this.nodes=Object.fromEntries(['close','select','name','invitation','coordinates','story-link','now','map','map-message','map-title','map-copy','map-retry','external','map-reset','map-zoom','zoom-in','zoom-out','country','weather-refresh','weather-report','weather-icon','temperature','condition','feels','wind','humidity','weather-status','weather-updated'].map(key=>[key,host.querySelector(`[data-city-${key}]`)]));
     for(const city of Object.values(CITIES)){const option=document.createElement('option');option.value=city.id;option.textContent=city.name;this.nodes.select.append(option);}
     this.cityPicker=attachCityPicker(this.nodes.select);
@@ -142,6 +144,7 @@ export class CityExplorer {
     this.request++;this.active=true;this.city=CITIES[city.id];this.host.hidden=false;
     if(this.scene)this.scene.dataset.cityOpen='true';
     this.host.dataset.city=this.city.id;this.nodes.select.value=this.city.id;this.cityPicker.sync();
+    this.activities.show(this.city);
     this.nodes.country.textContent=this.city.country;
     this.nodes.name.textContent=this.city.name;
     this.nodes.invitation.textContent=CITY_STORIES[this.city.id].invitation;
@@ -243,12 +246,12 @@ export class CityExplorer {
     if(!this.active)return;
     this.active=false;this.request++;this.weatherRequest++;this.mapGeneration++;
     this.weatherController?.abort();this.weatherController=null;this.clearTimers();this.clearMapWait();
-    this.host.hidden=true;if(this.scene)delete this.scene.dataset.cityOpen;
+    this.activities.hide();this.host.hidden=true;if(this.scene)delete this.scene.dataset.cityOpen;
     if(notify)this.onClose();
   }
   dispose(){
     if(this.disposed)return;this.close();this.clearMap();this.clearTimers();
     for(const [target,type,handler]of this.listeners)target.removeEventListener(type,handler);
-    this.listeners=[];this.host.replaceChildren();this.disposed=true;
+    this.listeners=[];this.host.replaceChildren();this.activities.dispose();this.disposed=true;
   }
 }

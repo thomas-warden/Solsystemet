@@ -1,4 +1,4 @@
-import { CLOSE_MOON_DISTANCE_RATIO, MAX_TIDE_RANGE } from './tide-constants.js?v=2b5e4bf4b624.9df63c26d4';
+import { CLOSE_MOON_DISTANCE_RATIO, MAX_TIDE_RANGE } from './tide-constants.js?v=1c9cff8d2ad4.9df63c26d4';
 
 // An explicitly illustrative coast: the lunar-day clock is independent of the
 // Moon's orbital clock. The caller supplies the actual equilibrium tide range.
@@ -148,7 +148,7 @@ export class TideShore{
   const attempt=++this.coastAttempt;this.nodes.retry.hidden=true;this.host.dataset.detail='loading';
   let candidate;
   this.coastPending=(async()=>{
-   const {TideCoast}=await import('./tide-coast.js?v=2b5e4bf4b624.9df63c26d4'+(retry?'&retry='+attempt:''));
+   const {TideCoast}=await import('./tide-coast.js?v=1c9cff8d2ad4.9df63c26d4'+(retry?'&retry='+attempt:''));
    if(this.disposed||!this.active)return;
    candidate=new TideCoast(this.scene);await candidate.ready;
    if(this.disposed||!this.active){candidate.dispose();candidate=null;return;}
