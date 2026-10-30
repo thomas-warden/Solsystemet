@@ -1,7 +1,7 @@
 {
-  "source_commit": "ee3f09657be80aae7b69ff5f9995863c564d2544",
-  "asset_revision": "ee3f09657be8.9df63c26d4",
-  "built_at": "2026-10-30T08:44:00.865345+00:00",
-  "description": "Solsystemet static site",
+  "source_commit": "0bdabc6723e23b245333762310a0c27c171ee901",
+  "asset_revision": "0bdabc6723e2.9df63c26d4",
+  "built_at": "2026-10-30T09:22:55.973344+00:00",
+  "description": "A full-width city atlas with atmospheric weather and sixteen sourced discoveries",
   "google_maps_configured": true
 }
