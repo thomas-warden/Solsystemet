@@ -1,17 +1,17 @@
-import { CITY_STORIES } from './city-stories.js?v=e6305f546a8d.9df63c26d4';
-import { CITIES } from './cities.js?v=e6305f546a8d.9df63c26d4';
-import { createMissions } from './missions.js?v=e6305f546a8d.9df63c26d4';
-import { PlanetRenderer } from './renderer.js?v=e6305f546a8d.9df63c26d4';
-import { FAMILIES } from './moons.js?v=e6305f546a8d.9df63c26d4';
-import { resolveRoute, renderFamilyNavigation, renderMoonShelf, renderMoonSystemNavigation } from './navigation.js?v=e6305f546a8d.9df63c26d4';
-import { ORDER, WORLDS } from './worlds.js?v=e6305f546a8d.9df63c26d4';
+import { CITY_STORIES } from './city-stories.js?v=25a4b7bb490d.9df63c26d4';
+import { CITIES } from './cities.js?v=25a4b7bb490d.9df63c26d4';
+import { createMissions } from './missions.js?v=25a4b7bb490d.9df63c26d4';
+import { PlanetRenderer } from './renderer.js?v=25a4b7bb490d.9df63c26d4';
+import { FAMILIES } from './moons.js?v=25a4b7bb490d.9df63c26d4';
+import { resolveRoute, renderFamilyNavigation, renderMoonShelf, renderMoonSystemNavigation } from './navigation.js?v=25a4b7bb490d.9df63c26d4';
+import { ORDER, WORLDS } from './worlds.js?v=25a4b7bb490d.9df63c26d4';
 const $=id=>document.getElementById(id),root=$('atlas'),canvas=$('universe');
 $('planetNav').innerHTML=ORDER.map(id=>`<button data-world="${id}" type="button"><i style="background:${WORLDS[id].color}"></i>${WORLDS[id].title}</button>`).join('');
 $('worldCards').innerHTML=ORDER.map(id=>`<button data-world="${id}"><small>${WORLDS[id].number}</small><strong>${WORLDS[id].title}</strong></button>`).join('');
 let orrery,orreryPromise,orreryAttempt=0,moonSystem,moonPromise,beltFlight,beltPromise,view='planet',moonTarget='',stories,extraStories={},orreryAvailability='loading';
 function loadOrrery(){
  // Browsers cache failed module downloads, so a retry needs a fresh URL.
- return orreryPromise||=import('./orrery.js?v=e6305f546a8d.9df63c26d4'+(orreryAttempt?'&retry='+orreryAttempt:'')).then(({Orrery})=>new Orrery()).catch(error=>{orreryPromise=null;orreryAttempt++;throw error;});
+ return orreryPromise||=import('./orrery.js?v=25a4b7bb490d.9df63c26d4'+(orreryAttempt?'&retry='+orreryAttempt:'')).then(({Orrery})=>new Orrery()).catch(error=>{orreryPromise=null;orreryAttempt++;throw error;});
 }
 fetch('assets/research/planet-stories-and-orbits.json').then(r=>r.json()).then(data=>{stories=data.planets;showStories();}).catch(()=>{});
 fetch('assets/research/extra-planet-stories.json').then(r=>r.json()).then(data=>{extraStories=data.planets||data;showStories();}).catch(()=>{});
@@ -27,7 +27,7 @@ async function showMoonSystem(parent,selected,experiment){
  moonTarget=parent+'/'+(selected||'')+'/'+(experiment||'orbits');const target=moonTarget;renderMoonSystemNavigation(parent,selected);$('moonDiscoveries').hidden=true;
  view='moons';beltFlight?.hide();$('beltView').hidden=true;window.scrollTo(0,0);root.classList.remove('cinema');orrery?.hide();$('main').hidden=true;$('fieldStories').hidden=true;$('orreryView').hidden=true;$('moonSystemView').hidden=false;root.dataset.view='moons';
  document.querySelector('button[data-view="orrery"]').setAttribute('aria-pressed','false');document.querySelectorAll('button[data-world]').forEach(b=>{b.classList.remove('is-active');b.setAttribute('aria-pressed','false');});
- try{moonPromise||=import('./moon-system.js?v=e6305f546a8d.9df63c26d4').then(({MoonSystem})=>new MoonSystem());moonSystem=await moonPromise;if(view==='moons'&&moonTarget===target)await moonSystem.show(parent,selected,experiment);}catch(e){$('moonLoadNotice').hidden=false;$('moonStatus').textContent='This moving view could not start. Open a moon below.';$('moonRetry').hidden=true;console.error(e);}
+ try{moonPromise||=import('./moon-system.js?v=25a4b7bb490d.9df63c26d4').then(({MoonSystem})=>new MoonSystem());moonSystem=await moonPromise;if(view==='moons'&&moonTarget===target)await moonSystem.show(parent,selected,experiment);}catch(e){$('moonLoadNotice').hidden=false;$('moonStatus').textContent='This moving view could not start. Open a moon below.';$('moonRetry').hidden=true;console.error(e);}
 }
 async function showOrrery(selected){$('moonDiscoveries').hidden=true;document.title='The solar system — Solsystemet';beltFlight?.hide();$('beltView').hidden=true;moonSystem?.hide();$('moonSystemView').hidden=true;view='orrery';orreryAvailability='loading';window.scrollTo(0,0);root.classList.remove('cinema');$('cinemaButton').setAttribute('aria-pressed','false');$('cinemaButton').textContent='View only ⤢';$('main').hidden=true;$('fieldStories').hidden=true;$('orreryView').hidden=false;root.dataset.view='orrery';document.querySelector('button[data-view="orrery"]').setAttribute('aria-pressed','true');document.querySelectorAll('button[data-world]').forEach(b=>{b.classList.remove('is-active');b.setAttribute('aria-pressed','false');});
  document.querySelectorAll('#orreryView button,#orreryView input,#orreryView select').forEach(el=>el.disabled=true);
@@ -39,7 +39,7 @@ async function showBeltEntry(){
  $('beltView').hidden=false;root.dataset.view='belt';
  document.querySelector('button[data-view="orrery"]').setAttribute('aria-pressed','false');
  document.querySelectorAll('button[data-world]').forEach(b=>{b.classList.remove('is-active');b.setAttribute('aria-pressed','false');});
- try{beltPromise||=import('./belt.js?v=e6305f546a8d.9df63c26d4').then(({BeltFlight})=>new BeltFlight());beltFlight=await beltPromise;if(view==='belt')beltFlight.show();}
+ try{beltPromise||=import('./belt.js?v=25a4b7bb490d.9df63c26d4').then(({BeltFlight})=>new BeltFlight());beltFlight=await beltPromise;if(view==='belt')beltFlight.show();}
  catch(e){$('beltStatus').textContent='The flight could not start on this device. You can still explore the stories below.';$('beltPlay').disabled=true;$('beltSpeed').disabled=true;console.error(e);}
 }
 $('locateBelt').onclick=()=>navigate('orrery/belt');
@@ -109,7 +109,7 @@ function positionCity(n){
 }
 function syncCityControls(){
  const travelling=!!cityFlight||cityRevealing,open=!!cityExplorer?.active;
- const button=$('cityVisit');if(button){button.disabled=travelling;button.setAttribute('aria-expanded',String(open));button.setAttribute('aria-busy',String(travelling));button.textContent=travelling?'Travelling…':'Explore city ↗';}
+ const button=$('cityVisit');if(button){button.disabled=travelling;button.setAttribute('aria-expanded',String(open));button.setAttribute('aria-busy',String(travelling));button.textContent=travelling?'Travelling…':'Visit';}
  if(state.world==='earth'){
   for(const id of ['earthRotation','cloudToggle','lightsToggle','playButton'])$(id).disabled=!ready||travelling||open;
   $('citySelect').disabled=false;
@@ -155,7 +155,7 @@ async function visitCity(){
  if(cityFlight){cityFlight.resolve(false);cityFlight=null;}
  if(!citySnapshot){citySnapshot={earthViewYaw:state.earthViewYaw,earthViewPitch:state.earthViewPitch,earthCityZoom:state.earthCityZoom,running:state.running};cityCaption=$('sceneCaption').textContent;}
  cityRevealing=true;drag=null;setRunning(false);$('sceneCaption').textContent='EARTH / FLYING TO '+city.name.toUpperCase();$('scene').dataset.cityFlight='true';$('scene').scrollIntoView({block:'center',behavior:'instant'});
- cityModulePromise||=new Promise((resolve,reject)=>{const timeout=setTimeout(()=>reject(new Error('City view timed out')),20000);import('./city-explorer.js?v=e6305f546a8d.9df63c26d4'+(cityModuleAttempt?'&retry='+cityModuleAttempt:'')).then(module=>{clearTimeout(timeout);resolve(module);},error=>{clearTimeout(timeout);reject(error);});}).catch(error=>{cityModulePromise=null;cityModuleAttempt++;throw error;});
+ cityModulePromise||=new Promise((resolve,reject)=>{const timeout=setTimeout(()=>reject(new Error('City view timed out')),20000);import('./city-explorer.js?v=25a4b7bb490d.9df63c26d4'+(cityModuleAttempt?'&retry='+cityModuleAttempt:'')).then(module=>{clearTimeout(timeout);resolve(module);},error=>{clearTimeout(timeout);reject(error);});}).catch(error=>{cityModulePromise=null;cityModuleAttempt++;throw error;});
  try{
   const [module,arrived]=await Promise.all([cityModulePromise,flyToCity(city)]);
   if(!arrived||request!==cityVisitRequest||view!=='planet'||state.world!=='earth')return;

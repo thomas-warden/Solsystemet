@@ -1,6 +1,6 @@
-import { CITY_STORIES } from './city-stories.js?v=e6305f546a8d.9df63c26d4';
-import { CITIES } from './cities.js?v=e6305f546a8d.9df63c26d4';
-import { GOOGLE_MAPS_BROWSER_KEY } from './site-config.js?v=e6305f546a8d.9df63c26d4';
+import { CITY_STORIES } from './city-stories.js?v=25a4b7bb490d.9df63c26d4';
+import { CITIES } from './cities.js?v=25a4b7bb490d.9df63c26d4';
+import { GOOGLE_MAPS_BROWSER_KEY } from './site-config.js?v=25a4b7bb490d.9df63c26d4';
 
 const WEATHER_INTERVAL = 10 * 60 * 1000;
 const WEATHER_STALE = 90 * 60 * 1000;
@@ -100,8 +100,9 @@ function windReading(speed, direction) {
   const speedText=hasSpeed?(speed>0&&speed<1?'<1 km/h':number(speed,' km/h')):'—';
   const directionText=hasDirection?'From '+points[index]:calm?'Calm':hasSpeed?'Direction unavailable':'Unavailable';
   const label=hasDirection?`Wind ${speedText}, from ${names[index]}. Arrow points towards the source of the wind.`:calm?'Calm wind; no direction.':hasSpeed?`Wind ${speedText}; direction unavailable.`:'Wind unavailable.';
-  const needle=hasDirection?`<g data-wind-needle transform="rotate(${angle} 32 32)"><path d="M32 15 38 33 32 29 26 33Z" fill="#e5c88f"/><path d="M32 29V44" stroke="#b9c6ca" stroke-width="1.4"/></g>`:'';
-  return {label,html:`<svg class="wind-compass" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="21" fill="#071017" stroke="#cbb79255"/><path d="M32 11v4m21 17h-4M32 53v-4M11 32h4" stroke="#a6b6bc" stroke-width="1"/><g fill="#a6b6bc" font-family="Arial,sans-serif" font-size="7" text-anchor="middle"><text x="32" y="7">N</text><text x="60" y="34.5">E</text><text x="32" y="62">S</text><text x="4" y="34.5">W</text></g>${needle}<circle cx="32" cy="32" r="2.5" fill="${hasDirection?'#eee2ca':'#64757c'}"/></svg><span class="wind-reading"><span data-wind-speed></span><small data-wind-from></small></span>`,speedText,directionText};
+  const ticks=Array.from({length:60},(_,i)=>`<path d="M32 5.5v${i%5===0?'3.4':'1.4'}" transform="rotate(${i*6} 32 32)" stroke="${i%5===0?'#e3dfd5':'#687076'}" stroke-width="${i%5===0?'.8':'.45'}"/>`).join('');
+  const needle=hasDirection?`<g data-wind-needle transform="rotate(${angle} 32 32)"><path d="M32 10.5 33.1 15V39H30.9V15Z" fill="#e9c552"/></g>`:'';
+  return {label,html:`<svg class="wind-compass" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="31.5" fill="#101416" stroke="#333a3c" stroke-width=".5"/>${ticks}<g fill="#e6e2d9" font-family="Arial,sans-serif" font-size="5" text-anchor="middle"><text x="32" y="18">N</text><text x="48" y="33.8">E</text><text x="32" y="49.5">S</text><text x="16" y="33.8">W</text></g>${needle}<circle cx="32" cy="32" r="2.1" fill="${hasDirection?'#e9c552':'#687076'}"/><circle cx="32" cy="32" r=".7" fill="#101416"/></svg><span class="wind-reading"><span data-wind-speed></span><small data-wind-from></small></span>`,speedText,directionText};
 }
 function formatTime(epoch, city, date=false) {
   return new Intl.DateTimeFormat('en-GB',{timeZone:city.timeZone,hour:'2-digit',minute:'2-digit',...(date?{day:'numeric',month:'short'}:{})}).format(new Date(epoch));

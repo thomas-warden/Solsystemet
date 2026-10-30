@@ -578,3 +578,28 @@ h1[tabindex="-1"]:focus,h2[tabindex="-1"]:focus{outline:none}
 .wind-reading small{font-size:10px;line-height:1.35;color:#bba985}
 @media(max-width:900px){.city-weather-details{grid-template-columns:minmax(60px,1fr) minmax(140px,1.6fr) minmax(60px,1fr);gap:20px}.wind-compass{width:48px;height:48px}.city-weather-details .city-wind{gap:8px}}
 @media(max-width:760px){.city-weather-details{grid-template-columns:minmax(0,1fr) minmax(0,1.35fr) minmax(0,1fr);gap:16px}.city-weather-details .city-wind{align-items:flex-start;flex-direction:column;gap:8px}.wind-compass{width:54px;height:54px}.wind-reading small{font-size:10px}}
+
+/* City instruments: restrained selector and a legible, clock-inspired wind dial. */
+.city-visit-controls{display:flex;align-items:stretch;gap:8px;margin-top:10px}
+#citySelect,.city-choice select{appearance:none;-webkit-appearance:none;background:#0b1012 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='m1 1 5 5 5-5' fill='none' stroke='%23cbb792' stroke-width='1.2'/%3E%3C/svg%3E") no-repeat right 14px center;border:1px solid #cbb79245;border-radius:8px;padding:12px 36px 12px 15px;min-height:48px;margin-top:0;font-size:13px;letter-spacing:.01em;transition:border-color .2s,background-color .2s}
+#citySelect{min-width:0;flex:1;width:0}
+#citySelect:hover,.city-choice select:hover{border-color:#cbb79299;background-color:#12191c}
+#cityVisit{display:flex;align-items:center;justify-content:center;flex:none;min-width:66px;min-height:48px;padding:12px 16px;border-radius:8px;background:#e6d6b5;color:#171c1d;font-size:12px;font-weight:500;transition:background-color .2s}
+#cityVisit:hover{background:#f4e6cc}
+#cityVisit[aria-busy="true"]{min-width:90px;font-size:10px}
+.city-weather-details{grid-template-columns:minmax(65px,1fr) minmax(218px,2fr) minmax(65px,1fr);align-items:center;gap:26px}
+.city-weather-details .city-wind{gap:18px;align-items:center}
+.wind-compass{width:104px;height:104px}
+.wind-reading{gap:7px}
+.wind-reading small{font-size:11px;color:#aaa89f}
+@media(max-width:1100px) and (min-width:761px){.city-weather-details{grid-template-columns:65px 170px 65px;gap:18px;padding-left:20px}.wind-compass{width:88px;height:88px}.city-weather-details .city-wind{gap:10px}.earth-controls{gap:16px;grid-template-columns:1.3fr .65fr 1fr .7fr}}
+@media(max-width:760px){.city-weather-details{grid-template-columns:minmax(0,1fr) minmax(0,1.3fr) minmax(0,1fr);align-items:start;gap:12px}.city-weather-details .city-wind{align-items:flex-start;gap:12px}.wind-compass{width:clamp(80px,24vw,104px);height:clamp(80px,24vw,104px)}.city-choice select{min-height:48px}.city-visit-controls{gap:8px}}
+@media(prefers-reduced-motion:reduce){#citySelect,.city-choice select,#cityVisit{transition:none}}
+@supports (appearance:base-select){
+ #citySelect,.city-choice select,#citySelect::picker(select),.city-choice select::picker(select){appearance:base-select}
+ #citySelect::picker-icon,.city-choice select::picker-icon{display:none}
+ #citySelect::picker(select),.city-choice select::picker(select){background:#101719;border:1px solid #cbb79255;border-radius:10px;padding:6px;box-shadow:0 16px 40px #0009;color:#ece8de;margin-top:6px;min-width:200px}
+ #citySelect option,.city-choice select option{min-height:44px;padding:11px 14px;border-radius:5px;font-size:13px;gap:12px}
+ #citySelect option:hover,.city-choice select option:hover,#citySelect option:focus,.city-choice select option:focus{background:#cbb79218}
+ #citySelect option:checked,.city-choice select option:checked{color:#edd5a5;background:#cbb79210}
+}

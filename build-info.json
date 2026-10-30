@@ -1,7 +1,7 @@
 {
-  "source_commit": "e6305f546a8d297eac36f896ac5d0acb02aaea7b",
-  "asset_revision": "e6305f546a8d.9df63c26d4",
-  "built_at": "2026-10-30T10:12:57.917570+00:00",
-  "description": "Distinct natural-world city stories and a directional wind compass",
+  "source_commit": "25a4b7bb490de8c4e049d12347cf9cdc5b883fa2",
+  "asset_revision": "25a4b7bb490d.9df63c26d4",
+  "built_at": "2026-10-30T11:44:22.107743+00:00",
+  "description": "Refined city picker, Visit button and larger minimal wind dial",
   "google_maps_configured": true
 }
