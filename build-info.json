@@ -1,7 +1,7 @@
 {
-  "source_commit": "1c9cff8d2ad4606f5889eeec43d8422e2e12b08d",
-  "asset_revision": "1c9cff8d2ad4.9df63c26d4",
-  "built_at": "2026-10-30T14:23:43.107315+00:00",
-  "description": "Sixteen geography activities across fifteen cities",
+  "source_commit": "67180f53fcdf825f6cd5dd4c7c4ad3599f4e7d41",
+  "asset_revision": "67180f53fcdf.9df63c26d4",
+  "built_at": "2026-11-01T07:06:14.203895+00:00",
+  "description": "Withdraw city activity prototypes pending design review",
   "google_maps_configured": true
 }
