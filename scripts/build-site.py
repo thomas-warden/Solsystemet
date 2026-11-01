@@ -39,11 +39,14 @@ def main():
         stage = Path(staging) / 'site'
         stage.mkdir()
         for source in [root / 'index.html', root / 'sources.html', root / 'style.css', *root.glob('*.js')]:
+            if source.name in {'city-activities.js', 'city-activity-models.js', 'city-activity-scene.js'}:
+                continue  # Withdrawn prototypes are not public release assets.
             text = re.sub(r'(\.(?:js|css)\?v=)[A-Za-z0-9._-]+',
                           lambda match: match[1] + asset_revision, source.read_text())
             (stage / source.name).write_text(text)
         for directory in ('assets', 'vendor'):
-            shutil.copytree(root / directory, stage / directory)
+            shutil.copytree(root / directory, stage / directory,
+                            ignore=shutil.ignore_patterns('city-activities'))
         # Google Maps browser keys are necessarily visible to site visitors.
         # Restrict this key to the published site's referrer and Maps JS API.
         if maps_key:
