@@ -1,5 +1,5 @@
-import { MOONS, FAMILIES } from './moons.js?v=67180f53fcdf.9df63c26d4';
-import { ORDER } from './worlds.js?v=67180f53fcdf.9df63c26d4';
+import { MOONS, FAMILIES } from './moons.js?v=702e061fdaee.9df63c26d4';
+import { ORDER } from './worlds.js?v=702e061fdaee.9df63c26d4';
 
 export const FEATURED_MOONS={earth:['moon'],jupiter:['europa','io','ganymede','callisto'],saturn:['enceladus','titan','mimas','iapetus']};
 export const MOON_HOOKS={moon:'Footprints that last for ages.',europa:'A whole ocean beneath the ice.',io:'A world with hundreds of volcanoes.',ganymede:'Bigger than Mercury. Still a moon.',callisto:'Billions of years written in craters.',enceladus:'An ocean spraying into space.',titan:'Lakes and rain made of methane.',mimas:'One crater almost a third of a moon wide.',iapetus:'A moon with a mountain seam.',rhea:'Shining cliffs made of ice.',dione:'Three moons share one track.',tethys:'A valley more than half a world long.'};
@@ -32,7 +32,7 @@ export function renderFamilyNavigation(world){
  if(host.hidden)return;
  const link=(text,hash,cls)=>{const a=document.createElement('a');a.textContent=text;a.href='#'+hash;if(cls)a.className=cls;host.append(a);};
  if(p)link('← View '+parentName(parent),parent,'family-parent');
- else if(parent==='earth'){link('View the Moon ↗','moon','family-primary');link('Make ocean tides ↗','earth-moons/tides','family-moon');}
+ else if(parent==='earth'){link('View the Moon ↗','moon','family-primary');link('Make ocean tides ↗','earth-moons/tides','family-moon');const aurora=document.createElement('a');aurora.href='aurora/';aurora.className='family-moon';aurora.textContent='Explore auroras ↗';host.append(aurora);}
  else{
   const label=document.createElement('span');label.className='family-eyebrow';label.textContent='MOONS TO EXPLORE';host.append(label);
   for(const id of FEATURED_MOONS[parent])link(MOONS[id].title+' ↗',id,'family-moon');
