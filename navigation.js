@@ -32,7 +32,7 @@ export function renderFamilyNavigation(world){
  if(host.hidden)return;
  const link=(text,hash,cls)=>{const a=document.createElement('a');a.textContent=text;a.href='#'+hash;if(cls)a.className=cls;host.append(a);};
  if(p)link('← View '+parentName(parent),parent,'family-parent');
- else if(parent==='earth'){link('View the Moon ↗','moon','family-primary');link('Make ocean tides ↗','earth-moons/tides','family-moon');}
+ else if(parent==='earth'){link('View the Moon ↗','moon','family-primary');link('Make ocean tides ↗','earth-moons/tides','family-moon');const aurora=document.createElement('a');aurora.href='aurora/';aurora.className='family-moon';aurora.textContent='Explore auroras ↗';host.append(aurora);}
  else{
   const label=document.createElement('span');label.className='family-eyebrow';label.textContent='MOONS TO EXPLORE';host.append(label);
   for(const id of FEATURED_MOONS[parent])link(MOONS[id].title+' ↗',id,'family-moon');

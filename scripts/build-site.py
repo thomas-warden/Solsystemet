@@ -47,6 +47,12 @@ def main():
         for directory in ('assets', 'vendor'):
             shutil.copytree(root / directory, stage / directory,
                             ignore=shutil.ignore_patterns('city-activities'))
+        # Export the approved planetary Aurora exhibit only, not prototype archives.
+        shutil.copytree(root / 'aurora', stage / 'aurora')
+        for source in (stage / 'aurora').iterdir():
+            if source.suffix in {'.html', '.js', '.css'}:
+                source.write_text(re.sub(r'(\.(?:js|css)\?v=)[A-Za-z0-9._-]+',
+                                         lambda match: match[1] + asset_revision, source.read_text()))
         # Google Maps browser keys are necessarily visible to site visitors.
         # Restrict this key to the published site's referrer and Maps JS API.
         if maps_key:

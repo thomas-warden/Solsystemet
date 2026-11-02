@@ -155,3 +155,6 @@ City discovery stories cover distinct natural-world phenomena: climate, geology,
 The city wheel uses native momentum scrolling with centred snap positions, fading perspective and explicit Choose/Cancel actions. Arrow keys, Home/End, Page Up/Down and initial-letter navigation work in the list; Escape cancels without leaving the city. Reduced motion removes the perspective and smooth programmatic scrolling. Long model and service notes are collected in the footer.
 
 City activities are withdrawn from publication pending redesign and user review. Prototype modules and tests remain in source for reference; they are not connected to the app or included in release exports. Archived model notes: `design/ARCHIVED_CITY_ACTIVITY_SOURCES.html`. Future activities must be reviewed in a private preview before publishing.
+
+
+The planetary Aurora exhibit is at `aurora/`, linked from Earth and ocean tides. Pressure changes the approximate magnetopause stand-off distance; a separate sequence illustrates energy release towards both auroral ovals. `node tests/aurora.cjs` exercises the model relationships, controls, responsive views and recovery.
