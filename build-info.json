@@ -1,7 +1,7 @@
 {
-  "source_commit": "702e061fdaeef255639ad246adc37f093f48e832",
-  "asset_revision": "702e061fdaee.9df63c26d4",
-  "built_at": "2026-11-02T10:05:59.098733+00:00",
-  "description": "Planetary Aurora: solar wind, magnetosphere and polar lights",
+  "source_commit": "4051422c950281c98652cfb461170f3ba05c8a6d",
+  "asset_revision": "4051422c9502.9df63c26d4",
+  "built_at": "2026-11-02T15:48:53.913870+00:00",
+  "description": "Aurora: five visual and interaction refinement passes",
   "google_maps_configured": true
 }
