@@ -1,7 +1,7 @@
 {
-  "source_commit": "4051422c950281c98652cfb461170f3ba05c8a6d",
-  "asset_revision": "4051422c9502.9df63c26d4",
-  "built_at": "2026-11-02T15:48:53.913870+00:00",
-  "description": "Aurora: five visual and interaction refinement passes",
+  "source_commit": "2962f1c767c2c62a12a8a3b8f76cf74c58d13d78",
+  "asset_revision": "2962f1c767c2.9df63c26d4",
+  "built_at": "2026-11-02T19:48:00.395897+00:00",
+  "description": "Aurora: visible Sun, interactive Earth cutaway and solar journey",
   "google_maps_configured": true
 }
