@@ -1,4 +1,4 @@
-import { CITIES } from './cities.js?v=2962f1c767c2.9df63c26d4';
+import { CITIES } from './cities.js?v=e6732d2c9bdf.9df63c26d4';
 
 // A scroll-snap wheel with an explicit commit: browsing never starts map/weather requests.
 const pickers=new WeakMap();
