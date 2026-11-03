@@ -1,0 +1,13 @@
+# Five further Aurora passes — 3 November 2026
+
+Successive source versions were rendered, reviewed and revised. No new services or assets were introduced. The existing Sun/core procedural illustrations and credited Earth maps remain the foundation.
+
+1. **Sun craft and motion.** Reduced the oversized sunspot, replaced the harsh surface pattern with finer granulation, varied the corona and animated emission along prominence strands. Reviewed `/tmp/aurora-nov3-pass1-system.png`: a less uniform solar disc; arch luminosity is no longer static.
+2. **Field and wind.** The envelope looked like a solid translucent tube. Reduced its interior fill, preserved the Sun-facing rim, smoothed the field-guide stretching and faded trails at their endpoints. Reused envelope geometry during compression instead of disposing and allocating a mesh each frame. Reviewed `/tmp/aurora-nov3-pass2-system.png`: clearer separation between the illustrative boundary, field guides and wind.
+3. **Cutaway materials.** Added fine mantle relief and advected outer-core texture; subdued the central glow and oversized flow arrows; strengthened selected-layer contrast. Reviewed `/tmp/aurora-nov3-pass3-core.png`: more material differentiation, with less diagram-marker clutter. Interior colours and flow paths remain illustrations, not observed imagery.
+4. **Auroral shape.** Varied curtain height around each oval, increased upper-edge folds, bent the fibres and added patchier emission with distinct hemispheric phases and restrained red upper light. Reviewed `/tmp/aurora-nov3-pass4-polar.png`: a less regular silhouette, without changing the pressure/energy relationship.
+5. **Motion and control.** Interpolated Earth's display scale with the camera; used zero-endpoint-acceleration easing and distance-based flight duration. The Sun now leaves the frame naturally instead of disappearing immediately on view selection. Pointer or keyboard takeover stops the automatic journey. The intermediate flight capture exposed a premature polar heading over the Sun; it now fades in on approach. Reviewed `/tmp/aurora-nov3-pass5-{system,core,polar}.png` and `/tmp/aurora-nov3-flight.png`.
+
+Validation: main Aurora regression suite plus `tests/aurora-motion.cjs` for interpolated scale, settled camera, pointer/keyboard takeover and frozen shader time when paused. Phone portrait/landscape, reduced motion, full journey, independent model controls and failed imagery/WebGL recovery remain covered.
+
+Limits: procedural scientific illustration is not observational photorealism. No child testing or physical iPhone frame-pacing measurement was performed. No numerical quality score is claimed.
